@@ -40,6 +40,7 @@ public class PowerService extends Service
 
     public PowerService()
     {
+
     }
 
     @Override

@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">Power</string>
+    <string name="app_name">Auto</string>
+    <string name="bt_device_menu">Bluetooth Device</string>
 </resources>

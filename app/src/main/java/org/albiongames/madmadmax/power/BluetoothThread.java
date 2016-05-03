@@ -8,6 +8,10 @@ public class BluetoothThread extends GenericThread
     @Override
     protected void periodicTask()
     {
+        String deviceId = Settings.getString(Settings.KEY_BLUETOOTH_DEVICE);
+        if (deviceId == null)
+            return;
+
 
     }
 }
