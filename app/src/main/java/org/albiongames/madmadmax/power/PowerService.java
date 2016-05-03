@@ -5,8 +5,15 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class PowerService extends Service
 {
+    public static final int THREAD_BLUETOOTH = 0;
+    public static final int THREAD_LOCATION = 1;
+    public static final int THREAD_NETWORKING = 2;
+
     public static final int STATUS_OFF = 0;
     public static final int STATUS_ON = 1;
     public static final int STATUS_STARTING = 2;
@@ -19,6 +26,8 @@ public class PowerService extends Service
     BluetoothThread bluetoothThread = null;
     NetworkingThread networkingThread = null;
     LocationThread locationThread = null;
+
+    Map<Integer, GenericThread> mThreads = new HashMap<Integer, GenericThread>();
 
     public class LocalBinder extends Binder
     {
@@ -46,6 +55,10 @@ public class PowerService extends Service
         locationThread = new LocationThread();
         bluetoothThread = new BluetoothThread();
 
+        mThreads.put(THREAD_BLUETOOTH, bluetoothThread);
+        mThreads.put(THREAD_LOCATION, locationThread);
+        mThreads.put(THREAD_NETWORKING, networkingThread);
+
         locationThread.start();
         networkingThread.start();
         bluetoothThread.start();
@@ -60,6 +73,8 @@ public class PowerService extends Service
         locationThread.graciousStop();
         networkingThread.graciousStop();
         bluetoothThread.graciousStop();
+
+        mThreads.clear();
 
         locationThread = null;
         networkingThread = null;
