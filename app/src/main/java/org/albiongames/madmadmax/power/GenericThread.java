@@ -14,6 +14,11 @@ public class GenericThread extends Thread
         // do nothing
     }
 
+    protected void onStart()
+    {
+        // do nothing, reimplement in children
+    }
+
     protected void onStop()
     {
         // do nothing, reimplement in children

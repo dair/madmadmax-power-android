@@ -1,5 +1,6 @@
 package org.albiongames.madmadmax.power;
 
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -17,8 +18,8 @@ import java.util.concurrent.TimeUnit;
 
 public class ServiceStatusActivity extends AppCompatActivity
 {
-//    PowerService mService = null;
-//    boolean mBound = false;
+    PowerService mService = null;
+    boolean mBound = false;
 
     ScheduledThreadPoolExecutor mExecutor = null;
 
@@ -45,10 +46,34 @@ public class ServiceStatusActivity extends AppCompatActivity
         super.onStart();
     }
 
+    private void bindService()
+    {
+        if (!mBound)
+        {
+            Intent intent = new Intent(this, PowerService.class);
+            bindService(intent, mConnection, Context.BIND_NOT_FOREGROUND);
+        }
+    }
+
+    private void unbindService()
+    {
+        if (mBound)
+        {
+            mService.setActivity(null);
+            mService = null;
+            unbindService(mConnection);
+            mBound = false;
+        }
+    }
+
+
     @Override
     protected void onResume()
     {
         super.onResume();
+
+        bindService();
+
         mExecutor = new ScheduledThreadPoolExecutor(1);
         mExecutor.scheduleAtFixedRate(new Runnable()
         {
@@ -71,6 +96,9 @@ public class ServiceStatusActivity extends AppCompatActivity
     @Override
     protected void onPause()
     {
+        unbindService();
+        mExecutor.shutdownNow();
+        mExecutor = null;
         super.onPause();
     }
 
@@ -115,4 +143,27 @@ public class ServiceStatusActivity extends AppCompatActivity
         }
         return false;
     }
+
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className,
+                                       IBinder service) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            PowerService.LocalBinder binder = (PowerService.LocalBinder) service;
+            mService = binder.getService();
+            mBound = true;
+
+            mService.setActivity(ServiceStatusActivity.this);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0)
+        {
+            mService = null;
+            mBound = false;
+        }
+    };
+
 }

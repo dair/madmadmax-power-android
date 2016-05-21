@@ -1,5 +1,6 @@
 package org.albiongames.madmadmax.power;
 
+import android.app.Activity;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
@@ -29,6 +30,8 @@ public class PowerService extends Service
 
     Map<Integer, GenericThread> mThreads = new HashMap<Integer, GenericThread>();
 
+    Activity mActivity = null;
+
     public class LocalBinder extends Binder
     {
         PowerService getService()
@@ -43,6 +46,11 @@ public class PowerService extends Service
 
     }
 
+    void setActivity(Activity activity)
+    {
+        mActivity = activity;
+    }
+
     @Override
     public IBinder onBind(Intent intent)
     {
@@ -53,7 +61,7 @@ public class PowerService extends Service
     public int onStartCommand(Intent intent, int flags, int startId)
     {
         networkingThread = new NetworkingThread();
-        locationThread = new LocationThread();
+        locationThread = new LocationThread(this);
         bluetoothThread = new BluetoothThread();
 
         mThreads.put(THREAD_BLUETOOTH, bluetoothThread);
