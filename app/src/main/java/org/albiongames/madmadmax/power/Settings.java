@@ -9,7 +9,9 @@ import android.content.SharedPreferences;
 public class Settings
 {
     public static final String KEY_BLUETOOTH_DEVICE = "bluetooth_device";
-
+    public static final String KEY_MIN_GPS_TIME = "gps_time";
+    public static final String KEY_MIN_GPS_DISTANCE = "gps_distance";
+    public static final String  KEY_GPS_IDLE_INTERVAL = "gps_idle_interval";
 
 
     private static Settings instance = new Settings();
@@ -29,6 +31,21 @@ public class Settings
     public static void setString(final String key, final String value)
     {
         instance.pSetString(key, value);
+    }
+
+    public static long getLong(final String key)
+    {
+        long ret = 0;
+        try
+        {
+            ret = Long.parseLong(getString(key));
+        }
+        catch (NumberFormatException ex)
+        {
+
+        }
+
+        return 0;
     }
 
 

@@ -14,6 +14,7 @@ public class PowerService extends Service
     public static final int THREAD_BLUETOOTH = 0;
     public static final int THREAD_LOCATION = 1;
     public static final int THREAD_NETWORKING = 2;
+    public static final int THREAD_STORAGE = 3;
 
     public static final int STATUS_OFF = 0;
     public static final int STATUS_ON = 1;
@@ -24,9 +25,10 @@ public class PowerService extends Service
 
     private final LocalBinder mBinder = new LocalBinder();
 
-    BluetoothThread bluetoothThread = null;
-    NetworkingThread networkingThread = null;
-    LocationThread locationThread = null;
+    BluetoothThread mBluetoothThread = null;
+    NetworkingThread mNetworkingThread = null;
+    LocationThread mLocationThread = null;
+    StorageThread mStorageThread = null;
 
     Map<Integer, GenericThread> mThreads = new HashMap<Integer, GenericThread>();
 
@@ -60,17 +62,20 @@ public class PowerService extends Service
     @Override
     public int onStartCommand(Intent intent, int flags, int startId)
     {
-        networkingThread = new NetworkingThread();
-        locationThread = new LocationThread(this);
-        bluetoothThread = new BluetoothThread();
+        mNetworkingThread = new NetworkingThread();
+        mLocationThread = new LocationThread(this);
+        mBluetoothThread = new BluetoothThread();
+        mStorageThread = new StorageThread(this);
 
-        mThreads.put(THREAD_BLUETOOTH, bluetoothThread);
-        mThreads.put(THREAD_LOCATION, locationThread);
-        mThreads.put(THREAD_NETWORKING, networkingThread);
+        mThreads.put(THREAD_BLUETOOTH, mBluetoothThread);
+        mThreads.put(THREAD_LOCATION, mLocationThread);
+        mThreads.put(THREAD_NETWORKING, mNetworkingThread);
+        mThreads.put(THREAD_STORAGE, mStorageThread);
 
-        locationThread.start();
-        networkingThread.start();
-        bluetoothThread.start();
+        mStorageThread.start();
+        mLocationThread.start();
+        mNetworkingThread.start();
+        mBluetoothThread.start();
 
         return START_STICKY;
     }
@@ -79,14 +84,21 @@ public class PowerService extends Service
     public void onDestroy()
     {
         super.onDestroy();
-        locationThread.graciousStop();
-        networkingThread.graciousStop();
-        bluetoothThread.graciousStop();
+        mLocationThread.graciousStop();
+        mNetworkingThread.graciousStop();
+        mBluetoothThread.graciousStop();
+        mStorageThread.graciousStop();
 
         mThreads.clear();
 
-        locationThread = null;
-        networkingThread = null;
-        bluetoothThread = null;
+        mStorageThread = null;
+        mLocationThread = null;
+        mNetworkingThread = null;
+        mBluetoothThread = null;
+    }
+
+    public StorageThread getStorageThread()
+    {
+        return mStorageThread;
     }
 }
