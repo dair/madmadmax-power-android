@@ -11,8 +11,8 @@ public class Settings
     public static final String KEY_BLUETOOTH_DEVICE = "bluetooth_device";
     public static final String KEY_MIN_GPS_TIME = "gps_time";
     public static final String KEY_MIN_GPS_DISTANCE = "gps_distance";
-    public static final String  KEY_GPS_IDLE_INTERVAL = "gps_idle_interval";
-
+    public static final String KEY_GPS_IDLE_INTERVAL = "gps_idle_interval";
+    public static final String KEY_DEVICE_ID = "device_id";
 
     private static Settings instance = new Settings();
 

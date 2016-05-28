@@ -1,42 +1,29 @@
 package org.albiongames.madmadmax.power;
 
+import android.app.Activity;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
+import android.support.annotation.Nullable;
 
-public class MainActivity extends AppCompatActivity
+public class MainActivity extends Activity
 {
-
     @Override
-    protected void onCreate(Bundle savedInstanceState)
+    protected void onCreate(@Nullable Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-    }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu)
-    {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main_menu, menu);
-        return true;
-    }
+        final Class<? extends Activity> activityClass;
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item)
-    {
-        // Handle item selection
-        switch (item.getItemId())
+        if (Settings.getString(Settings.KEY_DEVICE_ID) == null)
         {
-            case R.id.bt_device:
-                Intent intent = new Intent(this, BluetoothDeviceActivity.class);
-                startActivity(intent);
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+            activityClass = RegisterActivity.class;
         }
+        else
+        {
+            activityClass = ServiceStatusActivity.class;
+        }
+
+        Intent newActivity = new Intent(this, activityClass);
+        startActivity(newActivity);
     }
 }
