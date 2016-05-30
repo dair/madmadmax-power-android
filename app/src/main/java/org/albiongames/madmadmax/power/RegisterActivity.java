@@ -1,5 +1,7 @@
 package org.albiongames.madmadmax.power;
 
+import android.os.AsyncTask;
+import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -10,8 +12,12 @@ import android.widget.EditText;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
+import android.provider.Settings.Secure;
 
-public class RegisterActivity extends AppCompatActivity
+import org.json.JSONException;
+import org.json.JSONObject;
+
+public class RegisterActivity extends AppCompatActivity implements NetworkingThread.Listener
 {
     private String mStoredDeviceId = null;
     Button mRegisterButton = null;
@@ -90,6 +96,48 @@ public class RegisterActivity extends AppCompatActivity
 
     private void registerWithDeviceName(String name)
     {
-        // TODO
+        String android_id = Secure.getString(getContentResolver(),
+                android.provider.Settings.Secure.ANDROID_ID);
+        String manufacturer = Build.MANUFACTURER;
+        String brand = Build.BRAND;
+        String model = Build.MODEL;
+
+        JSONObject object = new JSONObject();
+        try
+        {
+            object.put("id", android_id);
+            object.put("desc", manufacturer + ":" + brand + ":" + model);
+            object.put("name", name);
+        }
+        catch (JSONException ex)
+        {
+            return;
+        }
+
+        final NetworkingThread.Request request = new NetworkingThread.Request("POST", NetworkingThread.authUrl(), object.toString());
+
+        AsyncTask task = new AsyncTask()
+        {
+            @Override
+            protected Object doInBackground(Object[] params)
+            {
+                NetworkingThread.one(request, RegisterActivity.this);
+                return null;
+            }
+        };
+        task.execute();
+    }
+
+    @Override
+    public void onNetworkError(NetworkingThread.Request request, Error error)
+    {
+        Tools.messageBox(this, error.toString());
+        mStoredDeviceId = null;
+    }
+
+    @Override
+    public void onNetworkSuccess(NetworkingThread.Request request, NetworkingThread.Response response)
+    {
+        Tools.messageBox(this, response.getBody());
     }
 }
