@@ -2,6 +2,7 @@ package org.albiongames.madmadmax.power;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 
 /**
  * Created by dair on 03/05/16.
@@ -13,6 +14,8 @@ public class Settings
     public static final String KEY_MIN_GPS_DISTANCE = "gps_distance";
     public static final String KEY_GPS_IDLE_INTERVAL = "gps_idle_interval";
     public static final String KEY_DEVICE_ID = "device_id";
+    public static final String KEY_DEVICE_NAME = "device_name";
+    public static final String KEY_SERVER_URL = "server_url";
 
     private static Settings instance = new Settings();
 
@@ -55,7 +58,9 @@ public class Settings
     {
         if (context == null)
             sharedPreferences = null;
-        sharedPreferences = context.getSharedPreferences("preferences", Context.MODE_PRIVATE);
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+
+        //context.getSharedPreferences("preferences", Context.MODE_PRIVATE);
     }
 
     private String pGetString(final String key)

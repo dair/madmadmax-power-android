@@ -12,6 +12,8 @@ public class MainActivity extends Activity
     {
         super.onCreate(savedInstanceState);
 
+        Settings.setContext(this);
+
         final Class<? extends Activity> activityClass;
 
         if (Settings.getString(Settings.KEY_DEVICE_ID) == null)

@@ -1,5 +1,9 @@
 package org.albiongames.madmadmax.power;
 
+import android.util.Log;
+
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.InputStream;
@@ -19,6 +23,13 @@ public class NetworkingThread extends GenericThread
         private String mMethod;
         private String mUrl;
         private String mBody;
+
+        public Request(final String method, final String url, JSONObject object)
+        {
+            mMethod = method;
+            mUrl = url;
+            mBody = object.toString();
+        }
 
         public Request(final String method, final String url, final String body)
         {
@@ -45,15 +56,15 @@ public class NetworkingThread extends GenericThread
 
     public static class Response
     {
-        private String mBody;
-        public Response(String body)
+        private JSONObject mObject = null;
+        public Response(JSONObject object)
         {
-            mBody = body;
+            mObject = object;
         }
 
-        public String getBody()
+        public final JSONObject getObject()
         {
-            return mBody;
+            return mObject;
         }
     }
 
@@ -86,11 +97,28 @@ public class NetworkingThread extends GenericThread
 
     private Queue<QueueItem> mQueue = new LinkedBlockingQueue<>();
 
-    public static final String BASE_URL="http://192.168.100.100:3000";
+    public static String baseUrl()
+    {
+        String storedUrl = Settings.getString(Settings.KEY_SERVER_URL);
+        if (storedUrl == null)
+            return null;
+        if (!storedUrl.startsWith("http://") &&
+            !storedUrl.startsWith("https://"))
+        {
+            storedUrl = "http://" + storedUrl;
+        }
+
+        while (storedUrl.endsWith("/"))
+        {
+            storedUrl = storedUrl.substring(0, storedUrl.length()-1);
+        }
+
+        return storedUrl;
+    }
 
     public static String authUrl()
     {
-        return BASE_URL + "/device/auth";
+        return baseUrl() + "/device/reg";
     }
 
     public void addRequest(Request request, Listener listener)
@@ -118,33 +146,41 @@ public class NetworkingThread extends GenericThread
             URL url = new URL(request.getUrl());
             connection = (HttpURLConnection)url.openConnection();
             connection.setRequestMethod(request.getMethod());
+            connection.setReadTimeout(3000);
+            connection.setConnectTimeout(5000);
             if (request.getBody() != null &&
                     request.getBody().length() > 0)
             {
                 connection.setRequestProperty("Content-Type", "application/json");
                 byte[] bytes = request.getBody().getBytes("UTF-8");
                 int len = bytes.length;
-                connection.setRequestProperty("Content-Length", Integer.toString(len));
+//                connection.setRequestProperty("Content-Length", Integer.toString(len));
+                connection.setFixedLengthStreamingMode(len);
                 connection.setUseCaches(false);
                 connection.setDoOutput(true);
+                connection.setDoInput(true);
+
                 DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
                 wr.write(bytes);
-                wr.close();
-
-                InputStream is = connection.getInputStream();
-                BufferedReader rd = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-                StringBuilder responseString = new StringBuilder(); // or StringBuffer if not Java 5+
-                String line;
-                while((line = rd.readLine()) != null) {
-                    responseString.append(line);
-                    responseString.append('\r');
-                }
-                rd.close();
+                wr.flush();
 
                 int status = connection.getResponseCode();
+
                 if (status == HttpURLConnection.HTTP_OK)
                 {
-                    Response response = new Response(responseString.toString());
+                    InputStream is = connection.getInputStream();
+                    BufferedReader rd = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+                    StringBuilder responseString = new StringBuilder(); // or StringBuffer if not Java 5+
+                    String line;
+                    while((line = rd.readLine()) != null) {
+                        responseString.append(line);
+                        responseString.append('\r');
+                    }
+                    rd.close();
+
+                    JSONObject object = new JSONObject(responseString.toString());
+
+                    Response response = new Response(object);
                     if (listener != null)
                     {
                         listener.onNetworkSuccess(request, response);
@@ -158,10 +194,13 @@ public class NetworkingThread extends GenericThread
                         listener.onNetworkError(request, error);
                     }
                 }
+
+                wr.close();
             }
         }
         catch (Exception ex)
         {
+            Tools.log(ex.toString());
             Error error = new Error(ex.getLocalizedMessage());
             listener.onNetworkError(request, error);
         }

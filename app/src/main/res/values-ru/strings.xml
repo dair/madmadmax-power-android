@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Авто</string>
+    <string name="app_name">Mad Mad Max</string>
     <string name="bt_device_menu">Устройство Bluetooth</string>
     <string name="service_status">Состояние сервиса:</string>
     <string name="device_name">Имя устройства</string>
     <string name="register_button">Регистрация</string>
+
+    <string name="title_activity_settings">Настройки</string>
+    <string name="pref_base_url">Сетевой адрес</string>
+    <string name="reg_success">Регистрация успешно завершена</string>
 </resources>
