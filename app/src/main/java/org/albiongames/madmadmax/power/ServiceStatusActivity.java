@@ -24,6 +24,8 @@ public class ServiceStatusActivity extends AppCompatActivity
     PowerService mService = null;
     boolean mBound = false;
 
+    long mLastTimeChanged = 0;
+
     ScheduledThreadPoolExecutor mExecutor = null;
 
     @Override
@@ -75,7 +77,7 @@ public class ServiceStatusActivity extends AppCompatActivity
     {
         super.onResume();
 
-        bindService();
+//        bindService();
 
         mExecutor = new ScheduledThreadPoolExecutor(1);
         mExecutor.scheduleAtFixedRate(new Runnable()
@@ -99,7 +101,7 @@ public class ServiceStatusActivity extends AppCompatActivity
     @Override
     protected void onPause()
     {
-        unbindService();
+//        unbindService();
         mExecutor.shutdownNow();
         mExecutor = null;
         super.onPause();
@@ -107,10 +109,16 @@ public class ServiceStatusActivity extends AppCompatActivity
 
     protected void clickOnOff()
     {
+        long time = System.currentTimeMillis();
+        if (time - mLastTimeChanged < 2500)
+            return;
+
+        mLastTimeChanged = time;
+
         if (isMyServiceRunning(PowerService.class))
         {
             // stop service
-            stopService(new Intent(this, PowerService.class));
+            PowerService.graciousStop();
         }
         else
         {

@@ -44,6 +44,6 @@ public class Tools
 
     public static void log(String message)
     {
-        Log.d("MadMax", message);
+        Log.e("MadMax", message);
     }
 }

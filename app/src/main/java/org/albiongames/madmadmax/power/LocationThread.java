@@ -8,6 +8,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Looper;
 import android.support.v4.app.ActivityCompat;
 
 import java.util.Timer;
@@ -16,10 +17,11 @@ import java.util.TimerTask;
 /**
  * Created by dair on 31/03/16.
  */
-public class LocationThread extends GenericThread implements LocationListener
+public class LocationThread extends Thread implements LocationListener
 {
     private PowerService mService = null;
     private long mLastUpdate = 0;
+    private Looper mLooper = null;
 
     public LocationThread(PowerService service)
     {
@@ -29,17 +31,33 @@ public class LocationThread extends GenericThread implements LocationListener
     }
 
     @Override
-    protected void periodicTask()
+    public void run()
     {
-        long now = System.currentTimeMillis();
-        if (now - mLastUpdate > Settings.getLong(Settings.KEY_GPS_IDLE_INTERVAL))
-        {
-            mService.getStorageThread().addEntry(new StorageEntry.MarkerStart());
-            mLastUpdate = now;
-        }
+        Looper.prepare();
+        mLooper = Looper.myLooper();
+
+        onStart();
+
+        Looper.loop();
+
+        onStop();
+        mLooper = null;
     }
 
-    @Override
+//    @Override
+//    protected void periodicTask()
+//    {
+//        if (mService == null || mService.getStatus() != PowerService.STATUS_ON)
+//            return;
+//
+//        long now = System.currentTimeMillis();
+//        if (now - mLastUpdate > Settings.getLong(Settings.KEY_GPS_IDLE_INTERVAL))
+//        {
+//            mService.getLogicStorage().put(new StorageEntry.Marker("ping"));
+//            mLastUpdate = now;
+//        }
+//    }
+
     protected void onStart()
     {
         LocationManager locationManager = (LocationManager) mService.getSystemService(Context.LOCATION_SERVICE);
@@ -51,8 +69,14 @@ public class LocationThread extends GenericThread implements LocationListener
         {
             mLastUpdate = System.currentTimeMillis();
 
-            mService.getStorageThread().addEntry(new StorageEntry.MarkerStart());
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, Settings.getLong(Settings.KEY_MIN_GPS_TIME), Settings.getLong(Settings.KEY_MIN_GPS_DISTANCE), this);
+            mService.getLogicStorage().put(new StorageEntry.MarkerStart());
+
+            long gpsTime = Settings.getLong(Settings.KEY_MIN_GPS_TIME);
+            long gpsDistance = Settings.getLong(Settings.KEY_MIN_GPS_DISTANCE);
+
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, gpsTime, gpsDistance, this);
+
+            Tools.log("Location Thread started");
         }
         catch (SecurityException exceptiion)
         {
@@ -60,7 +84,6 @@ public class LocationThread extends GenericThread implements LocationListener
         }
     }
 
-    @Override
     protected void onStop()
     {
         LocationManager locationManager = (LocationManager) mService.getSystemService(Context.LOCATION_SERVICE);
@@ -68,13 +91,19 @@ public class LocationThread extends GenericThread implements LocationListener
         {
             locationManager.removeUpdates(this);
 
-            mService.getStorageThread().addEntry(new StorageEntry.MarkerStop());
+            mService.getLogicStorage().put(new StorageEntry.MarkerStop());
         }
-        catch (SecurityException exceptiion)
+        catch (SecurityException exception)
         {
             // cry out loud
         }
         mService = null;
+    }
+
+    public void graciousStop()
+    {
+        if (mLooper != null)
+            mLooper.quit();
     }
 
     /// Location Listener methods
@@ -83,28 +112,36 @@ public class LocationThread extends GenericThread implements LocationListener
         // Called when a new location is found by the network location provider.
         if (location == null)
             return;
+        int satellites = location.getExtras().getInt("satellites");
+
+        Tools.log("Got location: " + location.toString());
+
+        if (satellites < Settings.getLong(Settings.KEY_MIN_SATELLITES))
+            return;
 
         double lat = location.getLatitude();
         double lon = location.getLongitude();
         float speed = location.getSpeed();
         long time = location.getTime();
 
-        mService.getStorageThread().addEntry(new StorageEntry.Location(time, lat, lon, speed));
+        mService.getLogicStorage().put(new StorageEntry.Location(time, lat, lon, speed, satellites));
         mLastUpdate = time;
     }
 
     public void onStatusChanged(String provider, int status, Bundle extras)
     {
-        mService.getStorageThread().addEntry(new StorageEntry.Info("onStatusChanged: " + provider + ": " + Integer.toString(status)));
+//        int satellites = extras.getInt("satellites");
+
+//        mService.getLogicStorage().put(new StorageEntry.Info("onStatusChanged: " + provider + ": " + Integer.toString(status) + ": satellites = " + Integer.toString(satellites)));
     }
 
     public void onProviderEnabled(String provider)
     {
-        mService.getStorageThread().addEntry(new StorageEntry.Info("onProviderEnabled: " + provider));
+//        mService.getLogicStorage().put(new StorageEntry.Info("onProviderEnabled: " + provider));
     }
 
     public void onProviderDisabled(String provider)
     {
-        mService.getStorageThread().addEntry(new StorageEntry.Info("onProviderDisabled: " + provider));
+//        mService.getLogicStorage().put(new StorageEntry.Info("onProviderDisabled: " + provider));
     }
 }

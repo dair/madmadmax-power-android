@@ -5,14 +5,18 @@ import java.lang.Thread;
 /**
  * Created by dair on 31/03/16.
  */
-public class GenericThread extends Thread
+public abstract class GenericThread extends Thread
 {
     private long mTimeout = 1000;
 
-    protected void periodicTask()
-    {
-        // do nothing
-    }
+    public static final int STATUS_OFF = 0;
+    public static final int STATUS_ON = 1;
+    public static final int STATUS_STARTING = 2;
+    public static final int STATUS_STOPPING = 3;
+
+    private int mStatus = STATUS_OFF;
+
+    protected abstract void periodicTask();
 
     protected void onStart()
     {
@@ -29,7 +33,13 @@ public class GenericThread extends Thread
     {
         super.run();
 
-        while (!isInterrupted())
+        mStatus = STATUS_STARTING;
+        onStart();
+        mStatus = STATUS_ON;
+
+        Tools.log("Thread: startRunning");
+
+        while (mStatus == STATUS_ON)
         {
             long timeStart = System.currentTimeMillis();
             periodicTask();
@@ -48,12 +58,16 @@ public class GenericThread extends Thread
                 }
             }
         }
+
+        onStop();
+
+        Tools.log("Thread: interrupted");
+        mStatus = STATUS_OFF;
     }
 
     public void graciousStop()
     {
-        onStop();
-        interrupt();
+        mStatus = STATUS_STOPPING;
         try
         {
             join();

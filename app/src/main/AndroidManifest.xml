@@ -3,6 +3,7 @@
           xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
     <!-- To auto-complete the email text field in the login form with the user's emails -->
     <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
@@ -30,7 +31,7 @@
         <service
             android:name=".PowerService"
             android:enabled="true"
-            android:exported="true">
+            android:exported="false">
         </service>
 
         <activity android:name=".ServiceStatusActivity">

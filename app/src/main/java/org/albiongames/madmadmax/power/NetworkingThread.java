@@ -1,7 +1,10 @@
 package org.albiongames.madmadmax.power;
 
+import android.util.DebugUtils;
 import android.util.Log;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -10,6 +13,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -18,6 +23,9 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class NetworkingThread extends GenericThread
 {
+    PowerService mService = null;
+    boolean mWorking = false;
+
     public static class Request
     {
         private String mMethod;
@@ -68,35 +76,6 @@ public class NetworkingThread extends GenericThread
         }
     }
 
-    public interface Listener
-    {
-        void onNetworkSuccess(Request request, Response response);
-        void onNetworkError(Request request, Error error);
-    }
-
-    public static class QueueItem
-    {
-        private Request mRequest;
-        private Listener mListener;
-        public QueueItem(Request request, Listener listener)
-        {
-            mRequest = request;
-            mListener = listener;
-        }
-
-        public Request getRequest()
-        {
-            return mRequest;
-        }
-
-        public Listener getListener()
-        {
-            return mListener;
-        }
-    }
-
-    private Queue<QueueItem> mQueue = new LinkedBlockingQueue<>();
-
     public static String baseUrl()
     {
         String storedUrl = Settings.getString(Settings.KEY_SERVER_URL);
@@ -121,88 +100,142 @@ public class NetworkingThread extends GenericThread
         return baseUrl() + "/device/reg";
     }
 
-    public void addRequest(Request request, Listener listener)
+    public static String pUrl()
     {
-        mQueue.add(new QueueItem(request, listener));
+        return baseUrl() + "/device/p";
+    }
+
+    NetworkingThread(PowerService service)
+    {
+        mService = service;
     }
 
     @Override
     protected void periodicTask()
     {
-        while (!mQueue.isEmpty())
+        if (mService == null || mService.getStatus() != PowerService.STATUS_ON)
+            return;
+
+        if (mWorking)
+            return;
+
+        String deviceId = Settings.getString(Settings.KEY_DEVICE_ID);
+        if (deviceId == null || deviceId.isEmpty())
+            return;
+
+        mWorking = true;
+        while (true)
         {
-            QueueItem item = mQueue.poll();
-            if (item == null)
+            StorageEntry.Base entry = mService.getNetworkStorage().get();
+            if (entry == null)
                 break;
-            one(item.getRequest(), item.getListener());
+            JSONObject object = entry.toJsonObject();
+            try
+            {
+                object.put("id", deviceId);
+            } catch (JSONException ex)
+            {
+            }
+
+            Request request = new Request("POST", pUrl(), object.toString());
+            Response response = null;
+            try
+            {
+                response = one(request);
+
+                object = response.getObject();
+                if (object == null)
+                    return;
+
+                int code = object.getInt("code");
+
+                if (code == 1) // success
+                    mService.getNetworkStorage().remove();
+
+                Tools.log("NetworkThread: Logic: " + Integer.toString(mService.getLogicStorage().size()) + ", Network: " +
+                        Integer.toString(mService.getNetworkStorage().size()));
+
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }
+        mWorking = false;
+    }
+
+    public static synchronized Response one(Request request) throws Exception
+    {
+        HttpURLConnection connection = null;
+        URL url = new URL(request.getUrl());
+        connection = (HttpURLConnection)url.openConnection();
+        connection.setRequestMethod(request.getMethod());
+        connection.setReadTimeout(3000);
+        connection.setConnectTimeout(5000);
+
+        connection.setRequestProperty("Content-Type", "application/json");
+        String bodyString = request.getBody();
+        if (bodyString == null || bodyString.isEmpty())
+            bodyString = "{}";
+
+        byte[] bytes = bodyString.getBytes("UTF-8");
+        int len = bytes.length;
+//                connection.setRequestProperty("Content-Length", Integer.toString(len));
+        connection.setFixedLengthStreamingMode(len);
+        connection.setUseCaches(false);
+        connection.setDoOutput(true);
+        connection.setDoInput(true);
+
+        DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
+        wr.write(bytes);
+        wr.flush();
+
+        int status = connection.getResponseCode();
+
+        if (status == HttpURLConnection.HTTP_OK)
+        {
+            InputStream is = connection.getInputStream();
+            BufferedReader rd = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+            StringBuilder responseString = new StringBuilder(); // or StringBuffer if not Java 5+
+            String line;
+            while((line = rd.readLine()) != null) {
+                responseString.append(line);
+                responseString.append('\r');
+            }
+            rd.close();
+
+            JSONObject object = new JSONObject(responseString.toString());
+
+            if (object.has("params"))
+            {
+                JSONObject params = object.getJSONObject("params");
+                Settings.networkUpdate(params);
+                object.remove("params");
+            }
+
+            Response response = new Response(object);
+            wr.close();
+
+            return response;
+        }
+        else
+        {
+            throw new Exception(connection.getResponseMessage());
         }
     }
 
-    public static void one(Request request, Listener listener)
+    @Override
+    protected void onStop()
     {
-        HttpURLConnection connection = null;
-        try
+        while (mWorking)
         {
-            URL url = new URL(request.getUrl());
-            connection = (HttpURLConnection)url.openConnection();
-            connection.setRequestMethod(request.getMethod());
-            connection.setReadTimeout(3000);
-            connection.setConnectTimeout(5000);
-            if (request.getBody() != null &&
-                    request.getBody().length() > 0)
+            try
             {
-                connection.setRequestProperty("Content-Type", "application/json");
-                byte[] bytes = request.getBody().getBytes("UTF-8");
-                int len = bytes.length;
-//                connection.setRequestProperty("Content-Length", Integer.toString(len));
-                connection.setFixedLengthStreamingMode(len);
-                connection.setUseCaches(false);
-                connection.setDoOutput(true);
-                connection.setDoInput(true);
-
-                DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
-                wr.write(bytes);
-                wr.flush();
-
-                int status = connection.getResponseCode();
-
-                if (status == HttpURLConnection.HTTP_OK)
-                {
-                    InputStream is = connection.getInputStream();
-                    BufferedReader rd = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-                    StringBuilder responseString = new StringBuilder(); // or StringBuffer if not Java 5+
-                    String line;
-                    while((line = rd.readLine()) != null) {
-                        responseString.append(line);
-                        responseString.append('\r');
-                    }
-                    rd.close();
-
-                    JSONObject object = new JSONObject(responseString.toString());
-
-                    Response response = new Response(object);
-                    if (listener != null)
-                    {
-                        listener.onNetworkSuccess(request, response);
-                    }
-                }
-                else
-                {
-                    Error error = new Error(connection.getResponseMessage());
-                    if (listener != null)
-                    {
-                        listener.onNetworkError(request, error);
-                    }
-                }
-
-                wr.close();
+                Thread.sleep(200);
             }
-        }
-        catch (Exception ex)
-        {
-            Tools.log(ex.toString());
-            Error error = new Error(ex.getLocalizedMessage());
-            listener.onNetworkError(request, error);
+            catch (InterruptedException ex)
+            {
+            }
         }
     }
 }

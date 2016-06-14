@@ -20,7 +20,7 @@ import android.provider.Settings.Secure;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class RegisterActivity extends AppCompatActivity implements NetworkingThread.Listener
+public class RegisterActivity extends AppCompatActivity
 {
     private String mStoredDeviceName = null;
     Button mRegisterButton = null;
@@ -86,7 +86,7 @@ public class RegisterActivity extends AppCompatActivity implements NetworkingThr
     {
         super.onResume();
 
-        mStoredDeviceName = Settings.getString(Settings.KEY_DEVICE_ID);
+        mStoredDeviceName = Settings.getString(Settings.KEY_DEVICE_NAME);
         if (mStoredDeviceName == null)
             mStoredDeviceName = "";
 
@@ -120,44 +120,38 @@ public class RegisterActivity extends AppCompatActivity implements NetworkingThr
             @Override
             protected Object doInBackground(Object[] params)
             {
-                NetworkingThread.one(request, RegisterActivity.this);
+                try
+                {
+                    final NetworkingThread.Response response = NetworkingThread.one(request);
+                    final String deviceId = response.getObject().getString("id");
+
+                    RegisterActivity.this.runOnUiThread(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            Settings.setString(Settings.KEY_DEVICE_ID, deviceId);
+                            Tools.messageBox(RegisterActivity.this, R.string.reg_success);
+
+                            EditText deviceNameWidget = (EditText)RegisterActivity.this.findViewById(R.id.deviceName);
+                            mStoredDeviceName = deviceNameWidget.getText().toString();
+                            Settings.setString(Settings.KEY_DEVICE_NAME, mStoredDeviceName);
+
+                            Intent newActivity = new Intent(RegisterActivity.this, ServiceStatusActivity.class);
+                            startActivity(newActivity);
+                        }
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Tools.messageBox(RegisterActivity.this, ex.toString());
+                    mStoredDeviceName = null;
+                }
+
                 return null;
             }
         };
         task.execute();
-    }
-
-    @Override
-    public void onNetworkError(NetworkingThread.Request request, Error error)
-    {
-        Tools.messageBox(this, error.toString());
-        mStoredDeviceName = null;
-    }
-
-    @Override
-    public void onNetworkSuccess(NetworkingThread.Request request, NetworkingThread.Response response)
-    {
-        try
-        {
-            String deviceId = response.getObject().getString("id");
-            Settings.setString(Settings.KEY_DEVICE_ID, deviceId);
-            Tools.messageBox(this, R.string.reg_success);
-
-            EditText deviceNameWidget = (EditText)findViewById(R.id.deviceName);
-            mStoredDeviceName = deviceNameWidget.getText().toString();
-            Settings.setString(Settings.KEY_DEVICE_NAME, mStoredDeviceName);
-
-
-            final Class<? extends Activity> activityClass;
-            activityClass = ServiceStatusActivity.class;
-            Intent newActivity = new Intent(this, activityClass);
-            startActivity(newActivity);
-        }
-        catch (JSONException ex)
-        {
-            // fail actually
-            onNetworkError(request, new Error(ex.toString()));
-        }
     }
 
     @Override

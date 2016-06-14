@@ -26,6 +26,12 @@ public class StorageEntry
             mType = type;
         }
 
+        public Base(JSONObject object) throws JSONException
+        {
+            mType = object.getString("type");
+            mTime = object.getLong("time");
+        }
+
         public long getTime()
         {
             return mTime;
@@ -46,7 +52,10 @@ public class StorageEntry
             return object;
         }
 
-        public abstract String toString();
+        public String toString()
+        {
+            return toJsonObject().toString();
+        }
     }
 
     public static class Location extends Base
@@ -54,31 +63,46 @@ public class StorageEntry
         double mLat;
         double mLon;
         float mSpeed;
-        public Location(long time, double lat, double lon, float speed)
+        int mSatellites;
+
+        public Location(long time, double lat, double lon, float speed, int satellites)
         {
             super(time, "location");
             mLat = lat;
             mLon = lon;
             mSpeed = speed;
+            mSatellites = satellites;
+        }
+
+        public Location(JSONObject object) throws JSONException
+        {
+            super(object);
+            mLat = object.getDouble("lat");
+            mLon = object.getDouble("lon");
+            mSpeed = (float)object.getDouble("speed");
+            mSatellites = object.getInt("sat");
         }
 
         @Override
-        public String toString()
+        public JSONObject toJsonObject()
         {
-            JSONObject jsonObject = toJsonObject();
+            JSONObject jsonObject = super.toJsonObject();
+            if (jsonObject == null)
+                return null;
             try
             {
                 jsonObject.put("lat", mLat);
                 jsonObject.put("lon", mLon);
                 jsonObject.put("speed", mSpeed);
+                jsonObject.put("sat", mSatellites);
 
-                return jsonObject.toString();
+                return jsonObject;
             }
             catch (JSONException e)
             {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
-                return "";
+                return null;
             }
         }
     }
@@ -93,19 +117,28 @@ public class StorageEntry
             mTag = tag;
         }
 
-        @Override
-        public String toString()
+        public Marker(JSONObject object) throws JSONException
         {
-            JSONObject jsonObject = toJsonObject();
+            super(object);
+            mTag = object.getString("tag");
+        }
+
+        @Override
+        public JSONObject toJsonObject()
+        {
+            JSONObject jsonObject = super.toJsonObject();
+            if (jsonObject == null)
+                return null;
+
             try
             {
                 jsonObject.put("tag", mTag);
-                return jsonObject.toString();
+                return jsonObject;
             }
             catch (JSONException e)
             {
                 e.printStackTrace();
-                return "";
+                return null;
             }
         }
     }
@@ -135,6 +168,12 @@ public class StorageEntry
             mInfo = info;
         }
 
+        public Info(JSONObject object) throws JSONException
+        {
+            super(object);
+            mInfo = object.getString("info");
+        }
+
         @Override
         public String toString()
         {
@@ -150,5 +189,36 @@ public class StorageEntry
                 return "";
             }
         }
+    }
+
+    public static Base createFromJson(JSONObject object)
+    {
+        if (object == null)
+            return null;
+
+        Base ret = null;
+
+        try
+        {
+            String type = object.getString("type");
+
+            if (type.equalsIgnoreCase("info"))
+            {
+                ret = new Info(object);
+            }
+            else if (type.equalsIgnoreCase("marker"))
+            {
+                ret = new Marker(object);
+            }
+            else if (type.equalsIgnoreCase("location"))
+            {
+                ret = new Location(object);
+            }
+        }
+        catch (JSONException ex)
+        {
+        }
+
+        return ret;
     }
 }
