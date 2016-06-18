@@ -14,4 +14,18 @@ public class BluetoothThread extends GenericThread
 
 
     }
+
+    public static final int LED_RED = 1 << 0;
+    public static final int LED_GREEN = 1 << 1;
+    public static final int LED_YELLOW = 1 << 2;
+
+    public void turnLedOn(int ledCode)
+    {
+        // TODO
+    }
+
+    public void turnLedOff(int ledCode)
+    {
+
+    }
 }
