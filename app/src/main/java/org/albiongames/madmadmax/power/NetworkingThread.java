@@ -25,6 +25,8 @@ public class NetworkingThread extends GenericThread
 {
     PowerService mService = null;
     boolean mWorking = false;
+    static long mLastParamsRequest = 0;
+    static long mLastNetworkInteraction = 0;
 
     public static class Request
     {
@@ -123,6 +125,17 @@ public class NetworkingThread extends GenericThread
         if (deviceId == null || deviceId.isEmpty())
             return;
 
+        if (mService.getNetworkStorage().isEmpty())
+        {
+            long now = System.currentTimeMillis();
+            if (now - mLastNetworkInteraction > Settings.getLong(Settings.KEY_GPS_IDLE_INTERVAL))
+            {
+                StorageEntry.Marker marker = new StorageEntry.Marker("ping");
+                mService.getNetworkStorage().put(marker);
+                mLastNetworkInteraction = now;
+            }
+        }
+
         mWorking = true;
         while (true)
         {
@@ -152,8 +165,8 @@ public class NetworkingThread extends GenericThread
                 if (code == 1) // success
                     mService.getNetworkStorage().remove();
 
-                Tools.log("NetworkThread: Logic: " + Integer.toString(mService.getLogicStorage().size()) + ", Network: " +
-                        Integer.toString(mService.getNetworkStorage().size()));
+//                Tools.log("NetworkThread: Logic: " + Integer.toString(mService.getLogicStorage().size()) + ", Network: " +
+//                        Integer.toString(mService.getNetworkStorage().size()));
 
             }
             catch (Exception ex)
@@ -164,19 +177,43 @@ public class NetworkingThread extends GenericThread
         mWorking = false;
     }
 
+    static String addParamUpdate(String s)
+    {
+        String ret = s;
+        try
+        {
+            JSONObject object = new JSONObject(s);
+            long lastCommandId = Settings.getLong(Settings.KEY_LAST_COMMAND_ID);
+            object.put("c", lastCommandId);
+
+            ret = object.toString();
+        }
+        catch (JSONException ex)
+        {
+            // cry
+        }
+
+        return ret;
+    }
+
     public static synchronized Response one(Request request) throws Exception
     {
         HttpURLConnection connection = null;
         URL url = new URL(request.getUrl());
         connection = (HttpURLConnection)url.openConnection();
         connection.setRequestMethod(request.getMethod());
-        connection.setReadTimeout(3000);
-        connection.setConnectTimeout(5000);
+        connection.setReadTimeout((int)Settings.getLong(Settings.KEY_NETWORK_TIMEOUT));
+        connection.setConnectTimeout((int)Settings.getLong(Settings.KEY_NETWORK_TIMEOUT));
 
         connection.setRequestProperty("Content-Type", "application/json");
         String bodyString = request.getBody();
         if (bodyString == null || bodyString.isEmpty())
             bodyString = "{}";
+
+        if (System.currentTimeMillis() - mLastParamsRequest >= Settings.getLong(Settings.KEY_PARAM_UPDATE))
+        {
+            bodyString = addParamUpdate(bodyString);
+        }
 
         byte[] bytes = bodyString.getBytes("UTF-8");
         int len = bytes.length;
@@ -211,6 +248,7 @@ public class NetworkingThread extends GenericThread
                 JSONObject params = object.getJSONObject("params");
                 Settings.networkUpdate(params);
                 object.remove("params");
+                mLastParamsRequest = System.currentTimeMillis();
             }
 
             Response response = new Response(object);

@@ -16,14 +16,30 @@ import java.util.Map;
  */
 public class Settings
 {
-    public static final String KEY_BLUETOOTH_DEVICE = "bluetooth_device";
-    public static final String KEY_MIN_GPS_TIME = "gps_time";
-    public static final String KEY_MIN_GPS_DISTANCE = "gps_distance";
-    public static final String KEY_GPS_IDLE_INTERVAL = "gps_idle_interval";
     public static final String KEY_DEVICE_ID = "device_id";
     public static final String KEY_DEVICE_NAME = "device_name";
     public static final String KEY_SERVER_URL = "server_url";
-    public static final String KEY_MIN_SATELLITES = "param:min_sat";
+    public static final String KEY_BLUETOOTH_DEVICE = "bluetooth_device";
+
+    public static final String PARAMS_PREFIX = "param:";
+
+    public static final String KEY_GPS_IDLE_INTERVAL = PARAMS_PREFIX + "gps_idle_interval";
+    public static final String KEY_MIN_GPS_TIME = PARAMS_PREFIX + "gps_time";
+    public static final String KEY_MIN_GPS_DISTANCE = PARAMS_PREFIX + "gps_distance";
+    public static final String KEY_MIN_SATELLITES = PARAMS_PREFIX + "gps_satellites";
+    public static final String KEY_AVERAGE_SPEED_COUNT = PARAMS_PREFIX + "spdn";
+
+    public static final String KEY_PARAM_UPDATE = PARAMS_PREFIX + "param_update";
+    public static final String KEY_CAR_STATE = PARAMS_PREFIX + "state";
+
+    public static final String KEY_MAX_SPEED = PARAMS_PREFIX + "max_spd";
+    public static final String KEY_FUEL_NOW = PARAMS_PREFIX + "fuel";
+    public static final String KEY_FUEL_MAX = PARAMS_PREFIX + "max_fuel";
+    public static final String KEY_FUEL_PER_KM = PARAMS_PREFIX + "fuel_per_km";
+
+    public static final String KEY_LAST_COMMAND_ID = PARAMS_PREFIX + "last_command_id";
+    public static final String KEY_NETWORK_TIMEOUT = PARAMS_PREFIX + "timeout";
+
 
     private static Settings instance = new Settings();
 
@@ -69,14 +85,44 @@ public class Settings
 
     Settings()
     {
-        mDefaults.put(KEY_BLUETOOTH_DEVICE, null);
-        mDefaults.put(KEY_MIN_GPS_TIME, "2000"); // milliseconds
-        mDefaults.put(KEY_MIN_GPS_DISTANCE, "20"); //meters
-        mDefaults.put(KEY_GPS_IDLE_INTERVAL, "5000"); // milliseconds
         mDefaults.put(KEY_DEVICE_ID, null);
         mDefaults.put(KEY_DEVICE_NAME, null);
-        mDefaults.put(KEY_SERVER_URL, "http://192.168.43.101:3000");
+        mDefaults.put(KEY_SERVER_URL, "http://172.20.10.3:3000");
+        mDefaults.put(KEY_BLUETOOTH_DEVICE, null);
+//
+//        public static final String KEY_GPS_IDLE_INTERVAL = PARAMS_PREFIX + "gps_idle_interval";
+//        public static final String KEY_MIN_GPS_TIME = PARAMS_PREFIX + "gps_time";
+//        public static final String KEY_MIN_GPS_DISTANCE = PARAMS_PREFIX + "gps_distance";
+//        public static final String KEY_MIN_SATELLITES = PARAMS_PREFIX + "gps_satellites";
+//        public static final String KEY_AVERAGE_SPEED_COUNT = PARAMS_PREFIX + "spdn";
+//
+//        public static final String KEY_PARAM_UPDATE = PARAMS_PREFIX + "param_update";
+//        public static final String KEY_CAR_STATE = PARAMS_PREFIX + "state";
+//
+//        public static final String KEY_MAX_SPEED = PARAMS_PREFIX + "max_spd";
+//        public static final String KEY_FUEL_NOW = PARAMS_PREFIX + "fuel";
+//        public static final String KEY_FUEL_MAX = PARAMS_PREFIX + "max_fuel";
+//        public static final String KEY_FUEL_PER_KM = PARAMS_PREFIX + "fuel_per_km";
+//
+//        public static final String KEY_LAST_COMMAND_ID = PARAMS_PREFIX + "last_command_id";
+//        public static final String KEY_NETWORK_TIMEOUT = PARAMS_PREFIX + "timeout";
+
+        mDefaults.put(KEY_GPS_IDLE_INTERVAL, "5000"); // milliseconds
+        mDefaults.put(KEY_MIN_GPS_TIME, "2000"); // milliseconds
+        mDefaults.put(KEY_MIN_GPS_DISTANCE, "20"); //meters
         mDefaults.put(KEY_MIN_SATELLITES, "3");
+        mDefaults.put(KEY_AVERAGE_SPEED_COUNT, "5");
+
+        mDefaults.put(KEY_PARAM_UPDATE, "3000");
+        mDefaults.put(KEY_CAR_STATE, "0");
+
+        mDefaults.put(KEY_MAX_SPEED, "40");
+        mDefaults.put(KEY_FUEL_NOW, "0");
+        mDefaults.put(KEY_FUEL_MAX, "1000");
+        mDefaults.put(KEY_FUEL_PER_KM, "200");
+
+        mDefaults.put(KEY_LAST_COMMAND_ID, "0");
+        mDefaults.put(KEY_NETWORK_TIMEOUT, "10000");
     }
 
     private void pSetContext(Context context)
@@ -123,15 +169,15 @@ public class Settings
             {
                 if (object.get(key) instanceof String)
                 {
-                    setString(key, (String)object.get(key));
+                    setString(Settings.PARAMS_PREFIX + key, (String)object.get(key));
                 }
                 else if (object.get(key) instanceof Long)
                 {
-                    setLong(key, object.getLong(key));
+                    setLong(Settings.PARAMS_PREFIX + key, object.getLong(key));
                 }
                 else if (object.get(key) instanceof Integer)
                 {
-                    setLong(key, object.getInt(key));
+                    setLong(Settings.PARAMS_PREFIX + key, object.getInt(key));
                 }
                 else
                 {

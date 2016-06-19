@@ -72,4 +72,9 @@ public class Storage
     {
         return mQueueFile.size();
     }
+
+    public boolean isEmpty()
+    {
+        return mQueueFile.isEmpty();
+    }
 }
