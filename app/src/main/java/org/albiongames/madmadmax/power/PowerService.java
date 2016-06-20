@@ -9,6 +9,8 @@ import android.os.IBinder;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 public class PowerService extends Service
@@ -39,6 +41,7 @@ public class PowerService extends Service
     LocationThread mLocationThread = null;
     LogicThread mLogicThread = null;
 
+    List<StorageEntry.Base> mPositions = new LinkedList<>();
 //    Map<Integer, GenericThread> mThreads = new HashMap<Integer, GenericThread>();
 
     Activity mActivity = null;
@@ -133,14 +136,10 @@ public class PowerService extends Service
         {
             mLocationThread.graciousStop();
             mLogicThread.graciousStop();
+
+            Thread.sleep(500);
+
             mNetworkingThread.graciousStop();
-
-            while (mLocationThread.isAlive())
-                Thread.sleep(100);
-
-            while (mLogicThread.isAlive())
-                Thread.sleep(100);
-
             while (mNetworkingThread.isAlive())
                 Thread.sleep(100);
         }
@@ -164,5 +163,10 @@ public class PowerService extends Service
                 return null;
             }
         }.execute();
+    }
+
+    public List<StorageEntry.Base> getPositions()
+    {
+        return mPositions;
     }
 }

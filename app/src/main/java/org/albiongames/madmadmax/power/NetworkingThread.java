@@ -265,6 +265,8 @@ public class NetworkingThread extends GenericThread
     @Override
     protected void onStop()
     {
+        if (!mWorking)
+            periodicTask();
         while (mWorking)
         {
             try

@@ -13,20 +13,22 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 
+import java.util.List;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class ServiceStatusActivity extends AppCompatActivity
 {
-    PowerService mService = null;
-    boolean mBound = false;
-
     long mLastTimeChanged = 0;
 
     ScheduledThreadPoolExecutor mExecutor = null;
+
+    ArrayAdapter mAdapter = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -43,6 +45,11 @@ public class ServiceStatusActivity extends AppCompatActivity
                 ServiceStatusActivity.this.clickOnOff();
             }
         });
+
+        mAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1);
+
+        ListView listView = (ListView)findViewById(R.id.listView);
+        listView.setAdapter(mAdapter);
     }
 
     @Override
@@ -50,27 +57,6 @@ public class ServiceStatusActivity extends AppCompatActivity
     {
         super.onStart();
     }
-
-    private void bindService()
-    {
-        if (!mBound)
-        {
-            Intent intent = new Intent(this, PowerService.class);
-            bindService(intent, mConnection, Context.BIND_NOT_FOREGROUND);
-        }
-    }
-
-    private void unbindService()
-    {
-        if (mBound)
-        {
-            mService.setActivity(null);
-            mService = null;
-            unbindService(mConnection);
-            mBound = false;
-        }
-    }
-
 
     @Override
     protected void onResume()
@@ -91,6 +77,7 @@ public class ServiceStatusActivity extends AppCompatActivity
                                   public void run()
                                   {
                                       updateText();
+                                      updatePositions();
                                   }
                               }
                 );
@@ -142,6 +129,23 @@ public class ServiceStatusActivity extends AppCompatActivity
         }
     }
 
+    protected void updatePositions()
+    {
+        if (PowerService.instance() == null)
+            return;
+
+        List<StorageEntry.Base> list = PowerService.instance().getPositions();
+        if (list == null)
+            return;
+
+        for (StorageEntry.Base item: list)
+        {
+            mAdapter.add(item);
+        }
+
+        list.clear();
+    }
+
     private boolean isMyServiceRunning(Class<?> serviceClass)
     {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
@@ -154,28 +158,6 @@ public class ServiceStatusActivity extends AppCompatActivity
         }
         return false;
     }
-
-
-    private ServiceConnection mConnection = new ServiceConnection() {
-
-        @Override
-        public void onServiceConnected(ComponentName className,
-                                       IBinder service) {
-            // We've bound to LocalService, cast the IBinder and get LocalService instance
-            PowerService.LocalBinder binder = (PowerService.LocalBinder) service;
-            mService = binder.getService();
-            mBound = true;
-
-            mService.setActivity(ServiceStatusActivity.this);
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName arg0)
-        {
-            mService = null;
-            mBound = false;
-        }
-    };
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu)

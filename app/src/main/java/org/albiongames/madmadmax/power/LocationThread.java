@@ -7,10 +7,13 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Looper;
 import android.support.v4.app.ActivityCompat;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -22,6 +25,12 @@ public class LocationThread extends Thread implements LocationListener
     private PowerService mService = null;
     private long mLastUpdate = 0;
     private Looper mLooper = null;
+    Timer mTimer = null;
+
+    long mGpsTime = 0;
+    long mGpsDistance = 0;
+
+    List<Float> mLastSpeed = new LinkedList<>();
 
     public LocationThread(PowerService service)
     {
@@ -58,6 +67,35 @@ public class LocationThread extends Thread implements LocationListener
 //        }
 //    }
 
+    private synchronized void askRequests()
+    {
+        long newGpsTime = Settings.getLong(Settings.KEY_MIN_GPS_TIME);
+        long newGpsDistance = Settings.getLong(Settings.KEY_MIN_GPS_DISTANCE);
+
+        if (newGpsTime != mGpsTime || newGpsDistance != mGpsDistance)
+        {
+            LocationManager locationManager = (LocationManager) mService.getSystemService(Context.LOCATION_SERVICE);
+
+            if (locationManager == null)
+                return;
+
+            try
+            {
+                locationManager.removeUpdates(this);
+
+                mGpsTime = newGpsTime;
+                mGpsDistance = newGpsDistance;
+
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, mGpsTime, mGpsDistance, this);
+            }
+            catch (SecurityException ex)
+            {
+
+            }
+        }
+
+    }
+
     protected void onStart()
     {
         LocationManager locationManager = (LocationManager) mService.getSystemService(Context.LOCATION_SERVICE);
@@ -65,27 +103,30 @@ public class LocationThread extends Thread implements LocationListener
         if (locationManager == null)
             return;
 
-        try
+        mLastUpdate = System.currentTimeMillis();
+
+        mService.getLogicStorage().put(new StorageEntry.MarkerStart());
+
+        askRequests();
+
+        mTimer = new Timer("updates");
+        mTimer.scheduleAtFixedRate(new TimerTask()
         {
-            mLastUpdate = System.currentTimeMillis();
+            @Override
+            public void run()
+            {
+                askRequests();
+            }
+        }, 1000, 1000);
 
-            mService.getLogicStorage().put(new StorageEntry.MarkerStart());
-
-            long gpsTime = Settings.getLong(Settings.KEY_MIN_GPS_TIME);
-            long gpsDistance = Settings.getLong(Settings.KEY_MIN_GPS_DISTANCE);
-
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, gpsTime, gpsDistance, this);
-
-            Tools.log("Location Thread started");
-        }
-        catch (SecurityException exceptiion)
-        {
-            // cry out loud
-        }
+        Tools.log("Location Thread started");
     }
 
     protected void onStop()
     {
+        mTimer.purge();
+        mTimer = null;
+
         LocationManager locationManager = (LocationManager) mService.getSystemService(Context.LOCATION_SERVICE);
         try
         {
@@ -118,14 +159,27 @@ public class LocationThread extends Thread implements LocationListener
 
         if (satellites < Settings.getLong(Settings.KEY_MIN_SATELLITES))
             return;
+        float acc = location.getAccuracy();
+
+        if (acc > Settings.getLong(Settings.KEY_MIN_ACCURACY))
+            return;
 
         double lat = location.getLatitude();
         double lon = location.getLongitude();
         float speed = location.getSpeed();
         long time = location.getTime();
 
-        mService.getLogicStorage().put(new StorageEntry.Location(time, lat, lon, speed, satellites));
+        StorageEntry.Location location1 = new StorageEntry.Location(time, lat, lon, acc, speed, satellites);
+        mService.getPositions().add(location1);
+
+        mService.getLogicStorage().put(location1);
         mLastUpdate = time;
+
+        mLastSpeed.add(0, speed);
+        while (mLastSpeed.size() > Settings.getLong(Settings.KEY_AVERAGE_SPEED_COUNT))
+        {
+            mLastSpeed.remove(mLastSpeed.size() - 1);
+        }
     }
 
     public void onStatusChanged(String provider, int status, Bundle extras)
@@ -143,5 +197,22 @@ public class LocationThread extends Thread implements LocationListener
     public void onProviderDisabled(String provider)
     {
 //        mService.getLogicStorage().put(new StorageEntry.Info("onProviderDisabled: " + provider));
+    }
+
+    public float averageSpeed()
+    {
+        float speed = 0;
+        int count = 0;
+        long maxCount = Settings.getLong(Settings.KEY_AVERAGE_SPEED_COUNT);
+        for (Float f: mLastSpeed)
+        {
+            ++count;
+            if (count > maxCount)
+                break;
+
+            speed = speed + f;
+        }
+        speed = speed / maxCount;
+        return speed;
     }
 }
