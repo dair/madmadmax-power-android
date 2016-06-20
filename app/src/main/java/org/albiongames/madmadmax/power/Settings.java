@@ -41,10 +41,14 @@ public class Settings
     public static final String KEY_HITPOINTS = PARAMS_PREFIX + "hit_points";
     public static final String KEY_RED_ZONE = PARAMS_PREFIX + "red_zone";
     public static final String KEY_DAMAGE_RESISTANCE = PARAMS_PREFIX + "damage_resistance";
+    public static final String KEY_P1_FORMULA = PARAMS_PREFIX + "p1_formula";
+    public static final String KEY_P2_FORMULA = PARAMS_PREFIX + "p2_formula";
 
     public static final String KEY_LAST_COMMAND_ID = PARAMS_PREFIX + "last_command_id";
     public static final String KEY_NETWORK_TIMEOUT = PARAMS_PREFIX + "timeout";
 
+    public static final String KEY_LOGIC_LAST_GOOD_P1_FORMULA = "good_p1_formula";
+    public static final String KEY_LOGIC_LAST_GOOD_P2_FORMULA = "good_p2_formula";
 
     private static Settings instance = new Settings();
 
@@ -113,6 +117,12 @@ public class Settings
         mDefaults.put(KEY_HITPOINTS, "100");
         mDefaults.put(KEY_RED_ZONE, "25");
         mDefaults.put(KEY_DAMAGE_RESISTANCE, "0");
+
+        mDefaults.put(KEY_P1_FORMULA, "100-(61887.9*x)^0.3");
+        mDefaults.put(KEY_P1_FORMULA, "100-(92831.8*x)^0.3");
+
+        mDefaults.put(KEY_LOGIC_LAST_GOOD_P1_FORMULA, "100-(61887.9*x)^0.3");
+        mDefaults.put(KEY_LOGIC_LAST_GOOD_P2_FORMULA, "100-(92831.8*x)^0.3");
 
         mDefaults.put(KEY_LAST_COMMAND_ID, "0");
         mDefaults.put(KEY_NETWORK_TIMEOUT, "10000");
