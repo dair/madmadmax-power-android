@@ -30,6 +30,9 @@ public class LocationThread extends Thread implements LocationListener
     long mGpsTime = 0;
     long mGpsDistance = 0;
 
+    Location mLastLocation = null;
+    double mTotalDistance = 0;
+
     List<Float> mLastSpeed = new LinkedList<>();
 
     public LocationThread(PowerService service)
@@ -104,6 +107,8 @@ public class LocationThread extends Thread implements LocationListener
             return;
 
         mLastUpdate = System.currentTimeMillis();
+        mLastLocation = null;
+        mTotalDistance = 0.0;
 
         mService.getLogicStorage().put(new StorageEntry.MarkerStart());
 
@@ -153,7 +158,6 @@ public class LocationThread extends Thread implements LocationListener
         // Called when a new location is found by the network location provider.
         if (location == null)
             return;
-        Tools.log("Got location: " + location.toString());
         int satellites = -1;
 
         if (location.getExtras().containsKey("satellites"))
@@ -173,12 +177,23 @@ public class LocationThread extends Thread implements LocationListener
                 return;
         }
 
+        Tools.log("Got location: " + location.toString());
+
         double lat = location.getLatitude();
         double lon = location.getLongitude();
         float speed = location.getSpeed();
         long time = location.getTime();
 
-        StorageEntry.Location location1 = new StorageEntry.Location(time, lat, lon, acc, speed, satellites);
+        double localDistance = 0;
+        if (mLastLocation != null && speed > 0.001)
+        {
+            localDistance = location.distanceTo(mLastLocation);
+        }
+        mLastLocation = location;
+
+        mTotalDistance += localDistance;
+
+        StorageEntry.Location location1 = new StorageEntry.Location(time, lat, lon, acc, speed, mTotalDistance, satellites);
         mService.getPositions().add(location1);
 
         mService.getLogicStorage().put(location1);

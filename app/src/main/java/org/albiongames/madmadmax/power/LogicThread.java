@@ -78,7 +78,12 @@ public class LogicThread extends GenericThread
         double p1 = Tools.clamp(mExpressionP1.setVariable("x", hp).evaluate(), 0.0, 1.0);
         double p2 = Tools.clamp(mExpressionP2.setVariable("x", hp).evaluate(), 0.0, 1.0);
 
-        Tools.log("P1: " + Double.toString(p1));
-        Tools.log("P2: " + Double.toString(p2));
+//        Tools.log("P1: " + Double.toString(p1));
+//        Tools.log("P2: " + Double.toString(p2));
+    }
+
+    protected void decreaseGazoline()
+    {
+
     }
 }

@@ -51,6 +51,9 @@ public class Settings
     public static final String KEY_LOGIC_LAST_GOOD_P1_FORMULA = "good_p1_formula";
     public static final String KEY_LOGIC_LAST_GOOD_P2_FORMULA = "good_p2_formula";
 
+    public static final String KEY_LATEST_SUCCESS_CONNECTION = "latest_success_connection";
+    public static final String KEY_LATEST_FAILED_CONNECTION = "latest_failed_connection";
+
     private static Settings instance = new Settings();
 
 
@@ -87,6 +90,26 @@ public class Settings
     public static void setLong(final String key, long value)
     {
         setString(key, Long.toString(value));
+    }
+
+    public static double getDouble(final String key)
+    {
+        double ret = 0.0;
+        try
+        {
+            ret = Double.parseDouble(getString(key));
+        }
+        catch (NumberFormatException ex)
+        {
+
+        }
+
+        return ret;
+    }
+
+    public static void setDouble(final String key, double value)
+    {
+        setString(key, Double.toString(value));
     }
 
     /////////////////////////
@@ -128,6 +151,9 @@ public class Settings
 
         mDefaults.put(KEY_LAST_COMMAND_ID, "0");
         mDefaults.put(KEY_NETWORK_TIMEOUT, "10000");
+
+        mDefaults.put(KEY_LATEST_FAILED_CONNECTION, "0");
+        mDefaults.put(KEY_LATEST_SUCCESS_CONNECTION, "0");
     }
 
     private void pSetContext(Context context)

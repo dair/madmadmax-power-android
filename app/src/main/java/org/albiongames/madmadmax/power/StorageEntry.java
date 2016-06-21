@@ -64,15 +64,17 @@ public class StorageEntry
         double mLon;
         float mAccuracy;
         float mSpeed;
+        double mDistance;
         int mSatellites;
 
-        public Location(long time, double lat, double lon, float acc, float speed, int satellites)
+        public Location(long time, double lat, double lon, float acc, float speed, double distance, int satellites)
         {
             super(time, "location");
             mLat = lat;
             mLon = lon;
             mAccuracy = acc;
             mSpeed = speed;
+            mDistance = distance;
             mSatellites = satellites;
         }
 
@@ -83,6 +85,7 @@ public class StorageEntry
             mLon = object.getDouble("lon");
             mAccuracy = (float)object.getDouble("acc");
             mSpeed = (float)object.getDouble("speed");
+            mDistance = object.getDouble("distance");
             mSatellites = object.getInt("sat");
         }
 
@@ -98,6 +101,7 @@ public class StorageEntry
                 jsonObject.put("lon", mLon);
                 jsonObject.put("acc", mAccuracy);
                 jsonObject.put("speed", mSpeed);
+                jsonObject.put("distance", mDistance);
                 jsonObject.put("sat", mSatellites);
 
                 return jsonObject;

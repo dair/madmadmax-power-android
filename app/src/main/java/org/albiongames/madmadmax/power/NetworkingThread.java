@@ -158,20 +158,27 @@ public class NetworkingThread extends GenericThread
 
                 object = response.getObject();
                 if (object == null)
-                    return;
+                    break;
 
                 int code = object.getInt("code");
 
                 if (code == 1) // success
+                {
                     mService.getNetworkStorage().remove();
-
+                    Settings.setLong(Settings.KEY_LATEST_SUCCESS_CONNECTION, System.currentTimeMillis());
+                }
+                else
+                {
+                    throw new Exception("Code validation failed");
+                }
 //                Tools.log("NetworkThread: Logic: " + Integer.toString(mService.getLogicStorage().size()) + ", Network: " +
 //                        Integer.toString(mService.getNetworkStorage().size()));
-
             }
             catch (Exception ex)
             {
-
+                Tools.log("Networking exception: " + ex.toString());
+                Settings.setLong(Settings.KEY_LATEST_FAILED_CONNECTION, System.currentTimeMillis());
+                break; // try again later
             }
         }
         mWorking = false;
@@ -222,6 +229,8 @@ public class NetworkingThread extends GenericThread
         connection.setUseCaches(false);
         connection.setDoOutput(true);
         connection.setDoInput(true);
+
+        connection.connect();
 
         DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
         wr.write(bytes);

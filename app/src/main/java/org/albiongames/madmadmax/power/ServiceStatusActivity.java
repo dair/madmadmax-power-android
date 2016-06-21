@@ -6,6 +6,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -76,6 +78,7 @@ public class ServiceStatusActivity extends AppCompatActivity
                                   @Override
                                   public void run()
                                   {
+                                      updateNetworkState();
                                       updateText();
                                       updatePositions();
                                   }
@@ -144,6 +147,27 @@ public class ServiceStatusActivity extends AppCompatActivity
         }
 
         list.clear();
+    }
+
+    protected void updateNetworkState()
+    {
+        long success = Settings.getLong(Settings.KEY_LATEST_SUCCESS_CONNECTION);
+        long fail = Settings.getLong(Settings.KEY_LATEST_FAILED_CONNECTION);
+
+        TextView text = (TextView)findViewById(R.id.networkStatusText);
+        if (text == null)
+            return;
+
+        if (success > fail)
+        {
+            text.setText("OK");
+            text.setTextColor(Color.GREEN);
+        }
+        else
+        {
+            text.setText("FAIL");
+            text.setTextColor(Color.RED);
+        }
     }
 
     private boolean isMyServiceRunning(Class<?> serviceClass)
