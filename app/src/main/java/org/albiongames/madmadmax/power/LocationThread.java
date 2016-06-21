@@ -153,16 +153,25 @@ public class LocationThread extends Thread implements LocationListener
         // Called when a new location is found by the network location provider.
         if (location == null)
             return;
-        int satellites = location.getExtras().getInt("satellites");
-
         Tools.log("Got location: " + location.toString());
+        int satellites = -1;
 
-        if (satellites < Settings.getLong(Settings.KEY_MIN_SATELLITES))
-            return;
-        float acc = location.getAccuracy();
+        if (location.getExtras().containsKey("satellites"))
+        {
+            satellites = location.getExtras().getInt("satellites");
 
-        if (acc > Settings.getLong(Settings.KEY_MIN_ACCURACY))
-            return;
+            if (satellites < Settings.getLong(Settings.KEY_MIN_SATELLITES))
+                return;
+        }
+
+        float acc = -1;
+        if (location.hasAccuracy())
+        {
+            acc = location.getAccuracy();
+
+            if (acc > Settings.getLong(Settings.KEY_MIN_ACCURACY))
+                return;
+        }
 
         double lat = location.getLatitude();
         double lon = location.getLongitude();

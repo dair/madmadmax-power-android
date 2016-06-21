@@ -55,10 +55,10 @@ public class LogicThread extends GenericThread
         {
             try
             {
-                Expression expression = new ExpressionBuilder(goodEx1).
+                Expression expression = new ExpressionBuilder(newEx1).
                         variable("x").build();
                 ret = expression;
-                Settings.setString(keyNew, newEx1);
+                Settings.setString(keyGood, newEx1);
             }
             catch (RuntimeException ex)
             {
@@ -73,9 +73,10 @@ public class LogicThread extends GenericThread
         mExpressionP1 = generateExpressions(Settings.KEY_LOGIC_LAST_GOOD_P1_FORMULA, Settings.KEY_P1_FORMULA, mExpressionP1);
         mExpressionP2 = generateExpressions(Settings.KEY_LOGIC_LAST_GOOD_P2_FORMULA, Settings.KEY_P2_FORMULA, mExpressionP2);
 
-        long hp = Settings.getLong(Settings.KEY_HITPOINTS);
-        double p1 = mExpressionP1.setVariable("x", hp).evaluate();
-        double p2 = mExpressionP2.setVariable("x", hp).evaluate();
+        double hp = (double)Settings.getLong(Settings.KEY_HITPOINTS) / (double)Settings.getLong(Settings.KEY_MAXHITPOINTS);
+
+        double p1 = Tools.clamp(mExpressionP1.setVariable("x", hp).evaluate(), 0.0, 1.0);
+        double p2 = Tools.clamp(mExpressionP2.setVariable("x", hp).evaluate(), 0.0, 1.0);
 
         Tools.log("P1: " + Double.toString(p1));
         Tools.log("P2: " + Double.toString(p2));

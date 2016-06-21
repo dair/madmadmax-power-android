@@ -39,6 +39,7 @@ public class Settings
     public static final String KEY_FUEL_PER_KM = PARAMS_PREFIX + "fuel_per_km";
     public static final String KEY_RELIABILITY = PARAMS_PREFIX + "reliability";
     public static final String KEY_HITPOINTS = PARAMS_PREFIX + "hit_points";
+    public static final String KEY_MAXHITPOINTS = PARAMS_PREFIX + "max_hit_points";
     public static final String KEY_RED_ZONE = PARAMS_PREFIX + "red_zone";
     public static final String KEY_DAMAGE_RESISTANCE = PARAMS_PREFIX + "damage_resistance";
     public static final String KEY_P1_FORMULA = PARAMS_PREFIX + "p1_formula";
@@ -115,11 +116,12 @@ public class Settings
         mDefaults.put(KEY_FUEL_PER_KM, "200");
         mDefaults.put(KEY_RELIABILITY, "1");
         mDefaults.put(KEY_HITPOINTS, "100");
+        mDefaults.put(KEY_MAXHITPOINTS, "100");
         mDefaults.put(KEY_RED_ZONE, "25");
         mDefaults.put(KEY_DAMAGE_RESISTANCE, "0");
 
-        mDefaults.put(KEY_P1_FORMULA, "100-(61887.9*x)^0.3");
-        mDefaults.put(KEY_P1_FORMULA, "100-(92831.8*x)^0.3");
+        mDefaults.put(KEY_P1_FORMULA, "1-(4*x/3)^0.3");
+        mDefaults.put(KEY_P2_FORMULA, "1-(2*x)^0.3");
 
         mDefaults.put(KEY_LOGIC_LAST_GOOD_P1_FORMULA, "100-(61887.9*x)^0.3");
         mDefaults.put(KEY_LOGIC_LAST_GOOD_P2_FORMULA, "100-(92831.8*x)^0.3");
