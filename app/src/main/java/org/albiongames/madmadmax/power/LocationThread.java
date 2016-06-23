@@ -20,7 +20,7 @@ import java.util.TimerTask;
 /**
  * Created by dair on 31/03/16.
  */
-public class LocationThread extends Thread implements LocationListener
+public class LocationThread extends StatusThread implements LocationListener
 {
     private PowerService mService = null;
     private long mLastUpdate = 0;
@@ -45,15 +45,21 @@ public class LocationThread extends Thread implements LocationListener
     @Override
     public void run()
     {
+        setStatus(STATUS_STARTING);
+        Tools.log("LocationThread: start");
         Looper.prepare();
         mLooper = Looper.myLooper();
 
         onStart();
 
+        setStatus(STATUS_ON);
         Looper.loop();
 
+        setStatus(STATUS_STOPPING);
         onStop();
         mLooper = null;
+        Tools.log("LocationThread: stop");
+        setStatus(STATUS_OFF);
     }
 
 //    @Override

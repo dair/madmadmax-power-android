@@ -55,4 +55,41 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_alignBottom="@+id/textView"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="N"
+        android:id="@+id/networkThreadStatusText"
+        android:layout_alignParentTop="true"
+        android:layout_above="@+id/serviceStatusView"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="G"
+        android:id="@+id/locationThreadStatusText"
+        android:layout_below="@+id/networkStatusText"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_above="@+id/button"
+        android:layout_alignLeft="@+id/networkThreadStatusText"
+        android:layout_alignStart="@+id/networkThreadStatusText"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="L"
+        android:id="@+id/logicThreadStatusText"
+        android:layout_below="@+id/locationThreadStatusText"
+        android:layout_alignLeft="@+id/locationThreadStatusText"
+        android:layout_alignStart="@+id/locationThreadStatusText"
+        android:layout_above="@+id/listView"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"/>
 </RelativeLayout>

@@ -33,6 +33,10 @@ public class Settings
     public static final String KEY_PARAM_UPDATE = PARAMS_PREFIX + "param_update";
     public static final String KEY_CAR_STATE = PARAMS_PREFIX + "state";
 
+    public static final long CAR_STATE_OK = 0;
+    public static final long CAR_STATE_BREAK_1 = 1;
+    public static final long CAR_STATE_BREAK_2 = 2;
+
     public static final String KEY_MAX_SPEED = PARAMS_PREFIX + "max_spd";
     public static final String KEY_FUEL_NOW = PARAMS_PREFIX + "fuel";
     public static final String KEY_FUEL_MAX = PARAMS_PREFIX + "max_fuel";

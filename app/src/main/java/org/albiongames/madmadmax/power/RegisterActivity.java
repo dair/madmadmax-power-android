@@ -139,6 +139,7 @@ public class RegisterActivity extends AppCompatActivity
 
                             Intent newActivity = new Intent(RegisterActivity.this, ServiceStatusActivity.class);
                             startActivity(newActivity);
+                            finish();
                         }
                     });
                 }

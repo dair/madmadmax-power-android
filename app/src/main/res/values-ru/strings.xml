@@ -9,4 +9,9 @@
     <string name="title_activity_settings">Настройки</string>
     <string name="pref_base_url">Сетевой адрес</string>
     <string name="reg_success">Регистрация успешно завершена</string>
+
+    <string name="exit_confirmation">В самом деле выйти из приложения?</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
+
 </resources>

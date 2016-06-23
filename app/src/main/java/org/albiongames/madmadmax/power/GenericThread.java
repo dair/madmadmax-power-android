@@ -5,16 +5,9 @@ import java.lang.Thread;
 /**
  * Created by dair on 31/03/16.
  */
-public abstract class GenericThread extends Thread
+public abstract class GenericThread extends StatusThread
 {
     private long mTimeout = 1000;
-
-    public static final int STATUS_OFF = 0;
-    public static final int STATUS_ON = 1;
-    public static final int STATUS_STARTING = 2;
-    public static final int STATUS_STOPPING = 3;
-
-    private int mStatus = STATUS_OFF;
 
     protected abstract void periodicTask();
 
@@ -33,13 +26,13 @@ public abstract class GenericThread extends Thread
     {
         super.run();
 
-        mStatus = STATUS_STARTING;
+        setStatus(STATUS_STARTING);
         onStart();
-        mStatus = STATUS_ON;
+        setStatus(STATUS_ON);
 
         Tools.log("Thread: startRunning");
 
-        while (mStatus == STATUS_ON)
+        while (getStatus() == STATUS_ON)
         {
             long timeStart = System.currentTimeMillis();
             periodicTask();
@@ -62,12 +55,12 @@ public abstract class GenericThread extends Thread
         onStop();
 
         Tools.log("Thread: interrupted");
-        mStatus = STATUS_OFF;
+        setStatus(STATUS_OFF);
     }
 
     public void graciousStop()
     {
-        mStatus = STATUS_STOPPING;
+        setStatus(STATUS_STOPPING);
         try
         {
             join();

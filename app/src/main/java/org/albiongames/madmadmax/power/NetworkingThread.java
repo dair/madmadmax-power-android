@@ -1,9 +1,5 @@
 package org.albiongames.madmadmax.power;
 
-import android.util.DebugUtils;
-import android.util.Log;
-
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -13,20 +9,18 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Created by dair on 31/03/16.
  */
-public class NetworkingThread extends GenericThread
+public class NetworkingThread extends StatusThread
 {
     PowerService mService = null;
     boolean mWorking = false;
     static long mLastParamsRequest = 0;
     static long mLastNetworkInteraction = 0;
+
+    String mDeviceId = null;
 
     public static class Request
     {
@@ -112,76 +106,129 @@ public class NetworkingThread extends GenericThread
         mService = service;
     }
 
-    @Override
-    protected void periodicTask()
+    boolean checkFinishMarker(JSONObject object)
     {
-        if (mService == null || mService.getStatus() != PowerService.STATUS_ON)
-            return;
+        if (object == null)
+            return false;
 
-        if (mWorking)
-            return;
-
-        String deviceId = Settings.getString(Settings.KEY_DEVICE_ID);
-        if (deviceId == null || deviceId.isEmpty())
-            return;
-
-        if (mService.getNetworkStorage().isEmpty())
+        try
         {
-            long now = System.currentTimeMillis();
-            if (now - mLastNetworkInteraction > Settings.getLong(Settings.KEY_GPS_IDLE_INTERVAL))
-            {
-                StorageEntry.Marker marker = new StorageEntry.Marker("ping");
-                mService.getNetworkStorage().put(marker);
-                mLastNetworkInteraction = now;
-            }
+            if (object.has("type") && object.getString("type").equals("marker") &&
+                    object.has("tag") && object.getString("tag").equals("stop"))
+                return true;
+        }
+        catch (JSONException ex)
+        {
+
         }
 
-        mWorking = true;
-        while (true)
+        return false;
+    }
+
+    boolean processOneItem()
+    {
+        boolean ret = false;
+        StorageEntry.Base entry = mService.getNetworkStorage().get();
+        if (entry == null)
+            return false;
+
+        JSONObject object = entry.toJsonObject();
+        try
         {
-            StorageEntry.Base entry = mService.getNetworkStorage().get();
-            if (entry == null)
+            object.put("id", mDeviceId);
+        }
+        catch (JSONException ex)
+        {
+        }
+
+        Request request = new Request("POST", pUrl(), object.toString());
+
+        Response response = null;
+
+        try
+        {
+            response = one(request);
+
+            JSONObject responseObject = response.getObject();
+            if (responseObject == null)
+                throw new Exception("response object is null");
+
+            int code = responseObject.getInt("code");
+
+            if (code == 1) // success
+            {
+                mService.getNetworkStorage().remove();
+                Settings.setLong(Settings.KEY_LATEST_SUCCESS_CONNECTION, System.currentTimeMillis());
+
+                if (getStatus() == STATUS_STOPPING && checkFinishMarker(object))
+                {
+                    setStatus(STATUS_OFF);
+                }
+
+                ret = true;
+            }
+            else
+            {
+                throw new Exception("Code validation failed");
+            }
+        }
+        catch (Exception ex)
+        {
+            Tools.log("Networking exception: " + ex.toString());
+            Settings.setLong(Settings.KEY_LATEST_FAILED_CONNECTION, System.currentTimeMillis());
+        }
+
+        return ret; // try again later
+    }
+
+    @Override
+    public void run()
+    {
+        Tools.log("NetworkingThread: start");
+
+        super.run();
+
+        mDeviceId = Settings.getString(Settings.KEY_DEVICE_ID);
+        if (mDeviceId == null || mDeviceId.isEmpty())
+            return;
+
+        setStatus(STATUS_ON);
+
+        while (getStatus() != STATUS_OFF)
+        {
+            if (mService.getNetworkStorage().isEmpty())
+            {
+                long now = System.currentTimeMillis();
+                if (now - mLastNetworkInteraction > Settings.getLong(Settings.KEY_GPS_IDLE_INTERVAL))
+                {
+                    StorageEntry.Marker marker = new StorageEntry.Marker("ping");
+                    mService.getNetworkStorage().put(marker);
+                    mLastNetworkInteraction = now;
+                }
+            }
+
+            boolean result = processOneItem();
+
+            if (!result)
+            {
+                try
+                {
+                    Thread.sleep(2000);
+                }
+                catch (Exception ex)
+                {
+                }
+            }
+
+            if (getStatus() == STATUS_STOPPING &&
+                System.currentTimeMillis() - getLastStatusChangeTime() > 5*Settings.getLong(Settings.KEY_NETWORK_TIMEOUT))
+            {
+                setStatus(STATUS_OFF);
                 break;
-            JSONObject object = entry.toJsonObject();
-            try
-            {
-                object.put("id", deviceId);
-            } catch (JSONException ex)
-            {
-            }
-
-            Request request = new Request("POST", pUrl(), object.toString());
-            Response response = null;
-            try
-            {
-                response = one(request);
-
-                object = response.getObject();
-                if (object == null)
-                    break;
-
-                int code = object.getInt("code");
-
-                if (code == 1) // success
-                {
-                    mService.getNetworkStorage().remove();
-                    Settings.setLong(Settings.KEY_LATEST_SUCCESS_CONNECTION, System.currentTimeMillis());
-                }
-                else
-                {
-                    throw new Exception("Code validation failed");
-                }
-//                Tools.log("NetworkThread: Logic: " + Integer.toString(mService.getLogicStorage().size()) + ", Network: " +
-//                        Integer.toString(mService.getNetworkStorage().size()));
-            }
-            catch (Exception ex)
-            {
-                Tools.log("Networking exception: " + ex.toString());
-                Settings.setLong(Settings.KEY_LATEST_FAILED_CONNECTION, System.currentTimeMillis());
-                break; // try again later
             }
         }
-        mWorking = false;
+
+        Tools.log("NetworkingThread: stop");
     }
 
     static String addParamUpdate(String s)
@@ -271,21 +318,11 @@ public class NetworkingThread extends GenericThread
         }
     }
 
-    @Override
-    protected void onStop()
+    public void graciousStop()
     {
-        if (!mWorking)
-            periodicTask();
-        while (mWorking)
-        {
-            try
-            {
-                Thread.sleep(200);
-            }
-            catch (InterruptedException ex)
-            {
-            }
-        }
+        if (getStatus() == STATUS_ON)
+            setStatus(STATUS_STOPPING);
     }
+
 }
 

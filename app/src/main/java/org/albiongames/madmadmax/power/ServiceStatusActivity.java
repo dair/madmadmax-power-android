@@ -4,11 +4,13 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.IBinder;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -81,6 +83,7 @@ public class ServiceStatusActivity extends AppCompatActivity
                                       updateNetworkState();
                                       updateText();
                                       updatePositions();
+                                      updateThreadsState();
                                   }
                               }
                 );
@@ -149,6 +152,51 @@ public class ServiceStatusActivity extends AppCompatActivity
         list.clear();
     }
 
+    void applyStatusToTextView(int status, TextView textView)
+    {
+        if (textView == null)
+            return;
+
+        int color = Color.GRAY;
+        switch (status)
+        {
+            case StatusThread.STATUS_OFF:
+                color = Color.RED;
+                break;
+            case StatusThread.STATUS_ON:
+                color = Color.GREEN;
+                break;
+            case StatusThread.STATUS_STARTING:
+                color = Color.BLUE;
+                break;
+            case StatusThread.STATUS_STOPPING:
+                color = Color.YELLOW;
+                break;
+        }
+        textView.setBackgroundColor(color);
+    }
+
+    protected void updateThreadsState()
+    {
+        int logicStatus = StatusThread.STATUS_OFF;
+        int locationStatus = StatusThread.STATUS_OFF;
+        int networkStatus = StatusThread.STATUS_OFF;
+
+        if (PowerService.instance() != null)
+        {
+            logicStatus = PowerService.instance().getLogicThreadStatus();
+            locationStatus = PowerService.instance().getLocationThreadStatus();
+            networkStatus = PowerService.instance().getNetworkThreadStatus();
+        }
+
+        TextView logicText = (TextView)findViewById(R.id.logicThreadStatusText);
+        applyStatusToTextView(logicStatus, logicText);
+        TextView locationText = (TextView)findViewById(R.id.locationThreadStatusText);
+        applyStatusToTextView(locationStatus, locationText);
+        TextView networkingText = (TextView)findViewById(R.id.networkThreadStatusText);
+        applyStatusToTextView(networkStatus, networkingText);
+    }
+
     protected void updateNetworkState()
     {
         long success = Settings.getLong(Settings.KEY_LATEST_SUCCESS_CONNECTION);
@@ -161,7 +209,14 @@ public class ServiceStatusActivity extends AppCompatActivity
         if (success > fail)
         {
             text.setText("OK");
-            text.setTextColor(Color.GREEN);
+            if (System.currentTimeMillis() - success < 2*Settings.getLong(Settings.KEY_GPS_IDLE_INTERVAL))
+            {
+                text.setTextColor(Color.GREEN);
+            }
+            else
+            {
+                text.setTextColor(Color.DKGRAY);
+            }
         }
         else
         {
@@ -206,5 +261,18 @@ public class ServiceStatusActivity extends AppCompatActivity
         }
     }
 
-
+    @Override
+    public void onBackPressed()
+    {
+        new AlertDialog.Builder(this)
+                .setMessage(R.string.exit_confirmation)
+                .setCancelable(false)
+                .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        ServiceStatusActivity.this.finish();
+                    }
+                })
+                .setNegativeButton(R.string.no, null)
+                .show();
+    }
 }

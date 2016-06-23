@@ -132,20 +132,14 @@ public class PowerService extends Service
     protected void iGraciousStop()
     {
         mStatus = STATUS_CLOSING;
-        try
+
+        mNetworkingThread.graciousStop();
+        mLogicThread.graciousStop();
+        mLocationThread.graciousStop();
+
+        while (mNetworkingThread.isAlive())
         {
-            mLocationThread.graciousStop();
-            mLogicThread.graciousStop();
-
-            Thread.sleep(500);
-
-            mNetworkingThread.graciousStop();
-            while (mNetworkingThread.isAlive())
-                Thread.sleep(100);
-        }
-        catch (Exception ex)
-        {
-
+            Tools.sleep(100);
         }
 
         mStatus = STATUS_OFF;
@@ -168,5 +162,27 @@ public class PowerService extends Service
     public List<StorageEntry.Base> getPositions()
     {
         return mPositions;
+    }
+
+    public int getStatusThreadStatus(StatusThread t)
+    {
+        if (t == null)
+            return StatusThread.STATUS_OFF;
+        return t.getStatus();
+    }
+
+    public int getNetworkThreadStatus()
+    {
+        return getStatusThreadStatus(mNetworkingThread);
+    }
+
+    public int getLocationThreadStatus()
+    {
+        return getStatusThreadStatus(mLocationThread);
+    }
+
+    public int getLogicThreadStatus()
+    {
+        return getStatusThreadStatus(mLogicThread);
     }
 }

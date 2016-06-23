@@ -3,12 +3,15 @@ package org.albiongames.madmadmax.power;
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.security.InvalidParameterException;
 
 /**
  * Created by dair on 12/06/16.
  */
-public class LogicThread extends GenericThread
+public class LogicThread extends StatusThread
 {
     PowerService mService = null;
 
@@ -22,26 +25,43 @@ public class LogicThread extends GenericThread
         mService = service;
     }
 
-    @Override
-    protected void periodicTask()
-    {
-        if (mService == null || mService.getStatus() != PowerService.STATUS_ON)
-            return;
 
-        probabilities();
+    @Override
+    public void run()
+    {
+        Tools.log("LogicThread: start");
+
+        super.run();
+
+        setStatus(STATUS_ON);
 
         while (true)
         {
             StorageEntry.Base entry = mService.getLogicStorage().get();
-            if (entry == null)
-                break;
 
-            mService.getNetworkStorage().put(entry);
-            mService.getLogicStorage().remove();
+            if (entry != null)
+            {
+                mService.getNetworkStorage().put(entry);
+                mService.getLogicStorage().remove();
 
-            Tools.log("LogicThread: Logic: " + Integer.toString(mService.getLogicStorage().size()) + ", Network: " +
-                Integer.toString(mService.getNetworkStorage().size()));
+//                Tools.log("LogicThread: Logic: " + Integer.toString(mService.getLogicStorage().size()) + ", Network: " +
+//                        Integer.toString(mService.getNetworkStorage().size()));
+
+                if (getStatus() == STATUS_STOPPING && checkMarkerStop(entry))
+                {
+                    setStatus(STATUS_OFF);
+                    break;
+                }
+            }
+            else
+            {
+                Tools.sleep(1000);
+            }
         }
+
+        setStatus(STATUS_OFF);
+
+        Tools.log("LogicThread: stop");
     }
 
     protected Expression generateExpressions(final String keyGood, final String keyNew, Expression oldExpression)
@@ -85,5 +105,31 @@ public class LogicThread extends GenericThread
     protected void decreaseGazoline()
     {
 
+    }
+
+    public void graciousStop()
+    {
+        if (getStatus() == STATUS_ON)
+            setStatus(STATUS_STOPPING);
+    }
+
+    boolean checkMarkerStop(StorageEntry.Base entry)
+    {
+        if (entry == null)
+            return false;
+
+        JSONObject object = entry.toJsonObject();
+
+        try
+        {
+            if (object.has("type") && object.getString("type").equals("marker") &&
+                    object.has("tag") && object.getString("tag").equals("stop"))
+                return true;
+        }
+        catch (JSONException ex)
+        {
+        }
+
+        return false;
     }
 }

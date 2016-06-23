@@ -27,5 +27,6 @@ public class MainActivity extends Activity
 
         Intent newActivity = new Intent(this, activityClass);
         startActivity(newActivity);
+        finish();
     }
 }
