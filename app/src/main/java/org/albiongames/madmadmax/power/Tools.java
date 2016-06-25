@@ -68,4 +68,14 @@ public class Tools
         {
         }
     }
+
+    public static double kilometersPerHourToMetersPerSecond(double kmh)
+    {
+        return kmh / 3.6;
+    }
+
+    public static double metersPerSecondToKilometersPerHour(double mps)
+    {
+        return mps * 3.6;
+    }
 }

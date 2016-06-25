@@ -32,8 +32,6 @@ public class ServiceStatusActivity extends AppCompatActivity
 
     ScheduledThreadPoolExecutor mExecutor = null;
 
-    ArrayAdapter mAdapter = null;
-
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -49,11 +47,6 @@ public class ServiceStatusActivity extends AppCompatActivity
                 ServiceStatusActivity.this.clickOnOff();
             }
         });
-
-        mAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1);
-
-        ListView listView = (ListView)findViewById(R.id.listView);
-        listView.setAdapter(mAdapter);
     }
 
     @Override
@@ -82,8 +75,9 @@ public class ServiceStatusActivity extends AppCompatActivity
                                   {
                                       updateNetworkState();
                                       updateText();
-                                      updatePositions();
                                       updateThreadsState();
+                                      updateCarState();
+                                      updateAverageSpeed();
                                   }
                               }
                 );
@@ -133,23 +127,6 @@ public class ServiceStatusActivity extends AppCompatActivity
             label.setText("OFF");
             button.setText("Turn service ON");
         }
-    }
-
-    protected void updatePositions()
-    {
-        if (PowerService.instance() == null)
-            return;
-
-        List<StorageEntry.Base> list = PowerService.instance().getPositions();
-        if (list == null)
-            return;
-
-        for (StorageEntry.Base item: list)
-        {
-            mAdapter.add(item);
-        }
-
-        list.clear();
     }
 
     void applyStatusToTextView(int status, TextView textView)
@@ -223,6 +200,51 @@ public class ServiceStatusActivity extends AppCompatActivity
             text.setText("FAIL");
             text.setTextColor(Color.RED);
         }
+    }
+
+    protected void updateCarState()
+    {
+        TextView textView = (TextView)findViewById(R.id.carStatusTextLabel);
+        if (textView == null)
+            return;
+
+        String text = "";
+        int state = (int)Settings.getLong(Settings.KEY_CAR_STATE);
+        switch (state)
+        {
+            case Settings.CAR_STATE_OK:
+                text = "Car state: OK";
+                break;
+            case Settings.CAR_STATE_MALFUNCTION_1:
+                text = "Car break 1";
+                break;
+            case Settings.CAR_STATE_MALFUNCTION_2:
+                text = "Car break 2";
+                break;
+        }
+
+        textView.setText(text);
+    }
+
+    protected void updateAverageSpeed()
+    {
+        TextView textView = (TextView)findViewById(R.id.averageSpeedTextView);
+        if (textView == null)
+            return;
+
+        double averageSpeed = Settings.getDouble(Settings.KEY_AVERAGE_SPEED);
+
+        textView.setText(Double.toString(averageSpeed));
+    }
+
+    protected void updateDistance()
+    {
+        TextView textView = (TextView)findViewById(R.id.distanceTextView);
+        if (textView == null)
+            return;
+
+        double distance = Settings.getDouble(Settings.KEY_TRACK_DISTANCE);
+        textView.setText(Double.toString(distance));
     }
 
     private boolean isMyServiceRunning(Class<?> serviceClass)

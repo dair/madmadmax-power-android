@@ -9,6 +9,10 @@ import org.json.JSONObject;
 
 public class StorageEntry
 {
+    public static final String TYPE_MARKER = "marker";
+    public static final String TYPE_LOCATION = "location";
+
+
     public static abstract class Base
     {
         private long mTime = 0;
@@ -30,6 +34,16 @@ public class StorageEntry
         {
             mType = object.getString("type");
             mTime = object.getLong("time");
+        }
+
+        public boolean isTypeOf(final String type)
+        {
+            if (mType == null && type == null)
+                return true;
+            if (mType == null || type == null)
+                return false;
+
+            return mType.equals(type);
         }
 
         public long getTime()
@@ -69,7 +83,7 @@ public class StorageEntry
 
         public Location(long time, double lat, double lon, float acc, float speed, double distance, int satellites)
         {
-            super(time, "location");
+            super(time, TYPE_LOCATION);
             mLat = lat;
             mLon = lon;
             mAccuracy = acc;
@@ -87,6 +101,11 @@ public class StorageEntry
             mSpeed = (float)object.getDouble("speed");
             mDistance = object.getDouble("distance");
             mSatellites = object.getInt("sat");
+        }
+
+        public double getDistance()
+        {
+            return mDistance;
         }
 
         @Override
@@ -121,7 +140,7 @@ public class StorageEntry
 
         public Marker(final String tag)
         {
-            super("marker");
+            super(TYPE_MARKER);
             mTag = tag;
         }
 

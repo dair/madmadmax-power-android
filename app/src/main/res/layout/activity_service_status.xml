@@ -8,7 +8,8 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="org.albiongames.madmadmax.power.ServiceStatusActivity">
+    tools:context="org.albiongames.madmadmax.power.ServiceStatusActivity"
+    android:keepScreenOn="true">
 
     <TextView
         android:layout_width="wrap_content"
@@ -37,13 +38,6 @@
         android:id="@+id/button"
         android:layout_below="@+id/serviceStatusView"
         android:layout_centerHorizontal="true"/>
-
-    <ListView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/listView"
-        android:layout_centerHorizontal="true"
-        android:layout_below="@+id/button"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -89,7 +83,60 @@
         android:layout_below="@+id/locationThreadStatusText"
         android:layout_alignLeft="@+id/locationThreadStatusText"
         android:layout_alignStart="@+id/locationThreadStatusText"
-        android:layout_above="@+id/listView"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"/>
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/button"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true">
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            >
+
+            <TextView
+                android:text="Car state:"
+                android:id="@+id/carStatusLabel"
+                android:layout_column="0"/>
+
+            <TextView
+                android:text="New Text"
+                android:id="@+id/carStatusTextLabel"
+                android:layout_column="1"/>
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:text="Average Speed:"
+                android:id="@+id/averageSpeedLabel"
+                android:layout_column="0"/>
+
+            <TextView
+                android:text="New Text"
+                android:id="@+id/averageSpeedTextView"
+                android:layout_column="1"/>
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:text="Distance:"
+                android:id="@+id/distanceLabel"
+                android:layout_column="0"/>
+
+            <TextView
+                android:text="0"
+                android:id="@+id/distanceTextView"
+                android:layout_column="1"/>
+        </TableRow>
+    </TableLayout>
 </RelativeLayout>

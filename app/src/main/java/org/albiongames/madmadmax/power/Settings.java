@@ -4,12 +4,17 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+import net.objecthunter.exp4j.Expression;
+import net.objecthunter.exp4j.ExpressionBuilder;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by dair on 03/05/16.
@@ -33,9 +38,9 @@ public class Settings
     public static final String KEY_PARAM_UPDATE = PARAMS_PREFIX + "param_update";
     public static final String KEY_CAR_STATE = PARAMS_PREFIX + "state";
 
-    public static final long CAR_STATE_OK = 0;
-    public static final long CAR_STATE_BREAK_1 = 1;
-    public static final long CAR_STATE_BREAK_2 = 2;
+    public static final int CAR_STATE_OK = 0;
+    public static final int CAR_STATE_MALFUNCTION_1 = 1;
+    public static final int CAR_STATE_MALFUNCTION_2 = 2;
 
     public static final String KEY_MAX_SPEED = PARAMS_PREFIX + "max_spd";
     public static final String KEY_FUEL_NOW = PARAMS_PREFIX + "fuel";
@@ -52,11 +57,28 @@ public class Settings
     public static final String KEY_LAST_COMMAND_ID = PARAMS_PREFIX + "last_command_id";
     public static final String KEY_NETWORK_TIMEOUT = PARAMS_PREFIX + "timeout";
 
-    public static final String KEY_LOGIC_LAST_GOOD_P1_FORMULA = "good_p1_formula";
-    public static final String KEY_LOGIC_LAST_GOOD_P2_FORMULA = "good_p2_formula";
+    public static final String KEY_MALFUNCTION_CHECK_INTERVAL = PARAMS_PREFIX + "malfunction_interval"; // in meters!
+
+    public static final String KEY_RED_ZONE_RELIABILITY = PARAMS_PREFIX + "red_zone_reliability"; // formula from speed x
+    public static final String KEY_RED_ZONE_FUEL_PER_KM = PARAMS_PREFIX + "red_zone_fuel_per_km"; // formula from speed x
+
+    public static final String KEY_MALFUNCTION1_RED_ZONE = PARAMS_PREFIX + "malfunction1_red_zone";
+    public static final String KEY_MALFUNCTION1_RELIABILITY = PARAMS_PREFIX + "malfunction1_reliability"; // formula from speed x
+    public static final String KEY_MALFUNCTION1_RED_ZONE_RELIABILITY = PARAMS_PREFIX + "malfunction1_red_zone_reliability"; // formula from speed x
+    public static final String KEY_MALFUNCTION1_RED_ZONE_FUEL_PER_KM = PARAMS_PREFIX + "malfunction1_red_zone_fuel_per_km"; // formula from speed x
+    public static final String KEY_MALFUNCTION1_FUEL_PER_KM = PARAMS_PREFIX + "malfunction1_fuel_per_km"; // formula from speed x
 
     public static final String KEY_LATEST_SUCCESS_CONNECTION = "latest_success_connection";
     public static final String KEY_LATEST_FAILED_CONNECTION = "latest_failed_connection";
+
+    public static final String KEY_AVERAGE_SPEED = "average_speed";
+    public static final String KEY_TRACK_DISTANCE = "track_distance";
+
+
+
+
+
+
 
     private static Settings instance = new Settings();
 
@@ -116,9 +138,16 @@ public class Settings
         setString(key, Double.toString(value));
     }
 
+    public static Expression getExpression(final String key)
+    {
+        return instance.pGetExpression(key);
+    }
+
     /////////////////////////
     private SharedPreferences sharedPreferences = null;
     private Map<String, String> mDefaults = new HashMap<>();
+    private Set<String> mFormulaValues = new HashSet<>();
+    private Map<String, Expression> mExpressions = new HashMap<>();
 
     Settings()
     {
@@ -150,14 +179,49 @@ public class Settings
         mDefaults.put(KEY_P1_FORMULA, "1-(4*x/3)^0.3");
         mDefaults.put(KEY_P2_FORMULA, "1-(2*x)^0.3");
 
-        mDefaults.put(KEY_LOGIC_LAST_GOOD_P1_FORMULA, "100-(61887.9*x)^0.3");
-        mDefaults.put(KEY_LOGIC_LAST_GOOD_P2_FORMULA, "100-(92831.8*x)^0.3");
-
         mDefaults.put(KEY_LAST_COMMAND_ID, "0");
         mDefaults.put(KEY_NETWORK_TIMEOUT, "10000");
 
         mDefaults.put(KEY_LATEST_FAILED_CONNECTION, "0");
         mDefaults.put(KEY_LATEST_SUCCESS_CONNECTION, "0");
+
+        mDefaults.put(KEY_MALFUNCTION_CHECK_INTERVAL, "50");
+
+        mDefaults.put(KEY_TRACK_DISTANCE, "0");
+
+
+
+        mDefaults.put(KEY_RED_ZONE_RELIABILITY, "3"); // formula from speed x
+        mDefaults.put(KEY_RED_ZONE_FUEL_PER_KM, "500"); // formula from speed x
+
+        mDefaults.put(KEY_MALFUNCTION1_RED_ZONE, "15");
+
+        mDefaults.put(KEY_MALFUNCTION1_RELIABILITY, "2"); // formula from speed x
+        mDefaults.put(KEY_MALFUNCTION1_FUEL_PER_KM, "2"); // formula from speed x
+
+        mDefaults.put(KEY_MALFUNCTION1_RED_ZONE_RELIABILITY, "5"); // formula from speed x
+        mDefaults.put(KEY_MALFUNCTION1_RED_ZONE_FUEL_PER_KM, "700"); // formula from speed x
+
+// FORMULAS
+
+        mFormulaValues.add(KEY_P1_FORMULA);
+        mFormulaValues.add(KEY_P2_FORMULA);
+
+        // normal driving
+        mFormulaValues.add(KEY_RELIABILITY);
+        mFormulaValues.add(KEY_FUEL_PER_KM);
+
+        // "red zone" (i.e., exceeding speed limit) driving
+        mFormulaValues.add(KEY_RED_ZONE_RELIABILITY);
+        mFormulaValues.add(KEY_RED_ZONE_FUEL_PER_KM);
+
+        // malfunction 1 driving
+        mFormulaValues.add(KEY_MALFUNCTION1_RELIABILITY);
+        mFormulaValues.add(KEY_MALFUNCTION1_FUEL_PER_KM);
+
+        // malfunction 1 AND red zone driving
+        mFormulaValues.add(KEY_MALFUNCTION1_RED_ZONE_RELIABILITY);
+        mFormulaValues.add(KEY_MALFUNCTION1_RED_ZONE_FUEL_PER_KM);
     }
 
     private void pSetContext(Context context)
@@ -189,6 +253,35 @@ public class Settings
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(key, value);
         editor.apply();
+
+        if (mExpressions.containsKey(key))
+            mExpressions.remove(key);
+    }
+
+    private Expression pGetExpression(final String key)
+    {
+        if (!mFormulaValues.contains(key))
+            return null;
+
+        if (mExpressions.containsKey(key) && mExpressions.get(key) != null)
+        {
+            return mExpressions.get(key);
+        }
+        else
+        {
+            try
+            {
+                Expression expression = new ExpressionBuilder(pGetString(key)).
+                        variable("x").build();
+                mExpressions.put(key, expression);
+                return expression;
+            }
+            catch (RuntimeException ex)
+            {
+                // fail
+                return null;
+            }
+        }
     }
 
     public static void networkUpdate(JSONObject object)

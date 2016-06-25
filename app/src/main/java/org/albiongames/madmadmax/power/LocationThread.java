@@ -31,8 +31,6 @@ public class LocationThread extends StatusThread implements LocationListener
     long mGpsDistance = 0;
 
     Location mLastLocation = null;
-    double mTotalDistance = 0;
-
     List<Float> mLastSpeed = new LinkedList<>();
 
     public LocationThread(PowerService service)
@@ -114,7 +112,7 @@ public class LocationThread extends StatusThread implements LocationListener
 
         mLastUpdate = System.currentTimeMillis();
         mLastLocation = null;
-        mTotalDistance = 0.0;
+        Settings.setDouble(Settings.KEY_AVERAGE_SPEED, 0.0);
 
         mService.getLogicStorage().put(new StorageEntry.MarkerStart());
 
@@ -197,9 +195,7 @@ public class LocationThread extends StatusThread implements LocationListener
         }
         mLastLocation = location;
 
-        mTotalDistance += localDistance;
-
-        StorageEntry.Location location1 = new StorageEntry.Location(time, lat, lon, acc, speed, mTotalDistance, satellites);
+        StorageEntry.Location location1 = new StorageEntry.Location(time, lat, lon, acc, speed, localDistance, satellites);
         mService.getPositions().add(location1);
 
         mService.getLogicStorage().put(location1);
@@ -210,6 +206,7 @@ public class LocationThread extends StatusThread implements LocationListener
         {
             mLastSpeed.remove(mLastSpeed.size() - 1);
         }
+        Settings.setDouble(Settings.KEY_AVERAGE_SPEED, averageSpeed());
     }
 
     public void onStatusChanged(String provider, int status, Bundle extras)
@@ -231,6 +228,8 @@ public class LocationThread extends StatusThread implements LocationListener
 
     public float averageSpeed()
     {
+        if (mLastSpeed.isEmpty())
+            return 0.0f;
         float speed = 0;
         int count = 0;
         long maxCount = Settings.getLong(Settings.KEY_AVERAGE_SPEED_COUNT);
@@ -242,7 +241,7 @@ public class LocationThread extends StatusThread implements LocationListener
 
             speed = speed + f;
         }
-        speed = speed / maxCount;
+        speed = speed / count;
         return speed;
     }
 }
