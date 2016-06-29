@@ -68,7 +68,7 @@ public class LogicThread extends StatusThread
         if (trackDistance - mLastMalfunctionCheckDistance > interval)
         {
             probabilities();
-            mLastMalfunctionCheckDistance = trackDistance;
+            mLastMalfunctionCheckDistance += interval;
         }
     }
 

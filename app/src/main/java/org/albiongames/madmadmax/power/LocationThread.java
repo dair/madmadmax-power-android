@@ -211,19 +211,19 @@ public class LocationThread extends StatusThread implements LocationListener
 
     public void onStatusChanged(String provider, int status, Bundle extras)
     {
-//        int satellites = extras.getInt("satellites");
+        int satellites = extras.getInt("satellites");
 
-//        mService.getLogicStorage().put(new StorageEntry.Info("onStatusChanged: " + provider + ": " + Integer.toString(status) + ": satellites = " + Integer.toString(satellites)));
+        Tools.log("LocationTread::onStatusChanged: "+ provider + ": " + Integer.toString(status) + ": satellites = " + Integer.toString(satellites));
     }
 
     public void onProviderEnabled(String provider)
     {
-//        mService.getLogicStorage().put(new StorageEntry.Info("onProviderEnabled: " + provider));
+        Tools.log("LocationThread::onProviderEnabled: " + provider);
     }
 
     public void onProviderDisabled(String provider)
     {
-//        mService.getLogicStorage().put(new StorageEntry.Info("onProviderDisabled: " + provider));
+        Tools.log("LocationThread::onProviderDisabled: " + provider);
     }
 
     public float averageSpeed()

@@ -5,6 +5,8 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.EOFException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -279,23 +281,40 @@ public class NetworkingThread extends StatusThread
 
         connection.connect();
 
+        Tools.log("cathcing eof: 1");
+
         DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
         wr.write(bytes);
         wr.flush();
 
-        int status = connection.getResponseCode();
+        Tools.log("cathcing eof: 2");
+        int status = 442;
 
+        try
+        {
+            status = connection.getResponseCode();
+        }
+        catch (EOFException ex)
+        {
+            // server closed connection??
+        }
+
+        Tools.log("cathcing eof: 2.5");
         if (status == HttpURLConnection.HTTP_OK)
         {
+            Tools.log("cathcing eof: 3");
             InputStream is = connection.getInputStream();
             BufferedReader rd = new BufferedReader(new InputStreamReader(is, "UTF-8"));
             StringBuilder responseString = new StringBuilder(); // or StringBuffer if not Java 5+
             String line;
-            while((line = rd.readLine()) != null) {
+            while ((line = rd.readLine()) != null)
+            {
                 responseString.append(line);
                 responseString.append('\r');
             }
+            Tools.log("cathcing eof: 4");
             rd.close();
+            Tools.log("cathcing eof: 5");
 
             JSONObject object = new JSONObject(responseString.toString());
 
@@ -306,9 +325,12 @@ public class NetworkingThread extends StatusThread
                 object.remove("params");
                 mLastParamsRequest = System.currentTimeMillis();
             }
+            Tools.log("cathcing eof: 6");
 
             Response response = new Response(object);
             wr.close();
+
+            Tools.log("cathcing eof: 7");
 
             return response;
         }

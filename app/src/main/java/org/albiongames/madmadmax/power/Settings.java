@@ -125,7 +125,7 @@ public class Settings
         {
             ret = Double.parseDouble(getString(key));
         }
-        catch (NumberFormatException ex)
+        catch (Exception ex)
         {
 
         }
