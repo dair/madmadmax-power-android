@@ -271,11 +271,16 @@ public class ServiceStatusActivity extends AppCompatActivity
     @Override
     public boolean onOptionsItemSelected(MenuItem item)
     {
+        Intent intent = null;
         // Handle item selection
         switch (item.getItemId())
         {
             case R.id.bt_device:
-                Intent intent = new Intent(this, BluetoothDeviceActivity.class);
+                intent = new Intent(this, BluetoothDeviceActivity.class);
+                startActivity(intent);
+                return true;
+            case R.id.settings:
+                intent = new Intent(this, SettingsActivity.class);
                 startActivity(intent);
                 return true;
             default:
