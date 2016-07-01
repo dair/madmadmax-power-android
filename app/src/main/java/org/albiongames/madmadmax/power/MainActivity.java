@@ -23,6 +23,7 @@ public class MainActivity extends Activity
         else
         {
             activityClass = ServiceStatusActivity.class;
+//            activityClass = GraphicActivity.class;
         }
 
         Intent newActivity = new Intent(this, activityClass);
