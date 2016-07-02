@@ -14,6 +14,7 @@ import android.support.v4.app.ActivityCompat;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -128,6 +129,9 @@ public class LocationThread extends StatusThread implements LocationListener
             }
         }, 1000, 1000);
 
+        Settings.setDouble(Settings.KEY_LAST_INSTANT_SPEED, 0.0);
+        Settings.setLong(Settings.KEY_LAST_GPS_UPDATE, 0);
+
         Tools.log("Location Thread started");
     }
 
@@ -187,6 +191,9 @@ public class LocationThread extends StatusThread implements LocationListener
         double lon = location.getLongitude();
         float speed = location.getSpeed();
         long time = location.getTime();
+
+        Settings.setDouble(Settings.KEY_LAST_INSTANT_SPEED, speed);
+        Settings.setLong(Settings.KEY_LAST_GPS_UPDATE, time);
 
         double localDistance = 0;
         if (mLastLocation != null && speed > 0.001)

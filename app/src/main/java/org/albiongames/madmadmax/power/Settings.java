@@ -74,7 +74,8 @@ public class Settings
     public static final String KEY_AVERAGE_SPEED = "average_speed";
     public static final String KEY_TRACK_DISTANCE = "track_distance";
 
-
+    public static final String KEY_LAST_INSTANT_SPEED = "last_instant_speed";
+    public static final String KEY_LAST_GPS_UPDATE= "last_instant_speed";
 
 
 
@@ -201,6 +202,9 @@ public class Settings
 
         mDefaults.put(KEY_MALFUNCTION1_RED_ZONE_RELIABILITY, "5"); // formula from speed x
         mDefaults.put(KEY_MALFUNCTION1_RED_ZONE_FUEL_PER_KM, "700"); // formula from speed x
+
+        mDefaults.put(KEY_LAST_INSTANT_SPEED, "0");
+        mDefaults.put(KEY_LAST_GPS_UPDATE, "0");
 
 // FORMULAS
 

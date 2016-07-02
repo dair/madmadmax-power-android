@@ -233,8 +233,33 @@ public class ServiceStatusActivity extends AppCompatActivity
             return;
 
         double averageSpeed = Settings.getDouble(Settings.KEY_AVERAGE_SPEED);
+        double averageSpeedKmH = Tools.metersPerSecondToKilometersPerHour(averageSpeed);
 
-        textView.setText(Double.toString(averageSpeed));
+        textView.setText(Double.toString(averageSpeedKmH));
+
+
+        double lastSpeed = Settings.getDouble(Settings.KEY_LAST_INSTANT_SPEED);
+        double lastSpeedKmH = Tools.metersPerSecondToKilometersPerHour(lastSpeed);
+        TextView lastSpeedTextView = (TextView)findViewById(R.id.lastInstantSpeedTextView);
+        if (lastSpeedTextView != null)
+        {
+            lastSpeedTextView.setText(Double.toString(lastSpeedKmH));
+        }
+
+        TextView lastGpsTextView = (TextView)findViewById(R.id.lastGpsSignalTextView);
+        long lastTime = Settings.getLong(Settings.KEY_LAST_GPS_UPDATE);
+        if (lastTime > 0)
+        {
+            long now = System.currentTimeMillis();
+            long diff = now - lastTime;
+
+            double diffS = (double) diff / 1000.0;
+            lastGpsTextView.setText(Double.toString(diffS));
+        }
+        else
+        {
+            lastGpsTextView.setText("---");
+        }
     }
 
     protected void updateDistance()

@@ -89,9 +89,12 @@
     <TableLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/button"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true">
+        android:layout_alignParentStart="true"
+        android:id="@+id/tableLayout"
+        android:layout_toLeftOf="@+id/logicThreadStatusText"
+        android:layout_toStartOf="@+id/logicThreadStatusText"
+        android:layout_below="@+id/progressBar">
 
         <TableRow
             android:layout_width="match_parent"
@@ -138,5 +141,56 @@
                 android:id="@+id/distanceTextView"
                 android:layout_column="1"/>
         </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:text="Last instant speed:"
+                android:id="@+id/textView2"
+                android:layout_column="0"
+                />
+
+            <TextView
+                android:text="0.0"
+                android:id="@+id/lastInstantSpeedTextView"
+                android:layout_column="1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:text="Last GPS signal:"
+                android:id="@+id/textView3"
+                android:layout_column="0"
+                />
+
+            <TextView
+                android:text="0.0"
+                android:id="@+id/lastGpsSignalTextView"
+                android:layout_column="1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </TableRow>
     </TableLayout>
+
+    <ProgressBar
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/progressBar"
+        android:progressDrawable="@drawable/progressbar_states"
+        android:layout_below="@+id/button"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:max="100"
+        android:progress="100"
+        android:layout_toStartOf="@+id/logicThreadStatusText"
+        android:layout_toLeftOf="@+id/logicThreadStatusText"/>
+
 </RelativeLayout>
