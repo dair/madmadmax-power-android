@@ -19,7 +19,7 @@ public class GraphicActivity extends Activity {
     {
         super.onResume();
 
-        ImageView logo = (ImageView)findViewById(R.id.imageView);
+        ImageView logo = (ImageView)findViewById(R.id.logoImageView);
         logo.setColorFilter(Color.YELLOW);
 
 

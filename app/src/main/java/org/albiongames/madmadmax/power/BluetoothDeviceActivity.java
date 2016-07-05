@@ -15,7 +15,7 @@ import java.util.Set;
 
 public class BluetoothDeviceActivity extends AppCompatActivity
 {
-    public class
+//    public class
     int REQUEST_ENABLE_BT = 0xBB02;
 
 

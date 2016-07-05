@@ -32,7 +32,7 @@ public class LocationThread extends StatusThread implements LocationListener
     long mGpsDistance = 0;
 
     Location mLastLocation = null;
-    List<Float> mLastSpeed = new LinkedList<>();
+    List<Location> mLastLocations = new LinkedList<>();
 
     public LocationThread(PowerService service)
     {
@@ -208,11 +208,36 @@ public class LocationThread extends StatusThread implements LocationListener
         mService.getLogicStorage().put(location1);
         mLastUpdate = time;
 
-        mLastSpeed.add(0, speed);
-        while (mLastSpeed.size() > Settings.getLong(Settings.KEY_AVERAGE_SPEED_COUNT))
+        addLocation(location);
+    }
+
+    void addLocation(Location location)
+    {
+        mLastLocations.add(location);
+
+        long now = System.currentTimeMillis();
+        long minTime = now - Settings.getLong(Settings.KEY_AVERAGE_SPEED_TIME);
+        boolean haveBorder = false;
+
+        int i = mLastLocations.size() - 1;
+        for (; i >= 0; --i)
         {
-            mLastSpeed.remove(mLastSpeed.size() - 1);
+            Location l = mLastLocations.get(i);
+            if (l.getTime() < minTime)
+            {
+                if (haveBorder)
+                    break;
+                else
+                    haveBorder = true; // we should have ONE value less than our border
+            }
         }
+
+        while (i > 0)
+        {
+            mLastLocations.remove(0);
+            --i;
+        }
+
         Settings.setDouble(Settings.KEY_AVERAGE_SPEED, averageSpeed());
     }
 
@@ -233,22 +258,82 @@ public class LocationThread extends StatusThread implements LocationListener
         Tools.log("LocationThread::onProviderDisabled: " + provider);
     }
 
-    public float averageSpeed()
+    public synchronized float averageSpeed()
     {
-        if (mLastSpeed.isEmpty())
+        if (mLastLocations.isEmpty())
             return 0.0f;
-        float speed = 0;
-        int count = 0;
-        long maxCount = Settings.getLong(Settings.KEY_AVERAGE_SPEED_COUNT);
-        for (Float f: mLastSpeed)
-        {
-            ++count;
-            if (count > maxCount)
-                break;
 
-            speed = speed + f;
+        float speed = 0;
+        long now = System.currentTimeMillis();
+        long duration = Settings.getLong(Settings.KEY_AVERAGE_SPEED_TIME);
+        long minTime = now - duration;
+
+        LinkedList<Long> xs = new LinkedList<>();
+        LinkedList<Float> ys = new LinkedList<>();
+        boolean haveBorder = false;
+
+        Location prevLocation = null;
+        for (int i = mLastLocations.size() - 1; i >= 0; --i)
+        {
+            Location l = mLastLocations.get(i);
+
+            long x = l.getTime();
+            float y = l.getSpeed();
+
+            if (x < minTime)
+            {
+                if (haveBorder)
+                    break;
+                else
+                {
+                    if (prevLocation == null)
+                        return l.getSpeed();
+
+                    float df = prevLocation.getSpeed() - y;
+                    long dt = prevLocation.getTime() - x;
+
+                    long mt = minTime - x;
+
+                    float s = (mt * df) / dt;
+
+
+                    x = minTime;
+                    y = s;
+
+                    haveBorder = true;
+                }
+            }
+
+            xs.add(0, x);
+            ys.add(0, y);
+
+            prevLocation = l;
         }
-        speed = speed / count;
+
+        if (!haveBorder)
+        {
+            xs.add(0, minTime);
+            ys.add(0, 0.0f);
+        }
+
+        float totalSquare = 0.0f;
+        for (int i = 1; i < xs.size(); ++i)
+        {
+            long x0 = xs.get(i - 1);
+            float y0 = ys.get(i - 1);
+            long x1 = xs.get(i);
+            float y1 = ys.get(i);
+
+            float yMin = Math.min(y0, y1);
+            float yMax = Math.max(y0, y1);
+
+            float square = yMin * (y1 - y0) + ((yMax - yMin) * (y1 - y0)) / 2;
+
+            totalSquare += square;
+        }
+
+        speed = totalSquare / duration;
+
         return speed;
     }
 }

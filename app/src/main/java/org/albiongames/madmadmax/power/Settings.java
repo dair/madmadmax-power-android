@@ -33,7 +33,7 @@ public class Settings
     public static final String KEY_MIN_GPS_DISTANCE = PARAMS_PREFIX + "gps_distance";
     public static final String KEY_MIN_SATELLITES = PARAMS_PREFIX + "gps_satellites";
     public static final String KEY_MIN_ACCURACY = PARAMS_PREFIX + "gps_accuracy";
-    public static final String KEY_AVERAGE_SPEED_COUNT = PARAMS_PREFIX + "spdn";
+    public static final String KEY_AVERAGE_SPEED_TIME = PARAMS_PREFIX + "average_speed_time";
 
     public static final String KEY_PARAM_UPDATE = PARAMS_PREFIX + "param_update";
     public static final String KEY_CAR_STATE = PARAMS_PREFIX + "state";
@@ -154,7 +154,7 @@ public class Settings
     {
         mDefaults.put(KEY_DEVICE_ID, null);
         mDefaults.put(KEY_DEVICE_NAME, null);
-        mDefaults.put(KEY_SERVER_URL, "http://172.20.10.3:3000");
+        mDefaults.put(KEY_SERVER_URL, "http://power.madmax.su:3000");
         mDefaults.put(KEY_BLUETOOTH_DEVICE, null);
 
         mDefaults.put(KEY_GPS_IDLE_INTERVAL, "5000"); // milliseconds
@@ -162,7 +162,7 @@ public class Settings
         mDefaults.put(KEY_MIN_GPS_DISTANCE, "20"); //meters
         mDefaults.put(KEY_MIN_SATELLITES, "3");
         mDefaults.put(KEY_MIN_ACCURACY, "20");
-        mDefaults.put(KEY_AVERAGE_SPEED_COUNT, "5");
+        mDefaults.put(KEY_AVERAGE_SPEED_TIME, "30000"); // milliseconds
 
         mDefaults.put(KEY_PARAM_UPDATE, "3000");
         mDefaults.put(KEY_CAR_STATE, "0");
