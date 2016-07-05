@@ -14,4 +14,6 @@
     <string name="yes">Да</string>
     <string name="no">Нет</string>
 
+    <string name="bluetooth_error_init">Ошибка инициализации Bluetooth</string>
+
 </resources>
