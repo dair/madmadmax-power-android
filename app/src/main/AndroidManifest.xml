@@ -41,7 +41,8 @@
             android:label="@string/title_activity_settings"
             android:screenOrientation="portrait"></activity>
         <activity android:name=".GraphicActivity"
-            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"></activity>
+                  android:screenOrientation="portrait"
+                  android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"></activity>
     </application>
 
 </manifest>

@@ -78,8 +78,10 @@ public class Settings
     public static final String KEY_LAST_GPS_UPDATE= "last_instant_speed";
 
 
+    public static final String KEY_LOCATION_THREAD_STATUS = "location_status";
+    public static final String KEY_LOCATION_THREAD_SATELLITES = "location_satellites";
 
-
+    public static final String KEY_REGISTER_NAME = "register_activity_name";
 
     private static Settings instance = new Settings();
 

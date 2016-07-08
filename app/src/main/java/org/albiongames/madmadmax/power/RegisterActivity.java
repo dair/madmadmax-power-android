@@ -12,6 +12,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 
@@ -88,9 +89,31 @@ public class RegisterActivity extends AppCompatActivity
 
         mStoredDeviceName = Settings.getString(Settings.KEY_DEVICE_NAME);
         if (mStoredDeviceName == null)
-            mStoredDeviceName = "";
+        {
+            mStoredDeviceName = Settings.getString(Settings.KEY_REGISTER_NAME);
+            if (mStoredDeviceName == null)
+            {
+                mStoredDeviceName = "";
+            }
+        }
 
         mDeviceNameWidget.setText(mStoredDeviceName);
+        if (mDeviceNameWidget.requestFocus())
+        {
+            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        }
+    }
+
+    @Override
+    public void onPause()
+    {
+        super.onPause();
+
+        if (mDeviceNameWidget != null)
+        {
+            String name = mDeviceNameWidget.getText().toString().trim();
+            Settings.setString(Settings.KEY_REGISTER_NAME, name);
+        }
     }
 
     private void registerWithDeviceName(String name)
@@ -137,7 +160,7 @@ public class RegisterActivity extends AppCompatActivity
                             mStoredDeviceName = deviceNameWidget.getText().toString();
                             Settings.setString(Settings.KEY_DEVICE_NAME, mStoredDeviceName);
 
-                            Intent newActivity = new Intent(RegisterActivity.this, ServiceStatusActivity.class);
+                            Intent newActivity = new Intent(RegisterActivity.this, GraphicActivity.class);
                             startActivity(newActivity);
                             finish();
                         }
@@ -160,6 +183,11 @@ public class RegisterActivity extends AppCompatActivity
     {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_menu, menu);
+        MenuItem item = menu.findItem(R.id.menu_status);
+        if (item != null)
+        {
+            item.setEnabled(false);
+        }
         return true;
     }
 
@@ -170,10 +198,10 @@ public class RegisterActivity extends AppCompatActivity
         // Handle item selection
         switch (item.getItemId())
         {
-            case R.id.settings:
+            case R.id.menu_settings:
                 intent = new Intent(this, SettingsActivity.class);
                 break;
-            case R.id.bt_device:
+            case R.id.menu_bluetooth:
                 intent = new Intent(this, BluetoothDeviceActivity.class);
                 break;
         }

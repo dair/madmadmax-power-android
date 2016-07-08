@@ -132,6 +132,9 @@ public class LocationThread extends StatusThread implements LocationListener
         Settings.setDouble(Settings.KEY_LAST_INSTANT_SPEED, 0.0);
         Settings.setLong(Settings.KEY_LAST_GPS_UPDATE, 0);
 
+        Settings.setLong(Settings.KEY_LOCATION_THREAD_STATUS, STATUS_STARTING);
+        Settings.setLong(Settings.KEY_LOCATION_THREAD_SATELLITES, 0);
+
         Tools.log("Location Thread started");
     }
 
@@ -152,6 +155,9 @@ public class LocationThread extends StatusThread implements LocationListener
             // cry out loud
         }
         mService = null;
+
+        Settings.setLong(Settings.KEY_LOCATION_THREAD_STATUS, STATUS_OFF);
+        Settings.setLong(Settings.KEY_LOCATION_THREAD_SATELLITES, 0);
     }
 
     public void graciousStop()
@@ -171,6 +177,7 @@ public class LocationThread extends StatusThread implements LocationListener
         if (location.getExtras().containsKey("satellites"))
         {
             satellites = location.getExtras().getInt("satellites");
+            Settings.setLong(Settings.KEY_LOCATION_THREAD_SATELLITES, satellites);
 
             if (satellites < Settings.getLong(Settings.KEY_MIN_SATELLITES))
                 return;
@@ -209,6 +216,9 @@ public class LocationThread extends StatusThread implements LocationListener
         mLastUpdate = time;
 
         addLocation(location);
+
+        Settings.setLong(Settings.KEY_LOCATION_THREAD_STATUS, STATUS_ON);
+
     }
 
     void addLocation(Location location)
@@ -245,17 +255,21 @@ public class LocationThread extends StatusThread implements LocationListener
     {
         int satellites = extras.getInt("satellites");
 
+        Settings.setLong(Settings.KEY_LOCATION_THREAD_SATELLITES, satellites);
+
         Tools.log("LocationTread::onStatusChanged: "+ provider + ": " + Integer.toString(status) + ": satellites = " + Integer.toString(satellites));
     }
 
     public void onProviderEnabled(String provider)
     {
         Tools.log("LocationThread::onProviderEnabled: " + provider);
+        Settings.setLong(Settings.KEY_LOCATION_THREAD_STATUS, STATUS_ON);
     }
 
     public void onProviderDisabled(String provider)
     {
         Tools.log("LocationThread::onProviderDisabled: " + provider);
+        Settings.setLong(Settings.KEY_LOCATION_THREAD_STATUS, STATUS_OFF);
     }
 
     public synchronized float averageSpeed()

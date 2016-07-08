@@ -3,6 +3,8 @@
     <string name="app_name">Mad Mad Max</string>
     <string name="bt_device_menu">Устройство Bluetooth</string>
     <string name="service_status">Состояние сервиса:</string>
+    <string name="menu_status">Состояние сервиса</string>
+
     <string name="device_name">Имя устройства</string>
     <string name="register_button">Регистрация</string>
 

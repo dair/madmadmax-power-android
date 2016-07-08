@@ -285,46 +285,4 @@ public class ServiceStatusActivity extends AppCompatActivity
         return false;
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu)
-    {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main_menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item)
-    {
-        Intent intent = null;
-        // Handle item selection
-        switch (item.getItemId())
-        {
-            case R.id.bt_device:
-                intent = new Intent(this, BluetoothDeviceActivity.class);
-                startActivity(intent);
-                return true;
-            case R.id.settings:
-                intent = new Intent(this, SettingsActivity.class);
-                startActivity(intent);
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
-
-    @Override
-    public void onBackPressed()
-    {
-        new AlertDialog.Builder(this)
-                .setMessage(R.string.exit_confirmation)
-                .setCancelable(false)
-                .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        ServiceStatusActivity.this.finish();
-                    }
-                })
-                .setNegativeButton(R.string.no, null)
-                .show();
-    }
 }
