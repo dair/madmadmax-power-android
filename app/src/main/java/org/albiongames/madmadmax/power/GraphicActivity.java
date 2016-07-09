@@ -13,6 +13,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -27,8 +28,13 @@ public class GraphicActivity extends Activity {
     int mHitPoints = 0;
     int mMaxHitPoints = 0;
 
+    int mFuel = 0;
+    int mMaxFuel = 0;
+
     int mGpsStatus = STATUS_INITIAL;
     int mNetworkStatus = STATUS_INITIAL;
+
+    boolean mServerRunning = false;
 
     ScheduledThreadPoolExecutor mExecutor = null;
 
@@ -57,10 +63,12 @@ public class GraphicActivity extends Activity {
                                   @Override
                                   public void run()
                                   {
+                                      mServerRunning = Tools.isMyServiceRunning(GraphicActivity.this);
                                       updateNetworkState();
                                       updateAverageSpeed();
                                       updateGpsStatus();
                                       updateHitPoints();
+                                      updateFuel();
                                   }
                               }
                 );
@@ -80,25 +88,28 @@ public class GraphicActivity extends Activity {
 
     void updateNetworkState()
     {
-        long success = Settings.getLong(Settings.KEY_LATEST_SUCCESS_CONNECTION);
-        long fail = Settings.getLong(Settings.KEY_LATEST_FAILED_CONNECTION);
         int newStatus = STATUS_UNKNOWN;
 
-        if (success > fail)
+        if (mServerRunning)
         {
-            if (System.currentTimeMillis() - success < 2*Settings.getLong(Settings.KEY_GPS_IDLE_INTERVAL))
+            long success = Settings.getLong(Settings.KEY_LATEST_SUCCESS_CONNECTION);
+            long fail = Settings.getLong(Settings.KEY_LATEST_FAILED_CONNECTION);
+
+            if (success > fail)
             {
-                newStatus = STATUS_OK;
-            }
-            else
+                if (System.currentTimeMillis() - success < 2 * Settings.getLong(Settings.KEY_GPS_IDLE_INTERVAL))
+                {
+                    newStatus = STATUS_OK;
+                } else
+                {
+                    newStatus = STATUS_UNKNOWN;
+                }
+            } else
             {
-                newStatus = STATUS_UNKNOWN;
+                newStatus = STATUS_FAIL;
             }
         }
-        else
-        {
-            newStatus = STATUS_FAIL;
-        }
+
 
 
         if (newStatus == mNetworkStatus)
@@ -123,53 +134,68 @@ public class GraphicActivity extends Activity {
 
     void updateAverageSpeed()
     {
-        int newStatus = STATUS_UNKNOWN;
-        float averageSpeed = (float)Settings.getDouble(Settings.KEY_AVERAGE_SPEED);
-        float redZoneSpeed = 0;
-        ImageView logo = (ImageView)findViewById(R.id.logoImageView);
+        int state = (int) Settings.getLong(Settings.KEY_CAR_STATE);
+        ImageView logo = (ImageView) findViewById(R.id.logoImageView);
 
-        int state = (int)Settings.getLong(Settings.KEY_CAR_STATE);
-        switch (state)
+        if (Tools.isMyServiceRunning(this))
         {
-            case Settings.CAR_STATE_MALFUNCTION_1:
-                redZoneSpeed = (float)Settings.getDouble(Settings.KEY_MALFUNCTION1_RED_ZONE);
-                break;
-            case Settings.CAR_STATE_MALFUNCTION_2:
-                redZoneSpeed = -1;
-                break;
-            case Settings.CAR_STATE_OK:
-                redZoneSpeed = (float)Settings.getDouble(Settings.KEY_RED_ZONE);
-                break;
-        }
+            float averageSpeed = (float) Settings.getDouble(Settings.KEY_AVERAGE_SPEED);
+            float redZoneSpeed = 0;
 
-        if (state == Settings.CAR_STATE_MALFUNCTION_2)
-        {
-            logo.setBackgroundColor(Color.RED);
-            logo.setColorFilter(Color.BLACK);
-        }
+            switch (state)
+            {
+                case Settings.CAR_STATE_MALFUNCTION_1:
+                    redZoneSpeed = (float) Settings.getDouble(Settings.KEY_MALFUNCTION1_RED_ZONE);
+                    break;
+                case Settings.CAR_STATE_MALFUNCTION_2:
+                    redZoneSpeed = -1;
+                    break;
+                case Settings.CAR_STATE_OK:
+                    redZoneSpeed = (float) Settings.getDouble(Settings.KEY_RED_ZONE);
+                    break;
+            }
 
-        logo.setBackgroundColor(Color.BLACK);
-        if (averageSpeed < 0.5)
-        {
-            logo.setColorFilter(Color.DKGRAY);
-            return;
-        }
+            if (state == Settings.CAR_STATE_MALFUNCTION_2)
+            {
+                logo.setBackgroundColor(Color.RED);
+                logo.setColorFilter(Color.BLACK);
+            }
 
-        if (averageSpeed > redZoneSpeed)
-        {
-            logo.setColorFilter(Color.RED);
-            return;
-        }
+            logo.setBackgroundColor(Color.BLACK);
+            if (averageSpeed < 0.5)
+            {
+                logo.setColorFilter(Color.DKGRAY);
+                return;
+            }
 
-        if (averageSpeed > redZoneSpeed * 0.75)
-        {
-            logo.setColorFilter(Color.YELLOW);
-            return;
+            if (averageSpeed > redZoneSpeed)
+            {
+                logo.setColorFilter(Color.RED);
+                return;
+            }
+
+            if (averageSpeed > redZoneSpeed * 0.75)
+            {
+                logo.setColorFilter(Color.YELLOW);
+                return;
+            } else
+            {
+                logo.setColorFilter(Color.WHITE);
+                return;
+            }
         }
         else
         {
-            logo.setColorFilter(Color.WHITE);
-            return;
+            if (state == Settings.CAR_STATE_MALFUNCTION_2)
+            {
+                logo.setBackgroundColor(Color.RED);
+                logo.setColorFilter(Color.GRAY);
+            }
+            else
+            {
+                logo.setBackgroundColor(Color.BLACK);
+                logo.setColorFilter(Color.DKGRAY);
+            }
         }
     }
 
@@ -177,20 +203,42 @@ public class GraphicActivity extends Activity {
     {
         ImageView gpsImageView = (ImageView)findViewById(R.id.gpsImageView);
 
-        int satellites = (int)Settings.getLong(Settings.KEY_LOCATION_THREAD_SATELLITES);
-        int minSatellites = (int)Settings.getLong(Settings.KEY_MIN_SATELLITES);
+        int quality = (int)Settings.getLong(Settings.KEY_LOCATION_THREAD_LAST_QUALITY);
 
-        if (satellites == 0)
+        int newStatus = STATUS_UNKNOWN;
+
+        if (mServerRunning)
         {
-            gpsImageView.setColorFilter(Color.DKGRAY);
+            switch (quality)
+            {
+                case -1:
+                    newStatus = STATUS_UNKNOWN;
+                    break;
+                case 0:
+                    newStatus = STATUS_FAIL;
+                    break;
+                case 1:
+                    newStatus = STATUS_OK;
+                    break;
+            }
         }
-        else if (satellites < minSatellites)
+
+        if (newStatus == mGpsStatus)
+            return;
+
+        mGpsStatus = newStatus;
+
+        switch (mGpsStatus)
         {
-            gpsImageView.setColorFilter(Color.RED);
-        }
-        else
-        {
-            gpsImageView.setColorFilter(Color.WHITE);
+            case STATUS_FAIL:
+                gpsImageView.setColorFilter(Color.RED);
+                break;
+            case STATUS_UNKNOWN:
+                gpsImageView.setColorFilter(Color.DKGRAY);
+                break;
+            case STATUS_OK:
+                gpsImageView.setColorFilter(Color.WHITE);
+                break;
         }
     }
 
@@ -205,9 +253,45 @@ public class GraphicActivity extends Activity {
         mHitPoints = currentHP;
         mMaxHitPoints = maxHP;
 
-        ProgressBar progressBar = (ProgressBar)findViewById(R.id.progressBar);
+        ProgressBar progressBar = (ProgressBar)findViewById(R.id.progressBarHP);
         progressBar.setMax(mMaxHitPoints);
         progressBar.setProgress(mHitPoints);
+
+        TextView hpText = (TextView)findViewById(R.id.hpText);
+        if (mServerRunning)
+        {
+            hpText.setTextColor(Color.WHITE);
+        }
+        else
+        {
+            hpText.setTextColor(Color.DKGRAY);
+        }
+    }
+
+    void updateFuel()
+    {
+        int currentFuel = (int)Settings.getLong(Settings.KEY_FUEL_NOW);
+        int maxFuel = (int)Settings.getLong(Settings.KEY_FUEL_MAX);
+
+        if (currentFuel == mFuel && maxFuel == mMaxFuel)
+            return;
+
+        mFuel = currentFuel;
+        mMaxFuel = maxFuel;
+
+        ProgressBar progressBar = (ProgressBar)findViewById(R.id.progressBarFuel);
+        progressBar.setMax(mMaxFuel);
+        progressBar.setProgress(mFuel);
+
+        TextView fuelText = (TextView)findViewById(R.id.fuelText);
+        if (mServerRunning)
+        {
+            fuelText.setTextColor(Color.WHITE);
+        }
+        else
+        {
+            fuelText.setTextColor(Color.DKGRAY);
+        }
     }
 
     @Override
@@ -229,7 +313,21 @@ public class GraphicActivity extends Activity {
     public boolean onCreateOptionsMenu(Menu menu)
     {
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main_menu, menu);
+        inflater.inflate(R.menu.graphic_activity_menu, menu);
+
+        MenuItem item = menu.findItem(R.id.menu_service_on_off);
+
+        if (Tools.isMyServiceRunning(this))
+        {
+            item.setTitle(R.string.menu_service_off);
+            item.setIcon(R.drawable.stop);
+        }
+        else
+        {
+            item.setTitle(R.string.menu_service_on);
+            item.setIcon(R.drawable.play);
+        }
+
         return true;
     }
 
@@ -240,20 +338,28 @@ public class GraphicActivity extends Activity {
         // Handle item selection
         switch (item.getItemId())
         {
-            case R.id.menu_status:
+            case R.id.menu_settings:
                 intent = new Intent(this, ServiceStatusActivity.class);
                 startActivity(intent);
                 return true;
-            case R.id.menu_bluetooth:
-                intent = new Intent(this, BluetoothDeviceActivity.class);
-                startActivity(intent);
-                return true;
-            case R.id.menu_settings:
-                intent = new Intent(this, SettingsActivity.class);
-                startActivity(intent);
+            case R.id.menu_service_on_off:
+                toggleService();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    public void toggleService()
+    {
+        if (Tools.isMyServiceRunning(this))
+        {
+            // stop service
+            PowerService.graciousStop();
+        }
+        else
+        {
+            startService(new Intent(this, PowerService.class));
         }
     }
 

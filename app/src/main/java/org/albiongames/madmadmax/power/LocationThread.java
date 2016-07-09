@@ -133,7 +133,7 @@ public class LocationThread extends StatusThread implements LocationListener
         Settings.setLong(Settings.KEY_LAST_GPS_UPDATE, 0);
 
         Settings.setLong(Settings.KEY_LOCATION_THREAD_STATUS, STATUS_STARTING);
-        Settings.setLong(Settings.KEY_LOCATION_THREAD_SATELLITES, 0);
+        Settings.setLong(Settings.KEY_LOCATION_THREAD_LAST_QUALITY, -1);
 
         Tools.log("Location Thread started");
     }
@@ -157,7 +157,7 @@ public class LocationThread extends StatusThread implements LocationListener
         mService = null;
 
         Settings.setLong(Settings.KEY_LOCATION_THREAD_STATUS, STATUS_OFF);
-        Settings.setLong(Settings.KEY_LOCATION_THREAD_SATELLITES, 0);
+        Settings.setLong(Settings.KEY_LOCATION_THREAD_LAST_QUALITY, -1);
     }
 
     public void graciousStop()
@@ -177,10 +177,12 @@ public class LocationThread extends StatusThread implements LocationListener
         if (location.getExtras().containsKey("satellites"))
         {
             satellites = location.getExtras().getInt("satellites");
-            Settings.setLong(Settings.KEY_LOCATION_THREAD_SATELLITES, satellites);
 
             if (satellites < Settings.getLong(Settings.KEY_MIN_SATELLITES))
+            {
+                Settings.setLong(Settings.KEY_LOCATION_THREAD_LAST_QUALITY, 0);
                 return;
+            }
         }
 
         float acc = -1;
@@ -189,8 +191,13 @@ public class LocationThread extends StatusThread implements LocationListener
             acc = location.getAccuracy();
 
             if (acc > Settings.getLong(Settings.KEY_MIN_ACCURACY))
+            {
+                Settings.setLong(Settings.KEY_LOCATION_THREAD_LAST_QUALITY, 0);
                 return;
+            }
         }
+
+        Settings.setLong(Settings.KEY_LOCATION_THREAD_LAST_QUALITY, 1);
 
         Tools.log("Got location: " + location.toString());
 
@@ -218,7 +225,6 @@ public class LocationThread extends StatusThread implements LocationListener
         addLocation(location);
 
         Settings.setLong(Settings.KEY_LOCATION_THREAD_STATUS, STATUS_ON);
-
     }
 
     void addLocation(Location location)
@@ -253,11 +259,9 @@ public class LocationThread extends StatusThread implements LocationListener
 
     public void onStatusChanged(String provider, int status, Bundle extras)
     {
-        int satellites = extras.getInt("satellites");
+//        int satellites = extras.getInt("satellites");
 
-        Settings.setLong(Settings.KEY_LOCATION_THREAD_SATELLITES, satellites);
-
-        Tools.log("LocationTread::onStatusChanged: "+ provider + ": " + Integer.toString(status) + ": satellites = " + Integer.toString(satellites));
+//        Tools.log("LocationTread::onStatusChanged: "+ provider + ": " + Integer.toString(status) + ": satellites = " + Integer.toString(satellites));
     }
 
     public void onProviderEnabled(String provider)

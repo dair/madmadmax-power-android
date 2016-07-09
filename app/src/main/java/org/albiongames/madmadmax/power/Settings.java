@@ -79,7 +79,7 @@ public class Settings
 
 
     public static final String KEY_LOCATION_THREAD_STATUS = "location_status";
-    public static final String KEY_LOCATION_THREAD_SATELLITES = "location_satellites";
+    public static final String KEY_LOCATION_THREAD_LAST_QUALITY = "location_last_quality";
 
     public static final String KEY_REGISTER_NAME = "register_activity_name";
 

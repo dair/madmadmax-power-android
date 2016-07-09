@@ -178,6 +178,7 @@ public class NetworkingThread extends StatusThread
         {
             Tools.log("Networking exception: " + ex.toString());
             Settings.setLong(Settings.KEY_LATEST_FAILED_CONNECTION, System.currentTimeMillis());
+            ret = true;
         }
 
         return ret; // try again later
@@ -222,8 +223,12 @@ public class NetworkingThread extends StatusThread
                 }
             }
 
+            long now = System.currentTimeMillis();
+            long lastChange = getLastStatusChangeTime();
+            long timeout = Settings.getLong(Settings.KEY_NETWORK_TIMEOUT);
+
             if (getStatus() == STATUS_STOPPING &&
-                System.currentTimeMillis() - getLastStatusChangeTime() > 5*Settings.getLong(Settings.KEY_NETWORK_TIMEOUT))
+                now - lastChange > 2*timeout)
             {
                 setStatus(STATUS_OFF);
                 break;

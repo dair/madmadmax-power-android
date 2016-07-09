@@ -1,6 +1,7 @@
 package org.albiongames.madmadmax.power;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -78,4 +79,18 @@ public class Tools
     {
         return mps * 3.6;
     }
+
+    public static boolean isMyServiceRunning(Activity activity)
+    {
+        ActivityManager manager = (ActivityManager)activity.getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE))
+        {
+            if (PowerService.class.getName().equals(service.service.getClassName()))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

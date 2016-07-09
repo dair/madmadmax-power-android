@@ -18,4 +18,8 @@
 
     <string name="bluetooth_error_init">Ошибка инициализации Bluetooth</string>
 
+    <string name="menu_service_on">СТАРТ</string>
+    <string name="menu_service_off">СТОП</string>
+    <string name="menu_settings">Настройки</string>
 </resources>
+

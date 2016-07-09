@@ -19,7 +19,7 @@
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:id="@+id/progressBar"
+                android:id="@+id/progressBarHP"
                 android:progressDrawable="@drawable/progressbar_states"
                 android:max="100"
                 android:progress="100"/>
@@ -29,7 +29,7 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:text="HP"
-                android:id="@+id/textView4"
+                android:id="@+id/hpText"
                 android:layout_alignParentBottom="true"
                 android:layout_centerHorizontal="true"
                 android:layout_marginBottom="5dp"/>
@@ -45,7 +45,7 @@
         <RelativeLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="0.12">
+            android:layout_weight="0.15">
             <ProgressBar
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="match_parent"
@@ -60,15 +60,11 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:text="FUEL"
-                android:id="@+id/textView5"
+                android:id="@+id/fuelText"
                 android:layout_alignParentBottom="true"
                 android:layout_centerHorizontal="true"
                 android:layout_marginBottom="5dp"/>
         </RelativeLayout>
-
-
-
-
     </LinearLayout>
 
     <LinearLayout
