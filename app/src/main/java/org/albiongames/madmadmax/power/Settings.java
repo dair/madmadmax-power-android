@@ -83,6 +83,9 @@ public class Settings
 
     public static final String KEY_REGISTER_NAME = "register_activity_name";
 
+
+    public static final String KEY_BLUETOOTH_STATUS = "bluetooth_status";
+
     private static Settings instance = new Settings();
 
 
@@ -207,6 +210,8 @@ public class Settings
 
         mDefaults.put(KEY_LAST_INSTANT_SPEED, "0");
         mDefaults.put(KEY_LAST_GPS_UPDATE, "0");
+
+        mDefaults.put(KEY_BLUETOOTH_STATUS, Integer.toString(BluetoothThread.STATUS_OFF));
 
 // FORMULAS
 

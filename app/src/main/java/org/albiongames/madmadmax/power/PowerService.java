@@ -42,7 +42,6 @@ public class PowerService extends Service
     LogicThread mLogicThread = null;
 
     List<StorageEntry.Base> mPositions = new LinkedList<>();
-//    Map<Integer, GenericThread> mThreads = new HashMap<Integer, GenericThread>();
 
     Activity mActivity = null;
 
@@ -101,6 +100,8 @@ public class PowerService extends Service
             mLocationThread.start();
             mLogicThread = new LogicThread(this);
             mLogicThread.start();
+            mBluetoothThread = new BluetoothThread(this);
+            mBluetoothThread.start();
 
             mStatus = STATUS_ON;
         }
@@ -134,6 +135,7 @@ public class PowerService extends Service
         mStatus = STATUS_CLOSING;
 
         mNetworkingThread.graciousStop();
+        mBluetoothThread.graciousStop();
         mLogicThread.graciousStop();
         mLocationThread.graciousStop();
 

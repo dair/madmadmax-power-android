@@ -21,7 +21,7 @@ import android.widget.TextView;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class GraphicActivity extends Activity {
+public class GraphicActivity extends AppCompatActivity {
 
     public static final int STATUS_FAIL = -1;
     public static final int STATUS_OK = 1;
@@ -49,6 +49,8 @@ public class GraphicActivity extends Activity {
     ScheduledThreadPoolExecutor mFlashExecutor = null;
     long mFlashExecutorDuration = 0;
     long mFlashExecutorStart = 0;
+
+    int mBluetoothState = -100;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,6 +100,7 @@ public class GraphicActivity extends Activity {
                                       updateGpsStatus();
                                       updateHitPoints();
                                       updateFuel();
+                                      updateBluetoothStatus();
                                   }
                               }
                 );
@@ -184,7 +187,7 @@ public class GraphicActivity extends Activity {
                 networkingImageView.setColorFilter(Color.argb(0xFF, 0x77, 0x00, 0x00));
                 break;
             case STATUS_OK:
-                networkingImageView.setColorFilter(Color.GREEN);
+                networkingImageView.setColorFilter(Color.WHITE);
                 break;
             case STATUS_UNKNOWN:
                 networkingImageView.setColorFilter(Color.DKGRAY);
@@ -352,6 +355,38 @@ public class GraphicActivity extends Activity {
         {
             fuelText.setTextColor(Color.DKGRAY);
         }
+    }
+
+    void updateBluetoothStatus()
+    {
+        int status = (int)Settings.getLong(Settings.KEY_BLUETOOTH_STATUS);
+        if (status == mBluetoothState)
+            return;
+
+        mBluetoothState = status;
+
+        int color = Color.DKGRAY;
+        switch(mBluetoothState)
+        {
+            case BluetoothThread.STATUS_CONNECTED:
+                color = Color.WHITE;
+                break;
+            case BluetoothThread.STATUS_DISCONNECTED:
+                color = Color.argb(0xFF, 0x77, 0, 0);
+                break;
+            case BluetoothThread.STATUS_FAILED:
+                color = Color.RED;
+                break;
+            case BluetoothThread.STATUS_OFF:
+                color = Color.DKGRAY;
+                break;
+            case BluetoothThread.STATUS_STOPPING:
+                color = Color.GRAY;
+                break;
+        }
+
+        ImageView image = (ImageView)findViewById(R.id.bluetoothImageView);
+        image.setColorFilter(color);
     }
 
     @Override
