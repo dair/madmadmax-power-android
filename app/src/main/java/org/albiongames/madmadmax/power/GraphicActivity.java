@@ -85,7 +85,13 @@ public class GraphicActivity extends Activity {
                                   @Override
                                   public void run()
                                   {
-                                      mServerRunning = Tools.isMyServiceRunning(GraphicActivity.this);
+                                      boolean serverRunning = Tools.isMyServiceRunning(GraphicActivity.this);
+                                      if (mServerRunning != serverRunning)
+                                      {
+                                          mServerRunning = serverRunning;
+                                          invalidateOptionsMenu();
+                                      }
+
                                       updateCarStatus();
                                       updateAverageSpeed();
                                       updateNetworkState();
@@ -107,7 +113,7 @@ public class GraphicActivity extends Activity {
         mExecutor.shutdownNow();
         mExecutor = null;
     }
-    
+
     void updateCarStatus()
     {
         int state = (int)Settings.getLong(Settings.KEY_CAR_STATE);
@@ -366,8 +372,18 @@ public class GraphicActivity extends Activity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
+        super.onCreateOptionsMenu(menu);
+
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.graphic_activity_menu, menu);
+
+        return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu)
+    {
+        super.onPrepareOptionsMenu(menu);
 
         MenuItem item = menu.findItem(R.id.menu_service_on_off);
 
@@ -398,6 +414,10 @@ public class GraphicActivity extends Activity {
                 return true;
             case R.id.menu_service_on_off:
                 toggleService();
+                return true;
+            case R.id.menu_about:
+                intent = new Intent(this, AboutActivity.class);
+                startActivity(intent);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

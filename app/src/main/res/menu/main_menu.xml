@@ -6,4 +6,6 @@
           android:title="@string/title_activity_settings" />
     <item android:id="@+id/menu_bluetooth"
           android:title="@string/bt_device_menu" />
+    <item android:id="@+id/menu_about"
+        android:title="@string/about_title" />
 </menu>

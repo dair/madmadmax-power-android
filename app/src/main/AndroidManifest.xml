@@ -29,20 +29,22 @@
         <service
             android:name=".PowerService"
             android:enabled="true"
-            android:exported="false"></service>
+            android:exported="false" />
 
         <activity
             android:name=".ServiceStatusActivity"
-            android:screenOrientation="portrait"></activity>
-        <activity android:name=".BluetoothDeviceActivity"></activity>
-        <activity android:name=".RegisterActivity"></activity>
+            android:screenOrientation="portrait" />
+        <activity android:name=".BluetoothDeviceActivity" />
+        <activity android:name=".RegisterActivity" />
         <activity
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:screenOrientation="portrait"></activity>
-        <activity android:name=".GraphicActivity"
-                  android:screenOrientation="portrait"
-                  android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"></activity>
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".GraphicActivity"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
+        <activity android:name=".AboutActivity"></activity>
     </application>
 
 </manifest>

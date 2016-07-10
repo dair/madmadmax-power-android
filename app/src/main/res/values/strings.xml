@@ -55,5 +55,13 @@
     <string name="menu_service_on">ON</string>
     <string name="menu_service_off">OFF</string>
     <string name="menu_settings">Settings</string>
+
+
+
+
+    <!-- About activity-->
+    <string name="about_title">About</string>
+    <string name="about_version">Version:</string>
+    <string name="about_author">Written by Vladimir \"Dair\" Lebedev-Shmidtgof</string>
 </resources>
 
