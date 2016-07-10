@@ -168,7 +168,7 @@ public class BluetoothDeviceActivity extends AppCompatActivity
         menu.inflate(R.menu.bluetooth_popup_menu);
 
         final ListView list = (ListView)findViewById(R.id.listView);
-        String itemAddress = ((DeviceInfo)list.getAdapter().getItem(position)).getDevice().getAddress();
+        final String itemAddress = ((DeviceInfo)list.getAdapter().getItem(position)).getDevice().getAddress();
         String storedAddress = Settings.getString(Settings.KEY_BLUETOOTH_DEVICE);
 
         if (itemAddress.equals(storedAddress))
@@ -187,6 +187,9 @@ public class BluetoothDeviceActivity extends AppCompatActivity
                         useThisDevice(position);
                         break;
                     case R.id.menu_bluetooth_console:
+                        Intent intent = new Intent(BluetoothDeviceActivity.this, BluetoothConsoleActivity.class);
+                        intent.putExtra("address", itemAddress);
+                        startActivity(intent);
                         break;
                 }
                 return false;

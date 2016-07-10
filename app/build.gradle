@@ -20,11 +20,12 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     compile 'com.android.support:appcompat-v7:23.4.0'
     compile 'com.android.support:design:23.4.0'
     compile 'com.android.support:support-v4:23.4.0'
-//    compile files('libs/tape-1.2.3.jar')
+    //    compile files('libs/tape-1.2.3.jar')
     compile 'com.squareup:tape:1.2.3'
     compile 'net.objecthunter:exp4j:0.4.7'
+    compile project(':BluetoothSPPLibrary:library')
 }
