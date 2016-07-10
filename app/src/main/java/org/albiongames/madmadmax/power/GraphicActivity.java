@@ -5,6 +5,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.media.Image;
+import android.os.AsyncTask;
+import android.os.SystemClock;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -34,23 +36,28 @@ public class GraphicActivity extends Activity {
     int mGpsStatus = STATUS_INITIAL;
     int mNetworkStatus = STATUS_INITIAL;
 
+    long counter = 0; //tmp
+
     boolean mServerRunning = false;
 
+    ImageView mCoverImage = null;
+
     ScheduledThreadPoolExecutor mExecutor = null;
+    ScheduledThreadPoolExecutor mFlashExecutor = null;
+    long mFlashExecutorDuration = 0;
+    long mFlashExecutorStart = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_graphic);
+        mCoverImage = (ImageView)findViewById(R.id.coverImage);
     }
 
     @Override
     public void onResume()
     {
         super.onResume();
-
-        ImageView logo = (ImageView)findViewById(R.id.logoImageView);
-        logo.setColorFilter(Color.YELLOW);
 
         mExecutor = new ScheduledThreadPoolExecutor(1);
         mExecutor.scheduleAtFixedRate(new Runnable()
@@ -363,4 +370,48 @@ public class GraphicActivity extends Activity {
         }
     }
 
+    public synchronized void damageReceived(long duration)
+    {
+        if (mFlashExecutor != null)
+        {
+            mFlashExecutor.shutdownNow();
+            mFlashExecutor = null;
+        }
+
+        mFlashExecutor = new ScheduledThreadPoolExecutor(1);
+        mFlashExecutorDuration = duration;
+        mFlashExecutorStart = System.currentTimeMillis();
+
+        mFlashExecutor.scheduleAtFixedRate(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                runOnUiThread(new Runnable()
+                              {
+                                  @Override
+                                  public void run()
+                                  {
+                                      long timePassed = System.currentTimeMillis() - mFlashExecutorStart;
+                                      double rate = (double)timePassed / (double)mFlashExecutorDuration;
+                                      if (rate > 1.0)
+                                          rate = 1.0;
+
+                                      double alpha = 1.0f - Math.pow(rate, 4);
+                                      if (alpha < 0)
+                                          alpha = 0.0;
+
+                                      mCoverImage.setBackgroundColor(Color.argb((int)(alpha*255), 255, 0, 0));
+
+                                      if (timePassed > mFlashExecutorDuration)
+                                      {
+                                          mFlashExecutor.shutdown();
+                                          return;
+                                      }
+                                  }
+                              }
+                );
+            }
+        }, 0, duration/40, TimeUnit.MILLISECONDS);
+    }
 }
