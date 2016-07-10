@@ -404,20 +404,15 @@ public class GraphicActivity extends Activity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item)
     {
-        Intent intent = null;
-        // Handle item selection
+        boolean ret = Tools.processMenu(item, this);
+
+        if (ret)
+            return ret;
+
         switch (item.getItemId())
         {
-            case R.id.menu_settings:
-                intent = new Intent(this, ServiceStatusActivity.class);
-                startActivity(intent);
-                return true;
             case R.id.menu_service_on_off:
                 toggleService();
-                return true;
-            case R.id.menu_about:
-                intent = new Intent(this, AboutActivity.class);
-                startActivity(intent);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

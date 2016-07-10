@@ -5,7 +5,9 @@ import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.util.Log;
+import android.view.MenuItem;
 
 /**
  * Created by dair on 28/05/16.
@@ -93,4 +95,29 @@ public class Tools
         return false;
     }
 
+    public static boolean processMenu(MenuItem item, Activity activity)
+    {
+        Intent intent;
+        switch (item.getItemId())
+        {
+            case R.id.menu_bluetooth:
+                intent = new Intent(activity, BluetoothDeviceActivity.class);
+                activity.startActivity(intent);
+                return true;
+            case R.id.menu_status:
+                intent = new Intent(activity, ServiceStatusActivity.class);
+                activity.startActivity(intent);
+                return true;
+            case R.id.menu_settings:
+                intent = new Intent(activity, SettingsActivity.class);
+                activity.startActivity(intent);
+                return true;
+            case R.id.menu_about:
+                intent = new Intent(activity, AboutActivity.class);
+                activity.startActivity(intent);
+                return true;
+        }
+
+        return false;
+    }
 }

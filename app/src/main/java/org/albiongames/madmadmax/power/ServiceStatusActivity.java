@@ -285,4 +285,24 @@ public class ServiceStatusActivity extends AppCompatActivity
         return false;
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu)
+    {
+        super.onCreateOptionsMenu(menu);
+
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main_menu, menu);
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
+        boolean ret = Tools.processMenu(item, this);
+
+        if (ret)
+            return ret;
+        return super.onOptionsItemSelected(item);
+    }
 }

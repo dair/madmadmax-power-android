@@ -6,6 +6,10 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.PopupMenu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -18,12 +22,52 @@ public class BluetoothDeviceActivity extends AppCompatActivity
 //    public class
     int REQUEST_ENABLE_BT = 0xBB02;
 
+    class DeviceInfo
+    {
+        BluetoothDevice mDevice = null;
+
+        public DeviceInfo(BluetoothDevice device)
+        {
+            mDevice = device;
+        }
+
+        public BluetoothDevice getDevice()
+        {
+            return mDevice;
+        }
+
+        @Override
+        public String toString()
+        {
+            if (mDevice == null)
+                return "NULL";
+
+            String current = "";
+            String currentDevice = Settings.getString(Settings.KEY_BLUETOOTH_DEVICE);
+            if (currentDevice != null && currentDevice.equals(mDevice.getAddress()))
+            {
+                current = "X ";
+            }
+
+            return current + mDevice.getName() + " (" + mDevice.getAddress() + ")";
+        }
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bluetooth_device);
+
+        ListView listView = (ListView)findViewById(R.id.listView);
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                showPopupMenu(view, position);
+                return false;
+            }
+        });
     }
 
     @Override
@@ -102,7 +146,7 @@ public class BluetoothDeviceActivity extends AppCompatActivity
             // Loop through paired devices
             for (BluetoothDevice device : pairedDevices)
             {
-                items.add(device);
+                items.add(new DeviceInfo(device));
             }
 
             final ListView list = (ListView)findViewById(R.id.listView);
@@ -116,5 +160,55 @@ public class BluetoothDeviceActivity extends AppCompatActivity
                 }
             });
         }
+    }
+
+    void showPopupMenu(View view, final int position)
+    {
+        PopupMenu menu = new PopupMenu(this, view);
+        menu.inflate(R.menu.bluetooth_popup_menu);
+
+        final ListView list = (ListView)findViewById(R.id.listView);
+        String itemAddress = ((DeviceInfo)list.getAdapter().getItem(position)).getDevice().getAddress();
+        String storedAddress = Settings.getString(Settings.KEY_BLUETOOTH_DEVICE);
+
+        if (itemAddress.equals(storedAddress))
+        {
+            MenuItem item = menu.getMenu().findItem(R.id.menu_bluetooth_use_this);
+            item.setVisible(false);
+        }
+
+        menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item)
+            {
+                switch (item.getItemId())
+                {
+                    case R.id.menu_bluetooth_use_this:
+                        useThisDevice(position);
+                        break;
+                    case R.id.menu_bluetooth_console:
+                        break;
+                }
+                return false;
+            }
+        });
+        menu.show();
+    }
+
+    void useThisDevice(int position)
+    {
+        final ListView list = (ListView)findViewById(R.id.listView);
+        DeviceInfo info = (DeviceInfo)list.getAdapter().getItem(position);
+
+        String address = info.getDevice().getAddress();
+        if (address == null)
+        {
+            Tools.messageBox(this, R.string.bluetooth_activity_error_device);
+            return;
+        }
+
+        Settings.setString(Settings.KEY_BLUETOOTH_DEVICE, address);
+
+        ((ArrayAdapter)list.getAdapter()).notifyDataSetChanged();
     }
 }
