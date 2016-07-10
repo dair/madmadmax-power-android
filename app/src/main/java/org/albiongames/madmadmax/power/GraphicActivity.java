@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -35,6 +36,8 @@ public class GraphicActivity extends Activity {
 
     int mGpsStatus = STATUS_INITIAL;
     int mNetworkStatus = STATUS_INITIAL;
+
+    int mCarState = -100;
 
     long counter = 0; //tmp
 
@@ -59,6 +62,18 @@ public class GraphicActivity extends Activity {
     {
         super.onResume();
 
+        mCarState = -100;
+        mHitPoints = 0;
+        mMaxHitPoints = 0;
+
+        mFuel = 0;
+        mMaxFuel = 0;
+
+        mGpsStatus = STATUS_INITIAL;
+        mNetworkStatus = STATUS_INITIAL;
+
+
+
         mExecutor = new ScheduledThreadPoolExecutor(1);
         mExecutor.scheduleAtFixedRate(new Runnable()
         {
@@ -71,8 +86,9 @@ public class GraphicActivity extends Activity {
                                   public void run()
                                   {
                                       mServerRunning = Tools.isMyServiceRunning(GraphicActivity.this);
-                                      updateNetworkState();
+                                      updateCarStatus();
                                       updateAverageSpeed();
+                                      updateNetworkState();
                                       updateGpsStatus();
                                       updateHitPoints();
                                       updateFuel();
@@ -81,7 +97,6 @@ public class GraphicActivity extends Activity {
                 );
             }
         }, 0, 1, TimeUnit.SECONDS);
-
     }
 
     @Override
@@ -91,6 +106,38 @@ public class GraphicActivity extends Activity {
 
         mExecutor.shutdownNow();
         mExecutor = null;
+    }
+    
+    void updateCarStatus()
+    {
+        int state = (int)Settings.getLong(Settings.KEY_CAR_STATE);
+
+        if (mCarState == state)
+            return;
+
+        ImageView logo = (ImageView)findViewById(R.id.logoImageView);
+        ImageView engine = (ImageView)findViewById(R.id.engineImageView);
+
+        switch (state)
+        {
+            case Settings.CAR_STATE_OK:
+                engine.setVisibility(View.INVISIBLE);
+                engine.setBackgroundColor(Color.BLACK);
+                logo.setVisibility(View.VISIBLE);
+                break;
+            case Settings.CAR_STATE_MALFUNCTION_1:
+                engine.setVisibility(View.INVISIBLE);
+                logo.setBackgroundColor(Color.argb(0xFF, 0x88, 0, 0));
+                logo.setVisibility(View.VISIBLE);
+                break;
+            case Settings.CAR_STATE_MALFUNCTION_2:
+                engine.setVisibility(View.VISIBLE);
+                engine.setColorFilter(Color.RED);
+                logo.setVisibility(View.INVISIBLE);
+                break;
+        }
+
+        mCarState = state;
     }
 
     void updateNetworkState()

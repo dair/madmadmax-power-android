@@ -38,12 +38,23 @@
                     android:layout_marginBottom="5dp"/>
             </RelativeLayout>
 
-            <ImageView
+            <RelativeLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:src="@drawable/logo"
-                android:id="@+id/logoImageView"
-                android:layout_weight="0.9"/>
+                android:layout_weight="0.9">
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/logo"
+                    android:id="@+id/logoImageView"
+                    />
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/engine"
+                    android:id="@+id/engineImageView"
+                    />
+            </RelativeLayout>
 
             <RelativeLayout
                 android:layout_width="0dp"
@@ -101,7 +112,9 @@
     </LinearLayout>
 
     <ImageView
+        android:alpha="0"
         android:id="@+id/coverImage"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+
 </RelativeLayout>
