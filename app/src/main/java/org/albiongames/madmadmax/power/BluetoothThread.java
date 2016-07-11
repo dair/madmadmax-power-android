@@ -6,6 +6,10 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Pattern;
+
 import app.akexorcist.bluetotohspp.library.BluetoothSPP;
 import app.akexorcist.bluetotohspp.library.BluetoothState;
 
@@ -34,6 +38,12 @@ public class BluetoothThread extends Thread
     Looper mLooper = null;
     Handler mHandler = null;
 
+    Map<String, Long> mCommandsWaiting = new HashMap<>();
+
+    Map<Integer, Boolean> mLedStatus = new HashMap<>();
+
+    Pattern mCommandResponsePattern = Pattern.compile("^[RGY][01]OK$");
+
     class Processor implements Runnable
     {
         public void run()
@@ -45,6 +55,7 @@ public class BluetoothThread extends Thread
                     connect();
                     break;
                 case STATUS_CONNECTED:
+//                    mHandler.postDelayed(this, 1000);
                     break;
                 case STATUS_STOPPING:
                     break;
@@ -114,6 +125,20 @@ public class BluetoothThread extends Thread
         };
 
         mHandler.post(mProcessor);
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                setLed(LED_GREEN, true);
+                Tools.sleep(500);
+                setLed(LED_GREEN, false);
+                setLed(LED_YELLOW, true);
+                Tools.sleep(500);
+                setLed(LED_YELLOW, false);
+                setLed(LED_RED, true);
+                Tools.sleep(500);
+                setLed(LED_RED, false);
+            }
+        });
 
         Looper.loop();
 
@@ -177,16 +202,70 @@ public class BluetoothThread extends Thread
 
     void parseDeviceMessage(String message)
     {
-
+        if (mCommandResponsePattern.matcher(message).matches())
+        {
+            String command = message.substring(0, 2);
+            if (mCommandsWaiting.containsKey(command))
+            {
+                long count = mCommandsWaiting.get(command);
+                if (count > 0)
+                {
+                    --count;
+                }
+                else
+                {
+                    count = 0;
+                }
+                mCommandsWaiting.put(command, count);
+            }
+            // command response
+        }
+        else
+        {
+            // shooting number
+        }
     }
 
-    public void turnLedOn(int ledCode)
+    synchronized void addCommand(String command)
     {
-        // TODO
+        if (!mCommandsWaiting.containsKey(command))
+        {
+            mCommandsWaiting.put(command, 1L);
+        }
+
+        mSPP.send(command + "\n", false);
     }
 
-    public void turnLedOff(int ledCode)
+    public String ledCode(int ledCode)
     {
+        String code = "";
+        switch (ledCode)
+        {
+            case LED_GREEN:
+                code = "G";
+                break;
+            case LED_RED:
+                code = "R";
+                break;
+            case LED_YELLOW:
+                code = "Y";
+                break;
+        }
 
+        return code;
+    }
+
+    public void setLed(int ledCode, boolean on)
+    {
+        String code = ledCode(ledCode);
+        if (code.isEmpty())
+            return;
+
+        String num = on ? "1" : "0";
+
+        String command = code + num;
+        addCommand(command);
+
+        mLedStatus.put(ledCode, on);
     }
 }

@@ -218,6 +218,39 @@ public class StorageEntry
         }
     }
 
+    public static class Damage extends Base
+    {
+        int mDamage = 0;
+
+        public Damage(int damage)
+        {
+            super("damage");
+            mDamage = damage;
+        }
+
+        public Damage(JSONObject object) throws  JSONException
+        {
+            super(object);
+            mDamage = object.getInt("damage");
+        }
+
+        @Override
+        public String toString()
+        {
+            JSONObject jsonObject = toJsonObject();
+            try
+            {
+                jsonObject.put("damage", mDamage);
+                return jsonObject.toString();
+            }
+            catch (JSONException e)
+            {
+                e.printStackTrace();
+                return "";
+            }
+        }
+    }
+
     public static Base createFromJson(JSONObject object)
     {
         if (object == null)
