@@ -68,6 +68,8 @@ public class Settings
     public static final String KEY_MALFUNCTION1_RED_ZONE_FUEL_PER_KM = PARAMS_PREFIX + "malfunction1_red_zone_fuel_per_km"; // formula from speed x
     public static final String KEY_MALFUNCTION1_FUEL_PER_KM = PARAMS_PREFIX + "malfunction1_fuel_per_km"; // formula from speed x
 
+    public static final String KEY_DAMAGE_CODE = PARAMS_PREFIX + "damage_code"; // json of values from 0 to 15 to any integers
+
     public static final String KEY_LATEST_SUCCESS_CONNECTION = "latest_success_connection";
     public static final String KEY_LATEST_FAILED_CONNECTION = "latest_failed_connection";
 
@@ -211,6 +213,25 @@ public class Settings
 
         mDefaults.put(KEY_BLUETOOTH_STATUS, Integer.toString(BluetoothThread.STATUS_OFF));
 
+        mDefaults.put(KEY_DAMAGE_CODE,
+                "{" +
+                        "\"0\": 1," +
+                        " \"1\": 2," +
+                        "\"2\": 4," +
+                        "\"3\": 5," +
+                        "\"4\": 7," +
+                        "\"5\": 10," +
+                        "\"6\": 15," +
+                        "\"7\": 17," +
+                        "\"8\": 20," +
+                        "\"9\": 25," +
+                        "\"10\": 30," +
+                        "\"11\": 35," +
+                        "\"12\": 40," +
+                        "\"13\": 50," +
+                        "\"14\": 75," +
+                        "\"15\": 100" +
+                "}");
 // FORMULAS
 
         mFormulaValues.add(KEY_P1_FORMULA);
@@ -326,5 +347,26 @@ public class Settings
             {
             }
         }
+    }
+
+    public static int getDamageForCode(int code)
+    {
+        String json = getString(KEY_DAMAGE_CODE);
+        int ret = 1;
+        if (json != null)
+        {
+            try
+            {
+                JSONObject object = new JSONObject(json);
+                String codeString = Integer.toString(code);
+                ret = object.getInt(codeString);
+            }
+            catch (JSONException ex)
+            {
+
+            }
+        }
+
+        return ret;
     }
 }

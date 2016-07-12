@@ -35,7 +35,7 @@ public class BluetoothThread extends Thread
     public static final int LED_GREEN = 1 << 1;
     public static final int LED_YELLOW = 1 << 2;
 
-    Context mContext = null;
+    PowerService mService = null;
     BluetoothSPP mSPP = null;
 
     String mAddress = null;
@@ -49,9 +49,9 @@ public class BluetoothThread extends Thread
 
     Pattern mCommandResponsePattern = Pattern.compile("^[RGY][01]OK$");
 
-    BluetoothThread(Context context)
+    BluetoothThread(PowerService service)
     {
-        mContext = context;
+        mService = service;
     }
 
     QueueFile mQueueFile = null;
@@ -68,7 +68,7 @@ public class BluetoothThread extends Thread
 
         try
         {
-            File file = new File(mContext.getFilesDir() + "/bluetooth");
+            File file = new File(mService.getFilesDir() + "/bluetooth");
             mQueueFile = new QueueFile(file);
         }
         catch (IOException ex)
@@ -77,7 +77,7 @@ public class BluetoothThread extends Thread
             return;
         }
 
-        mSPP = new BluetoothSPP(mContext);
+        mSPP = new BluetoothSPP(mService);
         mSPP.setupService();
         mSPP.startService(BluetoothState.DEVICE_OTHER);
 
@@ -297,7 +297,8 @@ public class BluetoothThread extends Thread
         }
         else
         {
-            // shooting number
+            // shooting number is hex number
+            mService.getLogicStorage().put(new StorageEntry.Damage(message));
         }
     }
 

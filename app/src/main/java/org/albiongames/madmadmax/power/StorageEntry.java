@@ -11,6 +11,7 @@ public class StorageEntry
 {
     public static final String TYPE_MARKER = "marker";
     public static final String TYPE_LOCATION = "location";
+    public static final String TYPE_DAMAGE = "damage";
 
 
     public static abstract class Base
@@ -220,34 +221,45 @@ public class StorageEntry
 
     public static class Damage extends Base
     {
-        int mDamage = 0;
+        String mRaw = null;
 
-        public Damage(int damage)
+        public Damage(String raw)
         {
-            super("damage");
-            mDamage = damage;
+            super(TYPE_DAMAGE);
+            mRaw = raw;
+        }
+
+        public int getDamage()
+        {
+            if (mRaw == null || mRaw.isEmpty())
+                return 0;
+
+            int code = Integer.valueOf(mRaw.substring(mRaw.length()-1), 16); // last symbol
+
+            return Settings.getDamageForCode(code);
         }
 
         public Damage(JSONObject object) throws  JSONException
         {
             super(object);
-            mDamage = object.getInt("damage");
+            mRaw = object.getString("raw");
         }
 
         @Override
-        public String toString()
+        public JSONObject toJsonObject()
         {
             JSONObject jsonObject = toJsonObject();
             try
             {
-                jsonObject.put("damage", mDamage);
-                return jsonObject.toString();
+                jsonObject.put("damage", getDamage());
+                if (mRaw != null)
+                    jsonObject.put("raw", mRaw);
             }
             catch (JSONException e)
             {
                 e.printStackTrace();
-                return "";
             }
+            return jsonObject;
         }
     }
 

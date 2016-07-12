@@ -72,6 +72,16 @@ public class LogicThread extends StatusThread
         }
     }
 
+    void processDamage(StorageEntry.Damage damage)
+    {
+        double hpNow = Settings.getDouble(Settings.KEY_HITPOINTS);
+        int damageNum = damage.getDamage();
+        hpNow -= damageNum;
+        if (hpNow < 0)
+            hpNow = 0;
+        Settings.setDouble(Settings.KEY_HITPOINTS, hpNow);
+    }
+
     @Override
     public void run()
     {
@@ -92,6 +102,10 @@ public class LogicThread extends StatusThread
                 if (entry.isTypeOf(StorageEntry.TYPE_LOCATION))
                 {
                     processLocation((StorageEntry.Location)entry);
+                }
+                else if (entry.isTypeOf(StorageEntry.TYPE_DAMAGE))
+                {
+                    processDamage((StorageEntry.Damage)entry);
                 }
 
                 mService.getNetworkStorage().put(entry);
