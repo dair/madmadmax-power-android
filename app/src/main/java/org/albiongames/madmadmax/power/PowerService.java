@@ -198,4 +198,9 @@ public class PowerService extends Service
     {
         return getStatusThreadStatus(mLogicThread);
     }
+
+    public BluetoothThread getBluetoothThread()
+    {
+        return mBluetoothThread;
+    }
 }

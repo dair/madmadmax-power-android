@@ -80,6 +80,10 @@ public class LogicThread extends StatusThread
         if (hpNow < 0)
             hpNow = 0;
         Settings.setDouble(Settings.KEY_HITPOINTS, hpNow);
+
+        mService.getBluetoothThread().setLed(BluetoothThread.LED_RED, true);
+        mService.getBluetoothThread().setPause(500);
+        mService.getBluetoothThread().setLed(BluetoothThread.LED_RED, false);
     }
 
     @Override
@@ -93,19 +97,30 @@ public class LogicThread extends StatusThread
         Settings.setDouble(Settings.KEY_AVERAGE_SPEED, 0.0);
         setStatus(STATUS_ON);
 
+        boolean changed = true;
+
         while (true)
         {
+            if (changed)
+            {
+                updateLeds();
+                changed = false;
+            }
+
             StorageEntry.Base entry = mService.getLogicStorage().get();
 
             if (entry != null)
             {
+
                 if (entry.isTypeOf(StorageEntry.TYPE_LOCATION))
                 {
                     processLocation((StorageEntry.Location)entry);
+                    changed = true;
                 }
                 else if (entry.isTypeOf(StorageEntry.TYPE_DAMAGE))
                 {
                     processDamage((StorageEntry.Damage)entry);
+                    changed = true;
                 }
 
                 mService.getNetworkStorage().put(entry);
@@ -150,9 +165,13 @@ public class LogicThread extends StatusThread
 
         double randomDouble = mRandom.nextDouble(); // [0.0, 1.0)
 
+        double hp = getCurrentHitPoints();
+        double maxHp = getMaxHitPoints();
+        double ratio = hp / maxHp;
+
         if (ex2 != null)
         {
-            double upBorder = Tools.clamp(ex2.setVariable("x", getCurrentHitPoints()).evaluate(), 0.0, 1.0);
+            double upBorder = Tools.clamp(ex2.setVariable("x", ratio).evaluate(), 0.0, 1.0);
             if (randomDouble < upBorder)
             {
                 // malfunction 2
@@ -164,7 +183,7 @@ public class LogicThread extends StatusThread
 
         if (ex1 != null)
         {
-            double upBorder = Tools.clamp(ex1.setVariable("x", getCurrentHitPoints()).evaluate(), 0.0, 1.0);
+            double upBorder = Tools.clamp(ex1.setVariable("x", ratio).evaluate(), 0.0, 1.0);
 
             if (randomDouble < upBorder)
             {
@@ -223,12 +242,11 @@ public class LogicThread extends StatusThread
         Expression expression = null;
         double averageSpeedMps = Settings.getDouble(Settings.KEY_AVERAGE_SPEED);
         double averageSpeedKmH = Tools.metersPerSecondToKilometersPerHour(averageSpeedMps);
-        double redZone;
+        double redZone = getCurrentRedZone(); // in km/h
 
         switch ((int)Settings.getLong(Settings.KEY_CAR_STATE))
         {
             case Settings.CAR_STATE_OK:
-                redZone = Settings.getDouble(Settings.KEY_RED_ZONE);
                 if (averageSpeedKmH > redZone)
                 {
                     expression = Settings.getExpression(Settings.KEY_RED_ZONE_FUEL_PER_KM);
@@ -239,7 +257,6 @@ public class LogicThread extends StatusThread
                 }
                 break;
             case Settings.CAR_STATE_MALFUNCTION_1:
-                redZone = Settings.getDouble(Settings.KEY_MALFUNCTION1_RED_ZONE);
                 if (averageSpeedKmH > redZone)
                 {
                     expression = Settings.getExpression(Settings.KEY_MALFUNCTION1_RED_ZONE_FUEL_PER_KM);
@@ -257,7 +274,7 @@ public class LogicThread extends StatusThread
 
         if (expression != null)
         {
-            result = expression.setVariable("x", averageSpeedKmH).evaluate();
+            result = expression.setVariable("x", averageSpeedKmH).setVariable("r", redZone).evaluate();
         }
 
         return result;
@@ -268,12 +285,11 @@ public class LogicThread extends StatusThread
         Expression expression = null;
         double averageSpeedMps = Settings.getDouble(Settings.KEY_AVERAGE_SPEED);
         double averageSpeedKmH = Tools.metersPerSecondToKilometersPerHour(averageSpeedMps);
-        double redZone;
+        double redZone = getCurrentRedZone();
 
         switch ((int)Settings.getLong(Settings.KEY_CAR_STATE))
         {
             case Settings.CAR_STATE_OK:
-                redZone = Settings.getDouble(Settings.KEY_RED_ZONE);
                 if (averageSpeedKmH > redZone)
                 {
                     expression = Settings.getExpression(Settings.KEY_RED_ZONE_RELIABILITY);
@@ -284,7 +300,6 @@ public class LogicThread extends StatusThread
                 }
                 break;
             case Settings.CAR_STATE_MALFUNCTION_1:
-                redZone = Settings.getDouble(Settings.KEY_MALFUNCTION1_RED_ZONE);
                 if (averageSpeedKmH > redZone)
                 {
                     expression = Settings.getExpression(Settings.KEY_MALFUNCTION1_RED_ZONE_RELIABILITY);
@@ -302,7 +317,7 @@ public class LogicThread extends StatusThread
 
         if (expression != null)
         {
-            result = expression.setVariable("x", averageSpeedKmH).evaluate();
+            result = expression.setVariable("x", averageSpeedKmH).setVariable("r", redZone).evaluate();
         }
 
         return result;
@@ -313,5 +328,30 @@ public class LogicThread extends StatusThread
         return Settings.getDouble(Settings.KEY_HITPOINTS);
     }
 
-}
+    double getMaxHitPoints()
+    {
+        return Settings.getDouble(Settings.KEY_MAXHITPOINTS);
+    }
 
+    void updateLeds()
+    {
+        double hp = getCurrentHitPoints();
+        double maxHp = getMaxHitPoints();
+
+        double ratio = hp / maxHp;
+        double greenLed = Settings.getDouble(Settings.KEY_GREEN_LED);
+
+        if (ratio >= greenLed)
+        {
+            mService.getBluetoothThread().setLed(BluetoothThread.LED_GREEN, true);
+            mService.getBluetoothThread().setLed(BluetoothThread.LED_YELLOW, false);
+            mService.getBluetoothThread().setLed(BluetoothThread.LED_RED, false);
+        }
+        else
+        {
+            mService.getBluetoothThread().setLed(BluetoothThread.LED_GREEN, false);
+            mService.getBluetoothThread().setLed(BluetoothThread.LED_YELLOW, true);
+            mService.getBluetoothThread().setLed(BluetoothThread.LED_RED, false);
+        }
+    }
+}
