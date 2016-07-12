@@ -132,6 +132,7 @@ public class PowerService extends Service
 
     protected void iGraciousStop()
     {
+        Tools.log("Service iGraciousStop");
         mStatus = STATUS_CLOSING;
 
         mNetworkingThread.graciousStop();
@@ -150,15 +151,25 @@ public class PowerService extends Service
 
     public static void graciousStop()
     {
-        new AsyncTask()
+        Tools.log("Service graciousStop");
+
+        new Thread(new Runnable()
         {
             @Override
-            protected Object doInBackground(Object[] params)
+            public void run()
             {
                 mInstance.iGraciousStop();
-                return null;
             }
-        }.execute();
+        }).start();
+//
+//        new AsyncTask()
+//        {
+//            @Override
+//            protected Object doInBackground(Object[] params)
+//            {
+//                return null;
+//            }
+//        }.execute();
     }
 
     public List<StorageEntry.Base> getPositions()

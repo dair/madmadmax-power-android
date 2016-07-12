@@ -195,18 +195,16 @@ public class Settings
 
         mDefaults.put(KEY_TRACK_DISTANCE, "0");
 
-
-
         mDefaults.put(KEY_RED_ZONE_RELIABILITY, "3"); // formula from speed x
         mDefaults.put(KEY_RED_ZONE_FUEL_PER_KM, "500"); // formula from speed x
 
         mDefaults.put(KEY_MALFUNCTION1_RED_ZONE, "15");
 
         mDefaults.put(KEY_MALFUNCTION1_RELIABILITY, "2"); // formula from speed x
-        mDefaults.put(KEY_MALFUNCTION1_FUEL_PER_KM, "2"); // formula from speed x
+        mDefaults.put(KEY_MALFUNCTION1_FUEL_PER_KM, "300"); // formula from speed x
 
-        mDefaults.put(KEY_MALFUNCTION1_RED_ZONE_RELIABILITY, "5"); // formula from speed x
-        mDefaults.put(KEY_MALFUNCTION1_RED_ZONE_FUEL_PER_KM, "700"); // formula from speed x
+        mDefaults.put(KEY_MALFUNCTION1_RED_ZONE_RELIABILITY, "6"); // formula from speed x
+        mDefaults.put(KEY_MALFUNCTION1_RED_ZONE_FUEL_PER_KM, "1000"); // formula from speed x
 
         mDefaults.put(KEY_LAST_INSTANT_SPEED, "0");
         mDefaults.put(KEY_LAST_GPS_UPDATE, "0");

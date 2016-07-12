@@ -1,11 +1,15 @@
 package org.albiongames.madmadmax.power;
 
 import android.content.Context;
-import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 
+import com.squareup.tape.QueueFile;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -20,9 +24,10 @@ public class BluetoothThread extends Thread
 {
     public static final int STATUS_OFF = 0;
     public static final int STATUS_DISCONNECTED = 1;
-    public static final int STATUS_CONNECTED = 2;
-    public static final int STATUS_FAILED = 3;
-    public static final int STATUS_STOPPING = 4;
+    public static final int STATUS_CONNECTING = 2;
+    public static final int STATUS_CONNECTED = 3;
+    public static final int STATUS_FAILED = 4;
+    public static final int STATUS_STOPPING = 5;
 
     int mStatus = STATUS_OFF;
 
@@ -44,37 +49,33 @@ public class BluetoothThread extends Thread
 
     Pattern mCommandResponsePattern = Pattern.compile("^[RGY][01]OK$");
 
-    class Processor implements Runnable
-    {
-        public void run()
-        {
-            switch (getStatus())
-            {
-                case STATUS_DISCONNECTED:
-                case STATUS_FAILED:
-                    connect();
-                    break;
-                case STATUS_CONNECTED:
-//                    mHandler.postDelayed(this, 1000);
-                    break;
-                case STATUS_STOPPING:
-                    break;
-            }
-        }
-    }
-
-    Processor mProcessor = new Processor();
-
     BluetoothThread(Context context)
     {
         mContext = context;
     }
+
+    QueueFile mQueueFile = null;
+    long mTimeWaiting = 0;
+    boolean mWaitingResponse = false;
 
     @Override
     public void run()
     {
         Looper.prepare();
         mLooper = Looper.myLooper();
+        mTimeWaiting = 0;
+        mWaitingResponse = false;
+
+        try
+        {
+            File file = new File(mContext.getFilesDir() + "/bluetooth");
+            mQueueFile = new QueueFile(file);
+        }
+        catch (IOException ex)
+        {
+            setStatus(STATUS_OFF);
+            return;
+        }
 
         mSPP = new BluetoothSPP(mContext);
         mSPP.setupService();
@@ -95,21 +96,22 @@ public class BluetoothThread extends Thread
             public void onDeviceConnected(String name, String address)
             {
                 setStatus(STATUS_CONNECTED);
-                mHandler.post(mProcessor);
             }
 
             @Override
             public void onDeviceDisconnected()
             {
                 setStatus(STATUS_DISCONNECTED);
-                mHandler.post(mProcessor);
+                mTimeWaiting = 0;
+                mWaitingResponse = false;
             }
 
             @Override
             public void onDeviceConnectionFailed()
             {
                 setStatus(STATUS_FAILED);
-                mHandler.post(mProcessor);
+                mTimeWaiting = 0;
+                mWaitingResponse = false;
             }
         });
 
@@ -124,33 +126,107 @@ public class BluetoothThread extends Thread
             }
         };
 
-        mHandler.post(mProcessor);
-        mHandler.post(new Runnable() {
+        Thread thread = new Thread(new Runnable()
+        {
             @Override
-            public void run() {
-                setLed(LED_GREEN, true);
-                Tools.sleep(500);
-                setLed(LED_GREEN, false);
-                setLed(LED_YELLOW, true);
-                Tools.sleep(500);
-                setLed(LED_YELLOW, false);
-                setLed(LED_RED, true);
-                Tools.sleep(500);
-                setLed(LED_RED, false);
+            public void run()
+            {
+                processLoop();
             }
         });
 
         Looper.loop();
 
+        setStatus(STATUS_STOPPING);
+
         mSPP.stopService();
         mSPP = null;
         mLooper = null;
+        try
+        {
+            thread.wait();
+        }
+        catch (InterruptedException ex)
+        {
+
+        }
+
+        try
+        {
+            mQueueFile.close();
+        }
+        catch (IOException ex)
+        {
+
+        }
+        mQueueFile = null;
+
         setStatus(STATUS_OFF);
+    }
+
+    void processLoop()
+    {
+        boolean keepRunning = true;
+        while (keepRunning)
+        {
+            switch (getStatus())
+            {
+                case STATUS_CONNECTING:
+                    Tools.sleep(50);
+                    break;
+                case STATUS_CONNECTED:
+                    processQueue();
+                    break;
+                case STATUS_DISCONNECTED:
+                case STATUS_FAILED:
+                    connect();
+                    break;
+                case STATUS_OFF:
+                case STATUS_STOPPING:
+                    keepRunning = false;
+                    break;
+
+            }
+        }
+    }
+
+    boolean processQueue()
+    {
+        if (mQueueFile.isEmpty())
+        {
+            return false;
+        }
+
+        long time = System.currentTimeMillis();
+        if (time < mTimeWaiting)
+        {
+            return false;
+        }
+
+        try
+        {
+            byte[] data = mQueueFile.peek();
+            if (data == null)
+            {
+                return false;
+            }
+
+            String command = new String(data, "UTF-8");
+            addCommand(command);
+            mQueueFile.remove();
+        }
+        catch (IOException ex)
+        {
+
+        }
+
+        return true;
     }
 
     public void setStatus(int status)
     {
         Settings.setLong(Settings.KEY_BLUETOOTH_STATUS, status);
+        Tools.log("setStatus: " + Integer.toString(status));
         mStatus = status;
     }
 
@@ -163,8 +239,6 @@ public class BluetoothThread extends Thread
     {
         if (mLooper != null)
             mLooper.quit();
-
-        setStatus(STATUS_STOPPING);
     }
 
     boolean checkAddressChange()
@@ -196,6 +270,7 @@ public class BluetoothThread extends Thread
 
         if (mAddress != null)
         {
+            setStatus(STATUS_CONNECTING);
             mSPP.connect(mAddress);
         }
     }
@@ -204,6 +279,7 @@ public class BluetoothThread extends Thread
     {
         if (mCommandResponsePattern.matcher(message).matches())
         {
+            // command response
             String command = message.substring(0, 2);
             if (mCommandsWaiting.containsKey(command))
             {
@@ -218,7 +294,6 @@ public class BluetoothThread extends Thread
                 }
                 mCommandsWaiting.put(command, count);
             }
-            // command response
         }
         else
         {
@@ -228,12 +303,24 @@ public class BluetoothThread extends Thread
 
     synchronized void addCommand(String command)
     {
-        if (!mCommandsWaiting.containsKey(command))
+        if (command.charAt(0) == 'W')
         {
-            mCommandsWaiting.put(command, 1L);
+            // wait
+            long duration = Long.parseLong(command.substring(1));
+            mTimeWaiting = System.currentTimeMillis() + duration;
+            return;
         }
 
+        long count = 0;
+        if (mCommandsWaiting.containsKey(command))
+        {
+            count = mCommandsWaiting.get(command);
+        }
+        ++count;
+        mCommandsWaiting.put(command, count);
+
         mSPP.send(command + "\n", false);
+        Tools.sleep(50);
     }
 
     public String ledCode(int ledCode)
@@ -264,8 +351,26 @@ public class BluetoothThread extends Thread
         String num = on ? "1" : "0";
 
         String command = code + num;
-        addCommand(command);
 
-        mLedStatus.put(ledCode, on);
+        enqueueCommand(command);
+    }
+
+    void enqueueCommand(String command)
+    {
+        try
+        {
+            byte[] data = command.getBytes("UTF-8");
+            mQueueFile.add(data);
+        }
+        catch (UnsupportedEncodingException ex)
+        {}
+        catch (IOException ex)
+        {}
+    }
+
+    public void setPause(long duration)
+    {
+        String command = "W" + Long.toString(duration);
+        enqueueCommand(command);
     }
 }
