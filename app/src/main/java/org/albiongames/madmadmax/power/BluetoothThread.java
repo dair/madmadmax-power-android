@@ -49,14 +49,25 @@ public class BluetoothThread extends Thread
 
     Pattern mCommandResponsePattern = Pattern.compile("^[RGY][01]OK$");
 
-    BluetoothThread(PowerService service)
-    {
-        mService = service;
-    }
-
     QueueFile mQueueFile = null;
     long mTimeWaiting = 0;
     boolean mWaitingResponse = false;
+
+    BluetoothThread(PowerService service)
+    {
+        mService = service;
+
+        setStatus(STATUS_OFF);
+        try
+        {
+            File file = new File(mService.getFilesDir() + "/bluetooth");
+            mQueueFile = new QueueFile(file);
+        }
+        catch (IOException ex)
+        {
+            return;
+        }
+    }
 
     @Override
     public void run()
@@ -65,17 +76,6 @@ public class BluetoothThread extends Thread
         mLooper = Looper.myLooper();
         mTimeWaiting = 0;
         mWaitingResponse = false;
-
-        try
-        {
-            File file = new File(mService.getFilesDir() + "/bluetooth");
-            mQueueFile = new QueueFile(file);
-        }
-        catch (IOException ex)
-        {
-            setStatus(STATUS_OFF);
-            return;
-        }
 
         mSPP = new BluetoothSPP(mService);
         mSPP.setupService();
@@ -139,12 +139,13 @@ public class BluetoothThread extends Thread
 
         setStatus(STATUS_STOPPING);
 
-        mSPP.stopService();
-        mSPP = null;
         mLooper = null;
         try
         {
-            thread.wait();
+            synchronized (thread)
+            {
+                thread.wait();
+            }
         }
         catch (InterruptedException ex)
         {
@@ -153,7 +154,8 @@ public class BluetoothThread extends Thread
 
         try
         {
-            mQueueFile.close();
+            if (mQueueFile != null)
+                mQueueFile.close();
         }
         catch (IOException ex)
         {
@@ -192,7 +194,7 @@ public class BluetoothThread extends Thread
 
     boolean processQueue()
     {
-        if (mQueueFile.isEmpty())
+        if (mQueueFile == null || mQueueFile.isEmpty())
         {
             return false;
         }
@@ -237,8 +239,27 @@ public class BluetoothThread extends Thread
 
     public void graciousStop()
     {
-        if (mLooper != null)
-            mLooper.quit();
+        if (mLooper == null)
+            return;
+
+        mHandler.post(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                mSPP.stopService();
+                mSPP = null;
+            }
+        });
+
+        mHandler.post(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                mLooper.quit();
+            }
+        });
     }
 
     boolean checkAddressChange()
@@ -358,6 +379,9 @@ public class BluetoothThread extends Thread
 
     void enqueueCommand(String command)
     {
+        if (mQueueFile == null)
+            return;
+
         try
         {
             byte[] data = command.getBytes("UTF-8");

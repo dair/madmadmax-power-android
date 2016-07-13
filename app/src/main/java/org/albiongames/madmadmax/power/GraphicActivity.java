@@ -10,11 +10,15 @@ import android.os.SystemClock;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.PopupMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewConfiguration;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -53,10 +57,30 @@ public class GraphicActivity extends AppCompatActivity {
     int mBluetoothState = -100;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_graphic);
         mCoverImage = (ImageView)findViewById(R.id.coverImage);
+
+        final ImageButton menuButton = (ImageButton)findViewById(R.id.menuButton);
+        if (menuButton != null)
+        {
+            boolean hasMenuKey = ViewConfiguration.get(this).hasPermanentMenuKey();
+            int visibility = hasMenuKey? View.INVISIBLE : View.VISIBLE;
+            menuButton.setVisibility(visibility);
+            if (visibility == View.VISIBLE)
+            {
+                menuButton.setOnClickListener(new View.OnClickListener()
+                {
+                    @Override
+                    public void onClick(View v)
+                    {
+                        showPopupMenu(menuButton);
+                    }
+                });
+            }
+        }
     }
 
     @Override
@@ -415,6 +439,11 @@ public class GraphicActivity extends AppCompatActivity {
         return true;
     }
 
+    void updateServiceMenu(MenuItem item)
+    {
+
+    }
+
     @Override
     public boolean onPrepareOptionsMenu(Menu menu)
     {
@@ -510,5 +539,23 @@ public class GraphicActivity extends AppCompatActivity {
                 );
             }
         }, 0, duration/40, TimeUnit.MILLISECONDS);
+    }
+
+    public void showPopupMenu(View view)
+    {
+        PopupMenu menu = new PopupMenu(this, view);
+        menu.inflate(R.menu.graphic_activity_menu);
+        onPrepareOptionsMenu(menu.getMenu());
+
+        menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener()
+        {
+            @Override
+            public boolean onMenuItemClick(MenuItem item)
+            {
+                return onOptionsItemSelected(item);
+            }
+        });
+
+        menu.show();
     }
 }

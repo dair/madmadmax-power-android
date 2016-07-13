@@ -94,14 +94,15 @@ public class PowerService extends Service
                 mError = new Error(ex.getLocalizedMessage());
             }
 
-            mNetworkingThread = new NetworkingThread(this);
-            mNetworkingThread.start();
             mLocationThread = new LocationThread(this);
-            mLocationThread.start();
-            mLogicThread = new LogicThread(this);
-            mLogicThread.start();
             mBluetoothThread = new BluetoothThread(this);
+            mNetworkingThread = new NetworkingThread(this);
+            mLogicThread = new LogicThread(this);
+
+            mLocationThread.start();
             mBluetoothThread.start();
+            mNetworkingThread.start();
+            mLogicThread.start();
 
             mStatus = STATUS_ON;
         }
@@ -140,7 +141,7 @@ public class PowerService extends Service
         mLogicThread.graciousStop();
         mLocationThread.graciousStop();
 
-        while (mNetworkingThread.isAlive())
+        while (mNetworkingThread.getStatus() != StatusThread.STATUS_OFF)
         {
             Tools.sleep(100);
         }
