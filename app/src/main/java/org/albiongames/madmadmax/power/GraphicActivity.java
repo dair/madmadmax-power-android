@@ -410,11 +410,13 @@ public class GraphicActivity extends AppCompatActivity {
 
         mBluetoothState = status;
 
+        status -= srv;
+
         int color = Color.DKGRAY;
 
         if (mServerRunning)
         {
-            switch (mBluetoothState)
+            switch (status)
             {
                 case BluetoothThread.STATUS_CONNECTED:
                     color = Color.WHITE;

@@ -31,9 +31,9 @@ public class BluetoothThread extends Thread
 
     int mStatus = STATUS_OFF;
 
-    public static final int LED_RED = 1 << 0;
-    public static final int LED_GREEN = 1 << 1;
-    public static final int LED_YELLOW = 1 << 2;
+    public static final char LED_RED = 'R';
+    public static final char LED_GREEN = 'G';
+    public static final char LED_YELLOW = 'Y';
 
     PowerService mService = null;
     BluetoothSPP mSPP = null;
@@ -342,7 +342,9 @@ public class BluetoothThread extends Thread
         mCommandsWaiting.put(command, count);
 
         mSPP.send(command + "\n", false);
+//        mLedStatus.put()
         Tools.sleep(50);
+
     }
 
     public String ledCode(int ledCode)
@@ -364,19 +366,6 @@ public class BluetoothThread extends Thread
         return code;
     }
 
-    public void setLed(int ledCode, boolean on)
-    {
-        String code = ledCode(ledCode);
-        if (code.isEmpty())
-            return;
-
-        String num = on ? "1" : "0";
-
-        String command = code + num;
-
-        enqueueCommand(command);
-    }
-
     void enqueueCommand(String command)
     {
         if (mQueueFile == null)
@@ -391,6 +380,19 @@ public class BluetoothThread extends Thread
         {}
         catch (IOException ex)
         {}
+    }
+
+    public void setLed(int ledCode, boolean on)
+    {
+        String code = ledCode(ledCode);
+        if (code.isEmpty())
+            return;
+
+        String num = on ? "1" : "0";
+
+        String command = code + num;
+
+        enqueueCommand(command);
     }
 
     public void setPause(long duration)
