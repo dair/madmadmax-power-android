@@ -400,29 +400,38 @@ public class GraphicActivity extends AppCompatActivity {
     void updateBluetoothStatus()
     {
         int status = (int)Settings.getLong(Settings.KEY_BLUETOOTH_STATUS);
+
+        int srv = mServerRunning? 1000 : 0;
+
+        status += srv;
+
         if (status == mBluetoothState)
             return;
 
         mBluetoothState = status;
 
         int color = Color.DKGRAY;
-        switch(mBluetoothState)
+
+        if (mServerRunning)
         {
-            case BluetoothThread.STATUS_CONNECTED:
-                color = Color.WHITE;
-                break;
-            case BluetoothThread.STATUS_DISCONNECTED:
-                color = Color.argb(0xFF, 0x77, 0, 0);
-                break;
-            case BluetoothThread.STATUS_FAILED:
-                color = Color.RED;
-                break;
-            case BluetoothThread.STATUS_OFF:
-                color = Color.DKGRAY;
-                break;
-            case BluetoothThread.STATUS_STOPPING:
-                color = Color.GRAY;
-                break;
+            switch (mBluetoothState)
+            {
+                case BluetoothThread.STATUS_CONNECTED:
+                    color = Color.WHITE;
+                    break;
+                case BluetoothThread.STATUS_DISCONNECTED:
+                    color = Color.argb(0xFF, 0x77, 0, 0);
+                    break;
+                case BluetoothThread.STATUS_FAILED:
+                    color = Color.RED;
+                    break;
+                case BluetoothThread.STATUS_OFF:
+                    color = Color.GRAY;
+                    break;
+                case BluetoothThread.STATUS_STOPPING:
+                    color = Color.LTGRAY;
+                    break;
+            }
         }
 
         ImageView image = (ImageView)findViewById(R.id.bluetoothImageView);
