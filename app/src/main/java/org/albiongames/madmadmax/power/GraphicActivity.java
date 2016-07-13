@@ -18,8 +18,10 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -42,6 +44,7 @@ public class GraphicActivity extends AppCompatActivity {
     int mNetworkStatus = STATUS_INITIAL;
 
     int mCarState = -100;
+    double mFuelNow = -100;
 
     long counter = 0; //tmp
 
@@ -144,33 +147,55 @@ public class GraphicActivity extends AppCompatActivity {
     void updateCarStatus()
     {
         int state = (int)Settings.getLong(Settings.KEY_CAR_STATE);
+        double currentFuel = Settings.getDouble(Settings.KEY_FUEL_NOW);
 
-        if (mCarState == state)
+        if (mCarState == state && Math.abs(currentFuel - mFuelNow) < 0.5)
             return;
 
         ImageView logo = (ImageView)findViewById(R.id.logoImageView);
         ImageView engine = (ImageView)findViewById(R.id.engineImageView);
+        ImageView fuel = (ImageView)findViewById(R.id.fuelImageView);
+        LinearLayout background = (LinearLayout)findViewById(R.id.background);
 
-        switch (state)
+        if (state == Settings.CAR_STATE_MALFUNCTION_2)
         {
-            case Settings.CAR_STATE_OK:
+            engine.setVisibility(View.VISIBLE);
+            engine.setColorFilter(Color.RED);
+            logo.setVisibility(View.INVISIBLE);
+            fuel.setVisibility(View.INVISIBLE);
+            background.setBackgroundColor(Color.argb(0xFF, 0x77, 0, 0));
+        }
+        else
+        {
+            if (currentFuel < 1.0)
+            {
+                fuel.setVisibility(View.VISIBLE);
+                fuel.setColorFilter(Color.RED);
                 engine.setVisibility(View.INVISIBLE);
-                engine.setBackgroundColor(Color.BLACK);
-                logo.setVisibility(View.VISIBLE);
-                break;
-            case Settings.CAR_STATE_MALFUNCTION_1:
-                engine.setVisibility(View.INVISIBLE);
-                logo.setBackgroundColor(Color.argb(0xFF, 0x88, 0, 0));
-                logo.setVisibility(View.VISIBLE);
-                break;
-            case Settings.CAR_STATE_MALFUNCTION_2:
-                engine.setVisibility(View.VISIBLE);
-                engine.setColorFilter(Color.RED);
                 logo.setVisibility(View.INVISIBLE);
-                break;
+                background.setBackgroundColor(Color.BLACK);
+            }
+            else
+            {
+                fuel.setVisibility(View.INVISIBLE);
+                switch (state)
+                {
+                    case Settings.CAR_STATE_OK:
+                        engine.setVisibility(View.INVISIBLE);
+                        logo.setVisibility(View.VISIBLE);
+                        background.setBackgroundColor(Color.BLACK);
+                        break;
+                    case Settings.CAR_STATE_MALFUNCTION_1:
+                        engine.setVisibility(View.INVISIBLE);
+                        logo.setVisibility(View.VISIBLE);
+                        background.setBackgroundColor(Color.argb(0xFF, 0x77, 0, 0));
+                        break;
+                }
+            }
         }
 
         mCarState = state;
+        mFuelNow = currentFuel;
     }
 
     void updateNetworkState()
@@ -244,14 +269,12 @@ public class GraphicActivity extends AppCompatActivity {
 
             if (state == Settings.CAR_STATE_MALFUNCTION_2)
             {
-                logo.setBackgroundColor(Color.RED);
-                logo.setColorFilter(Color.BLACK);
+                return; // already done in updateCarStatus()
             }
 
-            logo.setBackgroundColor(Color.BLACK);
             if (averageSpeed < 0.5)
             {
-                logo.setColorFilter(Color.DKGRAY);
+                logo.setColorFilter(Color.GRAY);
                 return;
             }
 
@@ -263,9 +286,11 @@ public class GraphicActivity extends AppCompatActivity {
 
             if (averageSpeed > redZoneSpeed * 0.75)
             {
-                logo.setColorFilter(Color.YELLOW);
+                int color = Tools.colorMiddle(Color.WHITE, Color.RED, (averageSpeed - redZoneSpeed * 0.75) / (redZoneSpeed * 0.25));
+                logo.setColorFilter(color);
                 return;
-            } else
+            }
+            else
             {
                 logo.setColorFilter(Color.WHITE);
                 return;
@@ -273,16 +298,7 @@ public class GraphicActivity extends AppCompatActivity {
         }
         else
         {
-            if (state == Settings.CAR_STATE_MALFUNCTION_2)
-            {
-                logo.setBackgroundColor(Color.RED);
-                logo.setColorFilter(Color.GRAY);
-            }
-            else
-            {
-                logo.setBackgroundColor(Color.BLACK);
-                logo.setColorFilter(Color.DKGRAY);
-            }
+            logo.setColorFilter(Color.DKGRAY);
         }
     }
 

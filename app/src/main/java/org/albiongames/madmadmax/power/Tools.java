@@ -6,6 +6,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.util.Log;
 import android.view.MenuItem;
 
@@ -119,5 +120,29 @@ public class Tools
         }
 
         return false;
+    }
+
+    static int[] splitColors(int c)
+    {
+        int[] ret = new int[4];
+        ret[0] = (c & 0xFF000000) >> 24;
+        ret[1] = (c & 0x00FF0000) >> 16;
+        ret[2] = (c & 0x0000FF00) >> 8;
+        ret[3] = (c & 0x000000FF);
+        return ret;
+    }
+
+    public static int colorMiddle(int c1, int c2, double ratio)
+    {
+        int[] p1 = splitColors(c1);
+        int[] p2 = splitColors(c2);
+        int[] p = new int[4];
+
+        for (int i = 0; i < 4; ++i)
+        {
+            p[i] = p1[i] + (int)Math.round((p2[i] - p1[i]) * ratio);
+        }
+
+        return Color.argb(p[0], p[1], p[2], p[3]);
     }
 }
