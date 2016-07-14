@@ -170,7 +170,7 @@ public class Settings
         mDefaults.put(KEY_MIN_GPS_DISTANCE, "20"); //meters
         mDefaults.put(KEY_MIN_SATELLITES, "3");
         mDefaults.put(KEY_MIN_ACCURACY, "20");
-        mDefaults.put(KEY_AVERAGE_SPEED_TIME, "30000"); // milliseconds
+        mDefaults.put(KEY_AVERAGE_SPEED_TIME, "3000"); // milliseconds
 
         mDefaults.put(KEY_PARAM_UPDATE, "3000");
         mDefaults.put(KEY_CAR_STATE, "0");

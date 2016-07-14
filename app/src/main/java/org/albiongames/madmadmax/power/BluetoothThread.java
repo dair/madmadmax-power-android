@@ -22,6 +22,8 @@ import app.akexorcist.bluetotohspp.library.BluetoothState;
  */
 public class BluetoothThread extends Thread
 {
+    static final String COMPONENT = "bluetooth";
+
     public static final int STATUS_OFF = 0;
     public static final int STATUS_DISCONNECTED = 1;
     public static final int STATUS_CONNECTING = 2;
@@ -95,13 +97,17 @@ public class BluetoothThread extends Thread
             @Override
             public void onDeviceConnected(String name, String address)
             {
+                mService.dump(COMPONENT, "connected to " + name + ", " + address);
                 setStatus(STATUS_CONNECTED);
             }
 
             @Override
-            public void onDeviceDisconnected()
-            {
-                setStatus(STATUS_DISCONNECTED);
+            public void onDeviceDisconnected() {
+                mService.dump(COMPONENT, "disconnected");
+                if (getStatus() != STATUS_STOPPING)
+                {
+                    setStatus(STATUS_DISCONNECTED);
+                }
                 mTimeWaiting = 0;
                 mWaitingResponse = false;
             }
@@ -109,7 +115,11 @@ public class BluetoothThread extends Thread
             @Override
             public void onDeviceConnectionFailed()
             {
-                setStatus(STATUS_FAILED);
+                mService.dump(COMPONENT, "connection failed");
+                if (getStatus() != STATUS_STOPPING)
+                {
+                    setStatus(STATUS_FAILED);
+                }
                 mTimeWaiting = 0;
                 mWaitingResponse = false;
             }
@@ -134,10 +144,9 @@ public class BluetoothThread extends Thread
                 processLoop();
             }
         });
+        thread.start();
 
         Looper.loop();
-
-        setStatus(STATUS_STOPPING);
 
         mLooper = null;
         try
@@ -242,6 +251,8 @@ public class BluetoothThread extends Thread
         if (mLooper == null)
             return;
 
+        setStatus(STATUS_STOPPING);
+
         mHandler.post(new Runnable()
         {
             @Override
@@ -276,6 +287,9 @@ public class BluetoothThread extends Thread
 
     boolean applyAddressChange()
     {
+        if (getStatus() == STATUS_STOPPING)
+            return false;
+
         if (checkAddressChange())
         {
             mSPP.disconnect();
@@ -287,6 +301,9 @@ public class BluetoothThread extends Thread
 
     void connect()
     {
+        if (getStatus() == STATUS_STOPPING)
+            return;
+
         checkAddressChange();
 
         if (mAddress != null)
@@ -318,6 +335,7 @@ public class BluetoothThread extends Thread
         }
         else
         {
+            mService.dump(COMPONENT, "Bang! " + message);
             // shooting number is hex number
             mService.getLogicStorage().put(new StorageEntry.Damage(message));
         }
@@ -343,8 +361,6 @@ public class BluetoothThread extends Thread
 
         mSPP.send(command + "\n", false);
 //        mLedStatus.put()
-        Tools.sleep(50);
-
     }
 
     public String ledCode(int ledCode)

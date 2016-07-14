@@ -14,6 +14,8 @@ import java.util.Random;
  */
 public class LogicThread extends StatusThread
 {
+    final String COMPONENT = "LogicThread";
+
     PowerService mService = null;
     Random mRandom = new Random();
     double mLastMalfunctionCheckDistance = 0.0;
@@ -28,13 +30,17 @@ public class LogicThread extends StatusThread
     {
         // gasoline
         double fuelNow = Settings.getDouble(Settings.KEY_FUEL_NOW); // units of gas
+
         double fuelPerKm = getCurrentFuelPerKm(); // units of gas per kilometer
 
         double fuelSpent = fuelPerKm * rangePassedMeters / 1000.0;
 
+
         double fuelBecome = fuelNow - fuelSpent;
         if (fuelBecome < 0.0)
             fuelBecome = 0.0;
+
+        mService.dump(COMPONENT, "fuel at start: " + Double.toString(fuelNow) + ", fuelPerKm: " + Double.toString(fuelPerKm) + ", fuelSpent = " + Double.toString(fuelSpent) + ", fuelBecome: " + Double.toString(fuelBecome));
 
         Settings.setDouble(Settings.KEY_FUEL_NOW, fuelBecome);
     }
@@ -51,25 +57,39 @@ public class LogicThread extends StatusThread
         if (hpBecome < 0.0)
             hpBecome = 0.0;
 
+        mService.dump(COMPONENT, "HP at start: " + Double.toString(hpNow) + ", hpPerKm: " + Double.toString(hpPerKm) + ", hpSpent = " + Double.toString(hpSpent) + ", hpBecome: " + Double.toString(hpBecome));
+
         Settings.setDouble(Settings.KEY_HITPOINTS, hpBecome);
     }
 
     void processLocation(StorageEntry.Location location)
     {
+        mService.dump(COMPONENT, "processing location {" + location.toString() + "}");
+
         double rangePassedMeters = location.getDistance(); // in meters
+        mService.dump(COMPONENT, "distance: " + Double.toString(rangePassedMeters));
         processLocationGasoline(rangePassedMeters);
         processLocationHitPoints(rangePassedMeters);
 
         double trackDistance = Settings.getDouble(Settings.KEY_TRACK_DISTANCE);
-        trackDistance += rangePassedMeters;
-        Settings.setDouble(Settings.KEY_TRACK_DISTANCE, trackDistance);
+        double trackDistanceBecome = trackDistance + rangePassedMeters;
+        mService.dump(COMPONENT, "Total distance: was: " + Double.toString(trackDistance) + ", passed: " + Double.toString(rangePassedMeters) + ", become: " + Double.toString(trackDistanceBecome));
+        Settings.setDouble(Settings.KEY_TRACK_DISTANCE, trackDistanceBecome);
 
         double interval = Settings.getDouble(Settings.KEY_MALFUNCTION_CHECK_INTERVAL);
+        mService.dump(COMPONENT, "Check interval is " + Double.toString(interval) + ", lastCheckDistance: " + Double.toString(mLastMalfunctionCheckDistance));
         if (trackDistance - mLastMalfunctionCheckDistance > interval)
         {
+            mService.dump(COMPONENT, "Checking probabilities");
             probabilities();
             mLastMalfunctionCheckDistance += interval;
         }
+        else
+        {
+            mService.dump(COMPONENT, "NOT Checking probabilities");
+        }
+
+        mService.dump(COMPONENT, "Done processing location {" + location.toString() + "}");
     }
 
     void processDamage(StorageEntry.Damage damage)
@@ -95,17 +115,12 @@ public class LogicThread extends StatusThread
 
         Settings.setDouble(Settings.KEY_TRACK_DISTANCE, 0.0);
         Settings.setDouble(Settings.KEY_AVERAGE_SPEED, 0.0);
+        mLastMalfunctionCheckDistance = 0;
         setStatus(STATUS_ON);
-
-        boolean changed = true;
 
         while (true)
         {
-            if (changed)
-            {
-                updateLeds();
-                changed = false;
-            }
+            updateLeds();
 
             StorageEntry.Base entry = mService.getLogicStorage().get();
 
@@ -115,12 +130,10 @@ public class LogicThread extends StatusThread
                 if (entry.isTypeOf(StorageEntry.TYPE_LOCATION))
                 {
                     processLocation((StorageEntry.Location)entry);
-                    changed = true;
                 }
                 else if (entry.isTypeOf(StorageEntry.TYPE_DAMAGE))
                 {
                     processDamage((StorageEntry.Damage)entry);
-                    changed = true;
                 }
 
                 mService.getNetworkStorage().put(entry);
@@ -150,7 +163,11 @@ public class LogicThread extends StatusThread
         Expression ex1 = null;
         Expression ex2 = null;
 
-        switch ((int)Settings.getLong(Settings.KEY_CAR_STATE))
+        int state = (int)Settings.getLong(Settings.KEY_CAR_STATE);
+
+        mService.dump(COMPONENT, "Checking probabilities: car state is "+ Integer.toString(state));
+
+        switch (state)
         {
             case Settings.CAR_STATE_OK:
                 ex1 = Settings.getExpression(Settings.KEY_P1_FORMULA);
@@ -164,17 +181,22 @@ public class LogicThread extends StatusThread
         }
 
         double randomDouble = mRandom.nextDouble(); // [0.0, 1.0)
+        mService.dump(COMPONENT, "random double is " + Double.toString(randomDouble));
 
         double hp = getCurrentHitPoints();
         double maxHp = getMaxHitPoints();
         double ratio = hp / maxHp;
 
+        mService.dump(COMPONENT, "HP: " + Double.toString(hp) + " of max " + Double.toString(maxHp) + ", ratio = " + Double.toString(ratio));
+
         if (ex2 != null)
         {
             double upBorder = Tools.clamp(ex2.setVariable("x", ratio).evaluate(), 0.0, 1.0);
+            mService.dump(COMPONENT, "upBorder for malfunction2 check is " + Double.toString(upBorder));
             if (randomDouble < upBorder)
             {
                 // malfunction 2
+                mService.dump(COMPONENT, "And now car is broken down, malfunction 2");
 
                 Settings.setLong(Settings.KEY_CAR_STATE, Settings.CAR_STATE_MALFUNCTION_2);
                 return;
@@ -184,9 +206,11 @@ public class LogicThread extends StatusThread
         if (ex1 != null)
         {
             double upBorder = Tools.clamp(ex1.setVariable("x", ratio).evaluate(), 0.0, 1.0);
+            mService.dump(COMPONENT, "upBorder for malfunction1 check is " + Double.toString(upBorder));
 
             if (randomDouble < upBorder)
             {
+                mService.dump(COMPONENT, "And now car is broken down, malfunction 1");
                 Settings.setLong(Settings.KEY_CAR_STATE, Settings.CAR_STATE_MALFUNCTION_1);
             }
         }
@@ -194,6 +218,7 @@ public class LogicThread extends StatusThread
 
     public void graciousStop()
     {
+        mService.dump(COMPONENT, "Gracious stop");
         if (getStatus() == STATUS_ON)
             setStatus(STATUS_STOPPING);
     }
@@ -333,12 +358,21 @@ public class LogicThread extends StatusThread
         return Settings.getDouble(Settings.KEY_MAXHITPOINTS);
     }
 
+    double mLedsRatio = -100;
+
+
     void updateLeds()
     {
         double hp = getCurrentHitPoints();
         double maxHp = getMaxHitPoints();
 
         double ratio = hp / maxHp;
+
+        if (Math.abs(ratio - mLedsRatio) < 0.005)
+            return;
+
+        mLedsRatio = ratio;
+
         double greenLed = Settings.getDouble(Settings.KEY_GREEN_LED);
 
         if (ratio >= greenLed)

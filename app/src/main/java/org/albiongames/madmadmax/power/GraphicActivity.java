@@ -34,8 +34,8 @@ public class GraphicActivity extends AppCompatActivity {
     public static final int STATUS_UNKNOWN = 0;
     public static final int STATUS_INITIAL = -100;
 
-    int mHitPoints = 0;
-    int mMaxHitPoints = 0;
+    double mHitPoints = 0;
+    double mMaxHitPoints = 0;
 
     int mFuel = 0;
     int mMaxFuel = 0;
@@ -92,8 +92,8 @@ public class GraphicActivity extends AppCompatActivity {
         super.onResume();
 
         mCarState = -100;
-        mHitPoints = 0;
-        mMaxHitPoints = 0;
+        mHitPoints = -100;
+        mMaxHitPoints = -100;
 
         mFuel = 0;
         mMaxFuel = 0;
@@ -347,8 +347,8 @@ public class GraphicActivity extends AppCompatActivity {
 
     void updateHitPoints()
     {
-        int currentHP = (int)Settings.getLong(Settings.KEY_HITPOINTS);
-        int maxHP = (int)Settings.getLong(Settings.KEY_MAXHITPOINTS);
+        double currentHP = Settings.getDouble(Settings.KEY_HITPOINTS);
+        double maxHP = Settings.getDouble(Settings.KEY_MAXHITPOINTS);
 
         if (currentHP == mHitPoints && maxHP == mMaxHitPoints)
             return;
@@ -357,8 +357,8 @@ public class GraphicActivity extends AppCompatActivity {
         mMaxHitPoints = maxHP;
 
         ProgressBar progressBar = (ProgressBar)findViewById(R.id.progressBarHP);
-        progressBar.setMax(mMaxHitPoints);
-        progressBar.setProgress(mHitPoints);
+        progressBar.setMax(Math.round((float)mMaxHitPoints));
+        progressBar.setProgress(Math.round((float)mHitPoints));
 
         TextView hpText = (TextView)findViewById(R.id.hpText);
         if (mServerRunning)

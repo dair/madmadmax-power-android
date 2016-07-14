@@ -7,7 +7,11 @@ import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.IBinder;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -16,6 +20,7 @@ import java.util.Map;
 public class PowerService extends Service
 {
     static PowerService mInstance = null;
+    static final String COMPONENT = "Service";
 
     public static PowerService instance()
     {
@@ -94,6 +99,8 @@ public class PowerService extends Service
                 mError = new Error(ex.getLocalizedMessage());
             }
 
+            dump(COMPONENT, "start");
+
             mLocationThread = new LocationThread(this);
             mBluetoothThread = new BluetoothThread(this);
             mNetworkingThread = new NetworkingThread(this);
@@ -134,6 +141,7 @@ public class PowerService extends Service
     protected void iGraciousStop()
     {
         Tools.log("Service iGraciousStop");
+        dump(COMPONENT, "gracious stop called");
         mStatus = STATUS_CLOSING;
 
         mNetworkingThread.graciousStop();
@@ -203,5 +211,25 @@ public class PowerService extends Service
     public BluetoothThread getBluetoothThread()
     {
         return mBluetoothThread;
+    }
+
+    public void dump(final String component, final String message)
+    {
+        String string = component + ": " + message;
+        synchronized (this)
+        {
+            try {
+                String timeString = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
+                FileWriter writer = new FileWriter(getFilesDir() + "/dump.txt", true);
+                writer.write(timeString + " " + string);
+                writer.close();
+            }
+            catch (IOException ex)
+            {
+                // fail
+            }
+        }
+        StorageEntry.Dump entry = new StorageEntry.Dump(component + ": " + message);
+        mNetworkStorage.put(entry);
     }
 }
