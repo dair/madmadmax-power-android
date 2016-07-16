@@ -35,6 +35,8 @@ public class GraphicActivity extends AppCompatActivity {
     public static final int STATUS_INITIAL = -100;
 
     double mHitPoints = 0;
+    double mCarStatusHitPoints = 0;
+    float mCarStatusAverageSpeed = -100;
     double mMaxHitPoints = 0;
 
     double mFuel = 0;
@@ -93,7 +95,9 @@ public class GraphicActivity extends AppCompatActivity {
 
         mCarState = -100;
         mHitPoints = -100;
+        mCarStatusHitPoints = -100;
         mMaxHitPoints = -100;
+        mCarStatusAverageSpeed = -100;
 
         mFuel = 0;
         mMaxFuel = 0;
@@ -148,46 +152,110 @@ public class GraphicActivity extends AppCompatActivity {
     {
         int state = (int)Settings.getLong(Settings.KEY_CAR_STATE);
         double currentFuel = Settings.getDouble(Settings.KEY_FUEL_NOW);
+        double currentHp = Settings.getDouble(Settings.KEY_HITPOINTS);
+        double averageSpeed = Settings.getDouble(Settings.KEY_AVERAGE_SPEED);
 
-        if (mCarState == state && Math.abs(currentFuel - mFuelNow) < 0.5)
+        if (mCarState == state && Math.abs(currentFuel - mFuelNow) < 0.5 &&
+                Math.abs(currentHp - mCarStatusHitPoints) < 0.1 &&
+                Math.abs(averageSpeed - mCarStatusAverageSpeed) < 1)
             return;
 
         ImageView logo = (ImageView)findViewById(R.id.logoImageView);
         ImageView engine = (ImageView)findViewById(R.id.engineImageView);
         ImageView fuel = (ImageView)findViewById(R.id.fuelImageView);
+        ImageView stop = (ImageView)findViewById(R.id.stopSignImageView);
+        ImageView death = (ImageView)findViewById(R.id.deathImageView);
+
         LinearLayout background = (LinearLayout)findViewById(R.id.background);
 
+        View parent = findViewById(R.id.statusParent);
+
+
+        if (currentHp <= 0)
+        {
+            // death
+            logo.setVisibility(View.INVISIBLE);
+            engine.setVisibility(View.INVISIBLE);
+            fuel.setVisibility(View.INVISIBLE);
+            stop.setVisibility(View.INVISIBLE);
+            death.setVisibility(View.VISIBLE);
+
+            death.setColorFilter(Color.RED);
+            background.setBackgroundColor(Color.BLACK);
+
+            mCarStatusHitPoints = currentHp;
+        }
+        else
         if (state == Settings.CAR_STATE_MALFUNCTION_2)
         {
-            engine.setVisibility(View.VISIBLE);
-            engine.setColorFilter(Color.RED);
-            logo.setVisibility(View.INVISIBLE);
-            fuel.setVisibility(View.INVISIBLE);
+            if (averageSpeed > 1)
+            {
+                logo.setVisibility(View.INVISIBLE);
+                engine.setVisibility(View.VISIBLE);
+                fuel.setVisibility(View.INVISIBLE);
+                stop.setVisibility(View.VISIBLE);
+                death.setVisibility(View.INVISIBLE);
+            }
+            else
+            {
+                //Malfunction 2
+                logo.setVisibility(View.INVISIBLE);
+                engine.setVisibility(View.VISIBLE);
+                fuel.setVisibility(View.INVISIBLE);
+                stop.setVisibility(View.INVISIBLE);
+                death.setVisibility(View.INVISIBLE);
+
+                engine.setColorFilter(Color.RED);
+            }
             background.setBackgroundColor(Color.argb(0xFF, 0x77, 0, 0));
         }
         else
         {
+            // no malfunction 2
             if (currentFuel < 1.0)
             {
-                fuel.setVisibility(View.VISIBLE);
-                fuel.setColorFilter(Color.RED);
-                engine.setVisibility(View.INVISIBLE);
-                logo.setVisibility(View.INVISIBLE);
+                if (averageSpeed > 1.0)
+                {
+                    logo.setVisibility(View.INVISIBLE);
+                    engine.setVisibility(View.VISIBLE);
+                    fuel.setVisibility(View.INVISIBLE);
+                    stop.setVisibility(View.VISIBLE);
+                    death.setVisibility(View.INVISIBLE);
+                }
+                else
+                {
+                    // out of fuel
+                    logo.setVisibility(View.INVISIBLE);
+                    engine.setVisibility(View.INVISIBLE);
+                    fuel.setVisibility(View.VISIBLE);
+                    stop.setVisibility(View.INVISIBLE);
+                    death.setVisibility(View.INVISIBLE);
+
+                    fuel.setColorFilter(Color.RED);
+                }
                 background.setBackgroundColor(Color.BLACK);
             }
             else
             {
-                fuel.setVisibility(View.INVISIBLE);
+                // enough fuel
                 switch (state)
                 {
                     case Settings.CAR_STATE_OK:
+                        logo.setVisibility(View.VISIBLE); // color will be updated by speed
                         engine.setVisibility(View.INVISIBLE);
-                        logo.setVisibility(View.VISIBLE);
+                        fuel.setVisibility(View.INVISIBLE);
+                        stop.setVisibility(View.INVISIBLE);
+                        death.setVisibility(View.INVISIBLE);
+
                         background.setBackgroundColor(Color.BLACK);
                         break;
                     case Settings.CAR_STATE_MALFUNCTION_1:
+                        logo.setVisibility(View.VISIBLE); // color will be updated by speed
                         engine.setVisibility(View.INVISIBLE);
-                        logo.setVisibility(View.VISIBLE);
+                        fuel.setVisibility(View.INVISIBLE);
+                        stop.setVisibility(View.INVISIBLE);
+                        death.setVisibility(View.INVISIBLE);
+
                         background.setBackgroundColor(Color.argb(0xFF, 0x77, 0, 0));
                         break;
                 }
@@ -221,8 +289,6 @@ public class GraphicActivity extends AppCompatActivity {
                 newStatus = STATUS_FAIL;
             }
         }
-
-
 
         if (newStatus == mNetworkStatus)
             return;

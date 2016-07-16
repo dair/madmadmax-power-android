@@ -92,6 +92,10 @@ public class LocationThread extends StatusThread implements LocationListener
                 int len2 = stream.read();
 
                 len = (len2 << 8) + len1;
+
+                if (len < 0)
+                    break; // data finished?...
+
                 byte[] data = new byte[len];
                 stream.read(data);
 

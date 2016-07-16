@@ -44,7 +44,8 @@
             <RelativeLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="0.9">
+                android:layout_weight="0.9"
+                android:id="@+id/statusParent">
                 <ImageView
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
@@ -62,6 +63,18 @@
                     android:layout_height="match_parent"
                     android:src="@drawable/fuel_large"
                     android:id="@+id/fuelImageView"
+                    />
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/stopsign"
+                    android:id="@+id/stopSignImageView"
+                    />
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/death"
+                    android:id="@+id/deathImageView"
                     />
             </RelativeLayout>
 
