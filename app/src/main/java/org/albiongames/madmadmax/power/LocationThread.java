@@ -1,20 +1,19 @@
 package org.albiongames.madmadmax.power;
 
-import android.Manifest;
-import android.app.Service;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Looper;
-import android.support.v4.app.ActivityCompat;
+import android.os.Parcel;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -34,6 +33,10 @@ public class LocationThread extends StatusThread implements LocationListener
     Location mLastLocation = null;
     List<Location> mLastLocations = new LinkedList<>();
 
+    boolean mMockRun = true;
+
+    final static String COMPONENT = "LocationThread";
+
     public LocationThread(PowerService service)
     {
         super();
@@ -43,6 +46,14 @@ public class LocationThread extends StatusThread implements LocationListener
 
     @Override
     public void run()
+    {
+        if (Settings.getLong(Settings.KEY_MOCK_DATA) == Settings.MOCK_DATA_PLAY)
+            runFromMock();
+        else
+            runNormal();
+    }
+
+    void runNormal()
     {
         setStatus(STATUS_STARTING);
         Tools.log("LocationThread: start");
@@ -60,6 +71,78 @@ public class LocationThread extends StatusThread implements LocationListener
         Tools.log("LocationThread: stop");
         setStatus(STATUS_OFF);
     }
+
+    void runFromMock()
+    {
+        long sleepTime = 0;
+        long lastLocationTime = 0;
+
+        onStart();
+        setStatus(STATUS_ON);
+
+        FileInputStream stream = null;
+        try
+        {
+            stream = new FileInputStream(mService.getFilesDir() + "/mock.dat");
+
+            while (mMockRun)
+            {
+                int len = 0;
+                int len1 = stream.read();
+                int len2 = stream.read();
+
+                len = (len2 << 8) + len1;
+                byte[] data = new byte[len];
+                stream.read(data);
+
+                Parcel p = Parcel.obtain();
+                p.unmarshall(data, 0, data.length);
+                p.setDataPosition(0);
+
+                Location l = Location.CREATOR.createFromParcel(p);
+
+                long time = l.getTime();
+                if (lastLocationTime == 0)
+                {
+                    sleepTime = 0;
+                }
+                else
+                {
+                    sleepTime = time - lastLocationTime;
+                }
+
+                if (sleepTime > 0)
+                {
+                    Tools.sleep(sleepTime);
+                }
+
+                onLocationChanged(l);
+
+                lastLocationTime = time;
+            }
+        }
+        catch (IOException ex)
+        {
+
+        }
+        finally
+        {
+            try
+            {
+                stream.close();
+            }
+            catch (IOException ex)
+            {
+            }
+        }
+
+        setStatus(STATUS_STOPPING);
+        onStop();
+        Tools.log("LocationThread: mock stop");
+        setStatus(STATUS_OFF);
+
+    }
+
 
 //    @Override
 //    protected void periodicTask()
@@ -108,10 +191,14 @@ public class LocationThread extends StatusThread implements LocationListener
 
     protected void onStart()
     {
-        LocationManager locationManager = (LocationManager) mService.getSystemService(Context.LOCATION_SERVICE);
+        if (!isMockPlay())
+        {
+            LocationManager locationManager = (LocationManager) mService.getSystemService(Context.LOCATION_SERVICE);
 
-        if (locationManager == null)
-            return;
+
+            if (locationManager == null)
+                return;
+        }
 
         mLastUpdate = System.currentTimeMillis();
         mLastLocation = null;
@@ -119,17 +206,20 @@ public class LocationThread extends StatusThread implements LocationListener
 
         mService.getLogicStorage().put(new StorageEntry.MarkerStart());
 
-        askRequests();
-
-        mTimer = new Timer("updates");
-        mTimer.scheduleAtFixedRate(new TimerTask()
+        if (!isMockPlay())
         {
-            @Override
-            public void run()
+            askRequests();
+
+            mTimer = new Timer("updates");
+            mTimer.scheduleAtFixedRate(new TimerTask()
             {
-                askRequests();
-            }
-        }, 1000, 1000);
+                @Override
+                public void run()
+                {
+                    askRequests();
+                }
+            }, 1000, 1000);
+        }
 
         Settings.setDouble(Settings.KEY_LAST_INSTANT_SPEED, 0.0);
         Settings.setLong(Settings.KEY_LAST_GPS_UPDATE, 0);
@@ -138,25 +228,43 @@ public class LocationThread extends StatusThread implements LocationListener
         Settings.setLong(Settings.KEY_LOCATION_THREAD_LAST_QUALITY, -1);
 
         Tools.log("Location Thread started");
+
+        if (Settings.getLong(Settings.KEY_MOCK_DATA) == Settings.MOCK_DATA_RECORD)
+        {
+            try
+            {
+                FileWriter writer = new FileWriter(mService.getFilesDir() + "/mock.dat");
+                writer.close();
+            }
+            catch (IOException ex)
+            {
+
+            }
+        }
     }
 
     protected void onStop()
     {
-        mTimer.purge();
-        mTimer = null;
-
-        LocationManager locationManager = (LocationManager) mService.getSystemService(Context.LOCATION_SERVICE);
-        try
+        if (mTimer != null)
         {
-            locationManager.removeUpdates(this);
+            mTimer.purge();
+            mTimer = null;
+        }
 
-            mService.getLogicStorage().put(new StorageEntry.MarkerStop());
-        }
-        catch (SecurityException exception)
+        if (!isMockPlay())
         {
-            // cry out loud
+            LocationManager locationManager = (LocationManager) mService.getSystemService(Context.LOCATION_SERVICE);
+            try
+            {
+                locationManager.removeUpdates(this);
+
+                mService.getLogicStorage().put(new StorageEntry.MarkerStop());
+            } catch (SecurityException exception)
+            {
+                // cry out loud
+            }
+            mService = null;
         }
-        mService = null;
 
         Settings.setLong(Settings.KEY_LOCATION_THREAD_STATUS, STATUS_OFF);
         Settings.setLong(Settings.KEY_LOCATION_THREAD_LAST_QUALITY, -1);
@@ -166,6 +274,8 @@ public class LocationThread extends StatusThread implements LocationListener
     {
         if (mLooper != null)
             mLooper.quit();
+        else
+            mMockRun = false;
     }
 
     /// Location Listener methods
@@ -174,6 +284,30 @@ public class LocationThread extends StatusThread implements LocationListener
         // Called when a new location is found by the network location provider.
         if (location == null)
             return;
+
+        if (Settings.getLong(Settings.KEY_MOCK_DATA) == Settings.MOCK_DATA_RECORD)
+        {
+            Parcel p = Parcel.obtain();
+            location.writeToParcel(p, 0);
+            final byte[] b = p.marshall();
+            p.recycle();
+
+            try
+            {
+                FileOutputStream output = new FileOutputStream(mService.getFilesDir() + "/mock.dat", true);
+                int len = b.length;
+                output.write(len & 0xFF);
+                output.write((len >> 8) & 0xFF);
+
+                output.write(b);
+                output.close();
+            }
+            catch (IOException ex)
+            {
+
+            }
+        }
+
         int satellites = -1;
 
         if (location.getExtras().containsKey("satellites"))
@@ -182,6 +316,7 @@ public class LocationThread extends StatusThread implements LocationListener
 
             if (satellites < Settings.getLong(Settings.KEY_MIN_SATELLITES))
             {
+                mService.dump(COMPONENT, "rejecting location because of satellites: " + location.toString());
                 Settings.setLong(Settings.KEY_LOCATION_THREAD_LAST_QUALITY, 0);
                 return;
             }
@@ -194,6 +329,7 @@ public class LocationThread extends StatusThread implements LocationListener
 
             if (acc > Settings.getLong(Settings.KEY_MIN_ACCURACY))
             {
+                mService.dump(COMPONENT, "rejecting location because of accuracy: " + location.toString());
                 Settings.setLong(Settings.KEY_LOCATION_THREAD_LAST_QUALITY, 0);
                 return;
             }
@@ -370,5 +506,10 @@ public class LocationThread extends StatusThread implements LocationListener
         speed = totalSquare / duration;
 
         return speed;
+    }
+
+    boolean isMockPlay()
+    {
+        return Settings.getLong(Settings.KEY_MOCK_DATA) == Settings.MOCK_DATA_PLAY;
     }
 }

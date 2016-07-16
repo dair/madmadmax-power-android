@@ -47,6 +47,24 @@ public class ServiceStatusActivity extends AppCompatActivity
                 ServiceStatusActivity.this.clickOnOff();
             }
         });
+
+        Button mockButton = (Button)findViewById(R.id.mockButton);
+        mockButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                long now = Settings.getLong(Settings.KEY_MOCK_DATA);
+                if (now == Settings.MOCK_DATA_PLAY)
+                {
+                    now = Settings.MOCK_DATA_OFF;
+                }
+                else
+                    ++now;
+
+                Settings.setLong(Settings.KEY_MOCK_DATA, now);
+            }
+        });
     }
 
     @Override
@@ -127,6 +145,21 @@ public class ServiceStatusActivity extends AppCompatActivity
             label.setText("OFF");
             button.setText("Turn service ON");
         }
+
+        button = (Button)findViewById(R.id.mockButton);
+        switch ((int)Settings.getLong(Settings.KEY_MOCK_DATA))
+        {
+            case Settings.MOCK_DATA_OFF:
+                button.setText("Mock OFF");
+                break;
+            case Settings.MOCK_DATA_RECORD:
+                button.setText("Mock RECORD");
+                break;
+            case Settings.MOCK_DATA_PLAY:
+                button.setText("Mock PLAY");
+                break;
+        }
+
     }
 
     void applyStatusToTextView(int status, TextView textView)

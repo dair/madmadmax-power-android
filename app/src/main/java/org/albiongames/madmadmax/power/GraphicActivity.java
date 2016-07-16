@@ -37,8 +37,8 @@ public class GraphicActivity extends AppCompatActivity {
     double mHitPoints = 0;
     double mMaxHitPoints = 0;
 
-    int mFuel = 0;
-    int mMaxFuel = 0;
+    double mFuel = 0;
+    double mMaxFuel = 0;
 
     int mGpsStatus = STATUS_INITIAL;
     int mNetworkStatus = STATUS_INITIAL;
@@ -373,8 +373,8 @@ public class GraphicActivity extends AppCompatActivity {
 
     void updateFuel()
     {
-        int currentFuel = (int)Settings.getLong(Settings.KEY_FUEL_NOW);
-        int maxFuel = (int)Settings.getLong(Settings.KEY_FUEL_MAX);
+        double currentFuel = Settings.getDouble(Settings.KEY_FUEL_NOW);
+        double maxFuel = (double)Settings.getDouble(Settings.KEY_FUEL_MAX);
 
         if (currentFuel == mFuel && maxFuel == mMaxFuel)
             return;
@@ -383,8 +383,8 @@ public class GraphicActivity extends AppCompatActivity {
         mMaxFuel = maxFuel;
 
         ProgressBar progressBar = (ProgressBar)findViewById(R.id.progressBarFuel);
-        progressBar.setMax(mMaxFuel);
-        progressBar.setProgress(mFuel);
+        progressBar.setMax((int)Math.round(mMaxFuel));
+        progressBar.setProgress((int)Math.round(mFuel));
 
         TextView fuelText = (TextView)findViewById(R.id.fuelText);
         if (mServerRunning)

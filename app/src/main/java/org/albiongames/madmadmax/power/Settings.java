@@ -78,7 +78,7 @@ public class Settings
     public static final String KEY_TRACK_DISTANCE = "track_distance";
 
     public static final String KEY_LAST_INSTANT_SPEED = "last_instant_speed";
-    public static final String KEY_LAST_GPS_UPDATE= "last_instant_speed";
+    public static final String KEY_LAST_GPS_UPDATE= "last_gps_update";
 
 
     public static final String KEY_LOCATION_THREAD_STATUS = "location_status";
@@ -88,6 +88,11 @@ public class Settings
 
 
     public static final String KEY_BLUETOOTH_STATUS = "bluetooth_status";
+
+    public static final String KEY_MOCK_DATA = "mock_data";
+    public static final int MOCK_DATA_OFF = 0;
+    public static final int MOCK_DATA_RECORD = 1;
+    public static final int MOCK_DATA_PLAY = 2;
 
     private static Settings instance = new Settings();
 
@@ -235,6 +240,8 @@ public class Settings
                 "}");
 
         mDefaults.put(KEY_GREEN_LED, "0.5");
+
+        mDefaults.put(KEY_MOCK_DATA, Integer.toString(MOCK_DATA_OFF));
 // FORMULAS
 
         mFormulaValues.add(KEY_P1_FORMULA);
