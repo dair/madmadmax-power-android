@@ -12,6 +12,7 @@ public class StorageEntry
     public static final String TYPE_MARKER = "marker";
     public static final String TYPE_LOCATION = "location";
     public static final String TYPE_DAMAGE = "damage";
+    public static final String TYPE_DUMP = "dump";
 
 
     public static abstract class Base
@@ -203,18 +204,18 @@ public class StorageEntry
         }
 
         @Override
-        public String toString()
+        public JSONObject toJsonObject()
         {
-            JSONObject jsonObject = toJsonObject();
+            JSONObject jsonObject = super.toJsonObject();
             try
             {
                 jsonObject.put("info", mInfo);
-                return jsonObject.toString();
+                return jsonObject;
             }
             catch (JSONException e)
             {
                 e.printStackTrace();
-                return "";
+                return null;
             }
         }
     }
@@ -248,7 +249,7 @@ public class StorageEntry
         @Override
         public JSONObject toJsonObject()
         {
-            JSONObject jsonObject = toJsonObject();
+            JSONObject jsonObject = super.toJsonObject();
             try
             {
                 jsonObject.put("damage", getDamage());
@@ -274,7 +275,11 @@ public class StorageEntry
         {
             String type = object.getString("type");
 
-            if (type.equalsIgnoreCase("info"))
+            if (type.equalsIgnoreCase("dump"))
+            {
+                ret = new Dump(object);
+            }
+            else if (type.equalsIgnoreCase("info"))
             {
                 ret = new Info(object);
             }
@@ -286,11 +291,48 @@ public class StorageEntry
             {
                 ret = new Location(object);
             }
+            else if (type.equalsIgnoreCase("damage"))
+            {
+                ret = new Damage(object);
+            }
         }
         catch (JSONException ex)
         {
         }
 
         return ret;
+    }
+
+    public static class Dump extends Base
+    {
+        String mText = null;
+
+        Dump(final String text)
+        {
+            super(TYPE_DUMP);
+            mText = text;
+        }
+
+        Dump(JSONObject object) throws JSONException
+        {
+            super(object);
+            mText = object.getString("text");
+        }
+
+        @Override
+        public JSONObject toJsonObject()
+        {
+            JSONObject jsonObject = super.toJsonObject();
+            try
+            {
+                if (mText != null)
+                    jsonObject.put("text", mText);
+            }
+            catch (JSONException e)
+            {
+                e.printStackTrace();
+            }
+            return jsonObject;
+        }
     }
 }
