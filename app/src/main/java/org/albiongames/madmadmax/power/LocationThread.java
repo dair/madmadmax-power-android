@@ -307,12 +307,12 @@ public class LocationThread extends StatusThread implements LocationListener
                 System.out.println("x < minTime");
                 if (haveBorder)
                 {
-                    System.out.println("not processing");
+//                    System.out.println("not processing");
                     break;
                 }
                 else
                 {
-                    System.out.println("set as border");
+//                    System.out.println("set as border");
                     haveBorder = true;
                 }
 
