@@ -102,6 +102,8 @@ public class LocationThread extends StatusThread implements LocationListener
             }
         }
 
+        long averageSpeedTime = Settings.getLong(Settings.KEY_AVERAGE_SPEED_TIME);
+        Settings.setDouble(Settings.KEY_AVERAGE_SPEED, averageSpeed(averageSpeedTime));
     }
 
     protected void onStart()
@@ -225,6 +227,9 @@ public class LocationThread extends StatusThread implements LocationListener
         addLocation(location);
 
         Settings.setLong(Settings.KEY_LOCATION_THREAD_STATUS, STATUS_ON);
+
+        long averageSpeedTime = Settings.getLong(Settings.KEY_AVERAGE_SPEED_TIME);
+        Settings.setDouble(Settings.KEY_AVERAGE_SPEED, averageSpeed(averageSpeedTime));
     }
 
     void addLocation(Location location)
@@ -253,8 +258,6 @@ public class LocationThread extends StatusThread implements LocationListener
             mLastLocations.remove(0);
             --i;
         }
-
-        Settings.setDouble(Settings.KEY_AVERAGE_SPEED, averageSpeed());
     }
 
     public void onStatusChanged(String provider, int status, Bundle extras)
@@ -276,15 +279,15 @@ public class LocationThread extends StatusThread implements LocationListener
         Settings.setLong(Settings.KEY_LOCATION_THREAD_STATUS, STATUS_OFF);
     }
 
-    public synchronized float averageSpeed()
+    public synchronized float averageSpeed(long duration)
     {
         if (mLastLocations.isEmpty())
             return 0.0f;
 
         float speed = 0;
-        long now = System.currentTimeMillis();
-        long duration = Settings.getLong(Settings.KEY_AVERAGE_SPEED_TIME);
+        long now = System.currentTimeMillis();//mLastLocations.get(mLastLocations.size()-1).getTime();//
         long minTime = now - duration;
+//        System.out.println("now is: " + Long.toString(now) + ", minTime: " + Long.toString(minTime));
 
         LinkedList<Long> xs = new LinkedList<>();
         LinkedList<Float> ys = new LinkedList<>();
@@ -294,33 +297,42 @@ public class LocationThread extends StatusThread implements LocationListener
         for (int i = mLastLocations.size() - 1; i >= 0; --i)
         {
             Location l = mLastLocations.get(i);
+//            System.out.println("position: " + Integer.toString(i) + ", location: " + l.toString());
 
             long x = l.getTime();
             float y = l.getSpeed();
 
             if (x < minTime)
             {
+                System.out.println("x < minTime");
                 if (haveBorder)
+                {
+                    System.out.println("not processing");
                     break;
+                }
                 else
                 {
-                    if (prevLocation == null)
-                        return l.getSpeed();
-
-                    float df = prevLocation.getSpeed() - y;
-                    long dt = prevLocation.getTime() - x;
-
-                    long mt = minTime - x;
-
-                    float s = (mt * df) / dt;
-
-
-                    x = minTime;
-                    y = s;
-
+                    System.out.println("set as border");
                     haveBorder = true;
                 }
+
+                if (prevLocation == null)
+                    return l.getSpeed();
+
+                float df = prevLocation.getSpeed() - y;
+                long dt = prevLocation.getTime() - x;
+
+                long mt = minTime - x;
+
+                float s = (mt * df) / dt;
+
+                x = minTime;
+                y = s;
             }
+
+
+//            System.out.println("adding x: " + Long.toString(x));
+//            System.out.println("adding y: " + Float.toString(y));
 
             xs.add(0, x);
             ys.add(0, y);
@@ -330,6 +342,9 @@ public class LocationThread extends StatusThread implements LocationListener
 
         if (!haveBorder)
         {
+//            System.out.println("adding x: " + Long.toString(minTime));
+//            System.out.println("adding y: " + Float.toString(0.0f));
+
             xs.add(0, minTime);
             ys.add(0, 0.0f);
         }
@@ -342,10 +357,12 @@ public class LocationThread extends StatusThread implements LocationListener
             long x1 = xs.get(i);
             float y1 = ys.get(i);
 
+//            System.out.println("iteration: " + Integer.toString(i) + ", x0: " + Long.toString(x0) + ", y0: " + Float.toString(y0) + ", x1: " + Long.toString(x1) + ", y1: " + Float.toString(y1));
+
             float yMin = Math.min(y0, y1);
             float yMax = Math.max(y0, y1);
 
-            float square = yMin * (y1 - y0) + ((yMax - yMin) * (y1 - y0)) / 2;
+            float square = yMin * (x1 - x0) + ((yMax - yMin) * (x1 - x0)) / 2;
 
             totalSquare += square;
         }
