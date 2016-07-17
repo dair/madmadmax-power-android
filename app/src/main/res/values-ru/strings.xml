@@ -21,6 +21,7 @@
     <string name="menu_service_on">СТАРТ</string>
     <string name="menu_service_off">СТОП</string>
     <string name="menu_settings">Настройки</string>
+    <string name="menu_parts">Детали</string>
 
     <string name="fuel_load_hint">Код с канистры</string>
     <string name="fuel_load_send">Проверить код</string>

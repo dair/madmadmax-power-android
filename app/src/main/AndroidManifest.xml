@@ -47,7 +47,10 @@
             android:theme="@style/Theme.AppCompat.DayNight.NoActionBar" />
         <activity android:name=".AboutActivity" />
         <activity android:name=".BluetoothConsoleActivity" />
-        <activity android:name=".FuelLoadActivity"
+        <activity
+            android:name=".FuelLoadActivity"
+            android:screenOrientation="portrait" />
+        <activity android:name=".PartsActivity"
             android:screenOrientation="portrait"></activity>
     </application>
 

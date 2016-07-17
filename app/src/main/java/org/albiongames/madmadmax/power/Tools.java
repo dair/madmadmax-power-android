@@ -133,6 +133,10 @@ public class Tools
                 intent = new Intent(activity, AboutActivity.class);
                 activity.startActivity(intent);
                 return true;
+            case R.id.menu_parts:
+                intent = new Intent(activity, PartsActivity.class);
+                activity.startActivity(intent);
+                return true;
         }
 
         return false;

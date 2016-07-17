@@ -55,6 +55,7 @@
     <string name="menu_service_on">ON</string>
     <string name="menu_service_off">OFF</string>
     <string name="menu_settings">Settings</string>
+    <string name="menu_parts">Parts</string>
 
 
     <!-- About activity-->
