@@ -12,5 +12,5 @@
         android:id="@+id/fuelCodeText"
         android:layout_gravity="center_horizontal"
         android:singleLine="true"
-        android:hint="@string/dialog_fuel_hint"/>
+        android:hint="@string/fuel_load_hint"/>
 </LinearLayout>

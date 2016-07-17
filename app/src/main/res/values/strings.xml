@@ -68,9 +68,16 @@
 
     <!-- Fuel loading dialog -->
 
-    <string name="dialog_fuel_hint">Code from canister</string>
-    <string name="dialog_fuel_ok_button">OK</string>
-    <string name="dialog_fuel_cancel_button">Cancel</string>
+    <string name="fuel_load_hint">Code from canister</string>
+    <string name="fuel_load_send">Check code</string>
+
+    <string name="fuel_load_unknown">Unknown error, please tell this to master</string>
+    <string name="fuel_load_invalid_code">Invalid code, probably mistype?</string>
+    <string name="fuel_load_used_code">Code has been used before, canister is empty</string>
+    <string name="fuel_load_success">Successfully added fuel</string>
+    <string name="fuel_load_mistype_code">Code should contain exactly 8 digits</string>
+
+    <string name="wait_dialog">Please wait...</string>
 
 </resources>
 

@@ -19,11 +19,21 @@ public class Tools
 {
     public static void messageBox(Activity activity, int id)
     {
+        messageBox(activity, id, null);
+    }
+
+    public static void messageBox(Activity activity, int id, Runnable runnable)
+    {
         String msg = activity.getString(id);
-        messageBox(activity, msg);
+        messageBox(activity, msg, runnable);
     }
 
     public static void messageBox(final Activity activity, final String message)
+    {
+        messageBox(activity, message, null);
+    }
+
+    public static void messageBox(final Activity activity, final String message, final Runnable runnable)
     {
         activity.runOnUiThread(new Runnable()
         {
@@ -40,6 +50,10 @@ public class Tools
                             public void onClick(DialogInterface dialog, int which)
                             {
                                 dialog.dismiss();
+                                if (runnable != null)
+                                {
+                                    runnable.run();
+                                }
                             }
                         });
                 dlgAlert.setCancelable(true);

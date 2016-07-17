@@ -22,10 +22,15 @@
     <string name="menu_service_off">СТОП</string>
     <string name="menu_settings">Настройки</string>
 
-    <string name="dialog_fuel_hint">Код с канистры</string>
-    <string name="dialog_fuel_ok_button">OK</string>
-    <string name="dialog_fuel_cancel_button">Отмена</string>
+    <string name="fuel_load_hint">Код с канистры</string>
+    <string name="fuel_load_send">Проверить код</string>
+    <string name="fuel_load_unknown">Неизвестная ошибка. Если повторяется постоянно — сообщите мастеру.</string>
+    <string name="fuel_load_invalid_code">Ошибочный код, возможно, опечатка? Поддельные коды на игре запрещены, такого быть не должно.</string>
+    <string name="fuel_load_used_code">Этот код уже кто-то использовал до вас. Канистра пуста.</string>
+    <string name="fuel_load_success">Топливо успешно заправлено, канистра теперь пуста.</string>
+    <string name="fuel_load_mistype_code">Опечатка. В коде должно быть ровно 8 цифр (даже если первая ноль)</string>
 
+    <string name="wait_dialog">Пожалуйста, подождите...</string>
 
 </resources>
 
