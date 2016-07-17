@@ -65,5 +65,12 @@
     <string name="menu_bluetooth_console">Console</string>
 
     <string name="bluetooth_activity_error_device">Weird device really</string>
+
+    <!-- Fuel loading dialog -->
+
+    <string name="dialog_fuel_hint">Code from canister</string>
+    <string name="dialog_fuel_ok_button">OK</string>
+    <string name="dialog_fuel_cancel_button">Cancel</string>
+
 </resources>
 

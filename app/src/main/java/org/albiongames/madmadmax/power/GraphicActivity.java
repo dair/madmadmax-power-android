@@ -1,6 +1,8 @@
 package org.albiongames.madmadmax.power;
 
 import android.app.Activity;
+import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
@@ -11,11 +13,15 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.PopupMenu;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewConfiguration;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -23,6 +29,9 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -86,6 +95,20 @@ public class GraphicActivity extends AppCompatActivity {
                 });
             }
         }
+
+        ProgressBar fuelBar = (ProgressBar)findViewById(R.id.progressBarFuel);
+        fuelBar.setOnLongClickListener(new View.OnLongClickListener()
+        {
+            @Override
+            public boolean onLongClick(View v)
+            {
+                Dialog dialog = createFuelDialog();
+                dialog.show();
+//                EditText editText = (EditText)dialog.findViewById(R.id.fuelCodeText);
+//                editText.requestFocus();
+                return false;
+            }
+        });
     }
 
     @Override
@@ -170,7 +193,17 @@ public class GraphicActivity extends AppCompatActivity {
 
         View parent = findViewById(R.id.statusParent);
 
+        if (!mServerRunning)
+        {
+            logo.setVisibility(View.VISIBLE);
+            engine.setVisibility(View.INVISIBLE);
+            fuel.setVisibility(View.INVISIBLE);
+            stop.setVisibility(View.INVISIBLE);
+            death.setVisibility(View.INVISIBLE);
 
+            background.setBackgroundColor(Color.BLACK);
+        }
+        else
         if (currentHp <= 0)
         {
             // death
@@ -651,4 +684,58 @@ public class GraphicActivity extends AppCompatActivity {
 
         menu.show();
     }
+
+    EditText mDialogFuelText = null;
+
+    public Dialog createFuelDialog()
+    {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = getLayoutInflater();
+        builder.setView(inflater.inflate(R.layout.dialog_fuel_charge, null)).
+                setPositiveButton(R.string.dialog_fuel_ok_button, new DialogInterface.OnClickListener()
+                {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which)
+                    {
+                        if (mDialogFuelText != null)
+                        {
+                            AsyncTask task = new AsyncTask()
+                            {
+                                @Override
+                                protected Object doInBackground(Object[] params)
+                                {
+                                    JSONObject object = new JSONObject();
+                                    try
+                                    {
+                                        object.put("code", mDialogFuelText.getText().toString());
+                                        NetworkingThread.Request request = new NetworkingThread.Request("POST", NetworkingThread.fuelUrl(), object);
+                                        NetworkingThread.Response response = NetworkingThread.one(request);
+                                    }
+                                    catch (JSONException ex)
+                                    {
+                                    }
+                                    catch (Exception ex)
+                                    {
+
+                                    }
+                                    return null;
+                                }
+                            }
+
+
+                        }
+                        dialog.dismiss();
+                    }
+                }).
+                setNegativeButton(R.string.dialog_fuel_cancel_button, new DialogInterface.OnClickListener()
+                {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which)
+                    {
+                        dialog.cancel();
+                    }
+                });
+        return builder.create();
+    }
+
 }
