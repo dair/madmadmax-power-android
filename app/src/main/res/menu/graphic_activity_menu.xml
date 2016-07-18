@@ -2,8 +2,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/menu_service_on_off"
           android:title="@string/menu_service_on" />
-    <item android:id="@+id/menu_parts"
-          android:title="@string/menu_parts"/>
     <item android:id="@+id/menu_status"
           android:title="@string/menu_status"
           android:icon="@drawable/gear"/>

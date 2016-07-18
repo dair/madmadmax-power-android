@@ -107,11 +107,38 @@ public class GraphicActivity extends AppCompatActivity {
             @Override
             public boolean onLongClick(View v)
             {
-                Intent intent = new Intent(GraphicActivity.this, FuelLoadActivity.class);
-                startActivity(intent);
+                if (Tools.isMyServiceRunning(GraphicActivity.this))
+                {
+                    Intent intent = new Intent(GraphicActivity.this, FuelLoadActivity.class);
+                    startActivity(intent);
+                }
+                else
+                {
+                    Tools.messageBox(GraphicActivity.this, R.string.graphic_service_should_run);
+                }
                 return false;
             }
         });
+
+        ProgressBar hpBar = (ProgressBar)findViewById(R.id.progressBarHP);
+        hpBar.setOnLongClickListener(new View.OnLongClickListener()
+        {
+            @Override
+            public boolean onLongClick(View v)
+            {
+                if (Tools.isMyServiceRunning(GraphicActivity.this))
+                {
+                    Intent intent = new Intent(GraphicActivity.this, RepairLoadActivity.class);
+                    startActivity(intent);
+                }
+                else
+                {
+                    Tools.messageBox(GraphicActivity.this, R.string.graphic_service_should_run);
+                }
+                return false;
+            }
+        });
+
     }
 
     @Override

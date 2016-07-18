@@ -17,12 +17,12 @@ import org.json.JSONObject;
 
 import java.util.concurrent.ExecutionException;
 
-public class FuelLoadActivity extends Activity {
-
+public class RepairLoadActivity extends Activity
+{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_fuel_load);
+        setContentView(R.layout.activity_repair_load);
 
         Button sendButton = (Button)findViewById(R.id.sendButton);
         sendButton.setOnClickListener(new View.OnClickListener() {
@@ -44,24 +44,23 @@ public class FuelLoadActivity extends Activity {
 
     void setEditText()
     {
-        EditText text = (EditText)findViewById(R.id.fuelCodeText);
+        EditText text = (EditText)findViewById(R.id.repairCodeText);
         text.requestFocus();
         Tools.showKeyboard(this);
     }
 
     void handleSend()
     {
-        EditText text = (EditText)findViewById(R.id.fuelCodeText);
+        EditText text = (EditText)findViewById(R.id.repairCodeText);
         String code = text.getText().toString().trim();
 
         if (code.length() != 8)
         {
-            Tools.messageBox(this, R.string.fuel_load_mistype_code);
+            Tools.messageBox(this, R.string.repair_load_mistype_code);
             return;
         }
 
-        // code good enough
-        sendFuelCode(code);
+        sendRepairCode(code);
     }
 
     JSONObject mReturnObject = null;
@@ -74,7 +73,7 @@ public class FuelLoadActivity extends Activity {
         protected void onPreExecute() {
             super.onPreExecute();
 
-            mProgressDialog = ProgressDialog.show(FuelLoadActivity.this,
+            mProgressDialog = ProgressDialog.show(RepairLoadActivity.this,
                     null, getString(R.string.wait_dialog));
         }
 
@@ -88,7 +87,7 @@ public class FuelLoadActivity extends Activity {
             try {
                 object.put("code", mCode);
                 object.put("dev_id", Settings.getString(Settings.KEY_DEVICE_ID));
-                NetworkingThread.Request request = new NetworkingThread.Request("POST", NetworkingThread.fuelUrl(), object);
+                NetworkingThread.Request request = new NetworkingThread.Request("POST", NetworkingThread.repairUrl(), object);
                 NetworkingThread.Response response = NetworkingThread.one(request);
 
                 ret = response.getObject();
@@ -115,7 +114,7 @@ public class FuelLoadActivity extends Activity {
         }
     }
 
-    void sendFuelCode(final String code)
+    void sendRepairCode(final String code)
     {
         mCode = code;
 
@@ -126,26 +125,41 @@ public class FuelLoadActivity extends Activity {
     {
         if (object == null)
         {
-            Tools.messageBox(this, R.string.fuel_load_unknown);
+            Tools.messageBox(this, R.string.repair_load_unknown);
         }
         else
         {
             try {
                 if (object.getBoolean("code")) {
-                    // got some fuel
+                    // got some repair
                     int amount = object.getInt("amount");
 
-                    double fuelNow = Settings.getDouble(Settings.KEY_FUEL_NOW);
-                    double fuelMax = Settings.getDouble(Settings.KEY_FUEL_MAX);
+                    double repairNow = Settings.getDouble(Settings.KEY_HITPOINTS);
+                    double repairMax = Settings.getDouble(Settings.KEY_MAXHITPOINTS);
 
-                    double fuelBecome = Tools.clamp(fuelNow + amount, 0, fuelMax);
-                    Settings.setDouble(Settings.KEY_FUEL_NOW, fuelBecome);
+                    double repairBecome = Tools.clamp(repairNow + amount, 0, repairMax);
+                    Settings.setDouble(Settings.KEY_HITPOINTS, repairBecome);
 
-                    Tools.messageBox(this, R.string.fuel_load_success, new Runnable() {
+                    int newState = Settings.CAR_STATE_OK;
+                    switch ((int)Settings.getLong(Settings.KEY_CAR_STATE))
+                    {
+                        case Settings.CAR_STATE_OK:
+                            // do nothing
+                            break;
+                        case Settings.CAR_STATE_MALFUNCTION_1:
+                            newState = Settings.CAR_STATE_OK;
+                            break;
+                        case Settings.CAR_STATE_MALFUNCTION_2:
+                            newState = Settings.CAR_STATE_MALFUNCTION_1;
+                            break;
+                    }
+                    Settings.setLong(Settings.KEY_CAR_STATE, (long)newState);
+
+                    Tools.messageBox(this, R.string.repair_load_success, new Runnable() {
                         @Override
                         public void run() {
-                            Tools.hideKeyboard(FuelLoadActivity.this);
-                            FuelLoadActivity.this.finish();
+                            Tools.hideKeyboard(RepairLoadActivity.this);
+                            RepairLoadActivity.this.finish();
                             return;
                         }
                     });
@@ -153,18 +167,18 @@ public class FuelLoadActivity extends Activity {
                     switch (object.getInt("amount")) {
                         case -1:
                             // invalid code
-                            Tools.messageBox(this, R.string.fuel_load_invalid_code);
+                            Tools.messageBox(this, R.string.repair_load_invalid_code);
                             break;
 
                         case 0:
                             // used code
-                            Tools.messageBox(this, R.string.fuel_load_used_code);
+                            Tools.messageBox(this, R.string.repair_load_used_code);
                             break;
 
                     }
                 }
             } catch (JSONException ex) {
-                Tools.messageBox(this, R.string.fuel_load_unknown);
+                Tools.messageBox(this, R.string.repair_load_unknown);
             }
         }
 

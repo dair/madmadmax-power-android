@@ -9,49 +9,41 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 
 import java.io.File;
 
 /**
  * Created by dair on 28/05/16.
  */
-public class Tools
-{
-    public static void messageBox(Activity activity, int id)
-    {
+public class Tools {
+    public static void messageBox(Activity activity, int id) {
         messageBox(activity, id, null);
     }
 
-    public static void messageBox(Activity activity, int id, Runnable runnable)
-    {
+    public static void messageBox(Activity activity, int id, Runnable runnable) {
         String msg = activity.getString(id);
         messageBox(activity, msg, runnable);
     }
 
-    public static void messageBox(final Activity activity, final String message)
-    {
+    public static void messageBox(final Activity activity, final String message) {
         messageBox(activity, message, null);
     }
 
-    public static void messageBox(final Activity activity, final String message, final Runnable runnable)
-    {
-        activity.runOnUiThread(new Runnable()
-        {
+    public static void messageBox(final Activity activity, final String message, final Runnable runnable) {
+        activity.runOnUiThread(new Runnable() {
             @Override
-            public void run()
-            {
-                AlertDialog dlgAlert  = new AlertDialog.Builder(activity).create();
+            public void run() {
+                AlertDialog dlgAlert = new AlertDialog.Builder(activity).create();
                 dlgAlert.setMessage(message);
                 dlgAlert.setTitle(R.string.app_name);
                 dlgAlert.setButton(AlertDialog.BUTTON_POSITIVE,
-                        "OK", new DialogInterface.OnClickListener()
-                        {
+                        "OK", new DialogInterface.OnClickListener() {
                             @Override
-                            public void onClick(DialogInterface dialog, int which)
-                            {
+                            public void onClick(DialogInterface dialog, int which) {
                                 dialog.dismiss();
-                                if (runnable != null)
-                                {
+                                if (runnable != null) {
                                     runnable.run();
                                 }
                             }
@@ -62,13 +54,11 @@ public class Tools
         });
     }
 
-    public static void log(String message)
-    {
+    public static void log(String message) {
         Log.e("MadMax", message);
     }
 
-    public static double clamp(double value, double min, double max)
-    {
+    public static double clamp(double value, double min, double max) {
         if (value < min)
             value = min;
 
@@ -78,45 +68,34 @@ public class Tools
         return value;
     }
 
-    public static void sleep(long milliseconds)
-    {
-        try
-        {
+    public static void sleep(long milliseconds) {
+        try {
             Thread.sleep(milliseconds);
-        }
-        catch (InterruptedException ex)
-        {
+        } catch (InterruptedException ex) {
         }
     }
 
-    public static double kilometersPerHourToMetersPerSecond(double kmh)
-    {
+    public static double kilometersPerHourToMetersPerSecond(double kmh) {
         return kmh / 3.6;
     }
 
-    public static double metersPerSecondToKilometersPerHour(double mps)
-    {
+    public static double metersPerSecondToKilometersPerHour(double mps) {
         return mps * 3.6;
     }
 
-    public static boolean isMyServiceRunning(Activity activity)
-    {
-        ActivityManager manager = (ActivityManager)activity.getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE))
-        {
-            if (PowerService.class.getName().equals(service.service.getClassName()))
-            {
+    public static boolean isMyServiceRunning(Activity activity) {
+        ActivityManager manager = (ActivityManager) activity.getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (PowerService.class.getName().equals(service.service.getClassName())) {
                 return true;
             }
         }
         return false;
     }
 
-    public static boolean processMenu(MenuItem item, Activity activity)
-    {
+    public static boolean processMenu(MenuItem item, Activity activity) {
         Intent intent;
-        switch (item.getItemId())
-        {
+        switch (item.getItemId()) {
             case R.id.menu_bluetooth:
                 intent = new Intent(activity, BluetoothDeviceActivity.class);
                 activity.startActivity(intent);
@@ -133,17 +112,12 @@ public class Tools
                 intent = new Intent(activity, AboutActivity.class);
                 activity.startActivity(intent);
                 return true;
-            case R.id.menu_parts:
-                intent = new Intent(activity, PartsActivity.class);
-                activity.startActivity(intent);
-                return true;
         }
 
         return false;
     }
 
-    static int[] splitColors(int c)
-    {
+    static int[] splitColors(int c) {
         int[] ret = new int[4];
         ret[0] = (c & 0xFF000000) >> 24;
         ret[1] = (c & 0x00FF0000) >> 16;
@@ -152,17 +126,34 @@ public class Tools
         return ret;
     }
 
-    public static int colorMiddle(int c1, int c2, double ratio)
-    {
+    public static int colorMiddle(int c1, int c2, double ratio) {
         int[] p1 = splitColors(c1);
         int[] p2 = splitColors(c2);
         int[] p = new int[4];
 
-        for (int i = 0; i < 4; ++i)
-        {
-            p[i] = p1[i] + (int)Math.round((p2[i] - p1[i]) * ratio);
+        for (int i = 0; i < 4; ++i) {
+            p[i] = p1[i] + (int) Math.round((p2[i] - p1[i]) * ratio);
         }
 
         return Color.argb(p[0], p[1], p[2], p[3]);
+    }
+
+    public static void showKeyboard(Activity activity)
+    {
+        InputMethodManager imm = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED,InputMethodManager.HIDE_IMPLICIT_ONLY);
+    }
+
+
+    public static void hideKeyboard(Activity activity)
+    {
+        InputMethodManager imm = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        //Find the currently focused view, so we can grab the correct window token from it.
+        View view = activity.getCurrentFocus();
+        //If no view currently has focus, create a new one, just so we can grab a window token from it
+        if (view == null) {
+            view = new View(activity);
+        }
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 }

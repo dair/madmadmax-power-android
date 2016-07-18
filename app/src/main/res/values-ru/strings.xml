@@ -21,17 +21,26 @@
     <string name="menu_service_on">СТАРТ</string>
     <string name="menu_service_off">СТОП</string>
     <string name="menu_settings">Настройки</string>
-    <string name="menu_parts">Детали</string>
 
     <string name="fuel_load_hint">Код с канистры</string>
     <string name="fuel_load_send">Проверить код</string>
-    <string name="fuel_load_unknown">Неизвестная ошибка. Если повторяется постоянно — сообщите мастеру.</string>
-    <string name="fuel_load_invalid_code">Ошибочный код, возможно, опечатка? Поддельные коды на игре запрещены, такого быть не должно.</string>
+    <string name="fuel_load_unknown">Неизвестная ошибка. Если повторяется постоянно (раза три) — сообщите мастеру.</string>
+    <string name="fuel_load_invalid_code">Ошибочный код, возможно, опечатка? Поддельные коды на игре запрещены, такого штатно быть не должно.</string>
     <string name="fuel_load_used_code">Этот код уже кто-то использовал до вас. Канистра пуста.</string>
-    <string name="fuel_load_success">Топливо успешно заправлено, канистра теперь пуста.</string>
+    <string name="fuel_load_success">Топливо успешно заправлено, канистра теперь пуста. Сдайте пустую канистру ближайшему мастеру.</string>
     <string name="fuel_load_mistype_code">Опечатка. В коде должно быть ровно 8 цифр (даже если первая ноль)</string>
 
     <string name="wait_dialog">Пожалуйста, подождите...</string>
+
+    <string name="repair_load_hint">Код с ремонтного набора</string>
+    <string name="repair_load_send">Проверить код</string>
+    <string name="repair_load_unknown">Неизвестная ошибка. Если повторяется постоянно (раза три) — сообщите мастеру.</string>
+    <string name="repair_load_invalid_code">Ошибочный код, возможно, опечатка? Поддельные коды на игре запрещены, такого штатно быть не должно.</string>
+    <string name="repair_load_used_code">Этот код уже кто-то использовал до вас, ремонтный комплект израсходован.</string>
+    <string name="repair_load_success">Автомобиль успешно немного починен. Сдайте использованный ремнабор ближайшему мастеру.</string>
+    <string name="repair_load_mistype_code">Опечатка. В коде должно быть ровно 8 цифр (даже если первая ноль)</string>
+
+    <string name="graphic_service_should_run">Сервис должен работать для этого действия</string>
 
 </resources>
 

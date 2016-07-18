@@ -108,6 +108,11 @@ public class NetworkingThread extends StatusThread
         return baseUrl() + "/device/fuel";
     }
 
+    public static String repairUrl()
+    {
+        return baseUrl() + "/device/repair";
+    }
+
     NetworkingThread(PowerService service)
     {
         mService = service;

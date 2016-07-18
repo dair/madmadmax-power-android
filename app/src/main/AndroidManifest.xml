@@ -35,8 +35,10 @@
         <activity
             android:name=".ServiceStatusActivity"
             android:screenOrientation="portrait" />
-        <activity android:name=".BluetoothDeviceActivity" />
-        <activity android:name=".RegisterActivity" />
+        <activity android:name=".BluetoothDeviceActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".RegisterActivity"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings"
@@ -45,13 +47,16 @@
             android:name=".GraphicActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.DayNight.NoActionBar" />
-        <activity android:name=".AboutActivity" />
-        <activity android:name=".BluetoothConsoleActivity" />
+        <activity android:name=".AboutActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".BluetoothConsoleActivity"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".FuelLoadActivity"
             android:screenOrientation="portrait" />
-        <activity android:name=".PartsActivity"
-            android:screenOrientation="portrait"></activity>
+        <activity
+            android:name=".RepairLoadActivity"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>

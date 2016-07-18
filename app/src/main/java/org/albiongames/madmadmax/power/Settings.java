@@ -94,6 +94,9 @@ public class Settings
     public static final int MOCK_DATA_RECORD = 1;
     public static final int MOCK_DATA_PLAY = 2;
 
+
+    public static final String KEY_MOCK_AVAILABLE = PARAMS_PREFIX + "mock_available";
+
     private static Settings instance = new Settings();
 
 
@@ -242,6 +245,9 @@ public class Settings
         mDefaults.put(KEY_GREEN_LED, "0.5");
 
         mDefaults.put(KEY_MOCK_DATA, Integer.toString(MOCK_DATA_OFF));
+
+        mDefaults.put(KEY_MOCK_AVAILABLE, "0");
+
 // FORMULAS
 
         mFormulaValues.add(KEY_P1_FORMULA);

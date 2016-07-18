@@ -55,7 +55,6 @@
     <string name="menu_service_on">ON</string>
     <string name="menu_service_off">OFF</string>
     <string name="menu_settings">Settings</string>
-    <string name="menu_parts">Parts</string>
 
 
     <!-- About activity-->
@@ -72,13 +71,23 @@
     <string name="fuel_load_hint">Code from canister</string>
     <string name="fuel_load_send">Check code</string>
 
-    <string name="fuel_load_unknown">Unknown error, please tell this to master</string>
+    <string name="fuel_load_unknown">Unknown error, please report this to master</string>
     <string name="fuel_load_invalid_code">Invalid code, probably mistype?</string>
     <string name="fuel_load_used_code">Code has been used before, canister is empty</string>
     <string name="fuel_load_success">Successfully added fuel</string>
     <string name="fuel_load_mistype_code">Code should contain exactly 8 digits</string>
 
     <string name="wait_dialog">Please wait...</string>
+
+    <string name="repair_load_hint">Repair Kit code</string>
+    <string name="repair_load_send">Check code</string>
+    <string name="repair_load_unknown">Unknown error, please report this to master</string>
+    <string name="repair_load_invalid_code">Invalid code, probably mistype?</string>
+    <string name="repair_load_used_code">Code has been used before, Repair Kit is unusable</string>
+    <string name="repair_load_success">Car has been fixed a little bit. Please pass used Repair Kit to nearest Game Master.</string>
+    <string name="repair_load_mistype_code">Code should contain exactly 8 digits</string>
+
+    <string name="graphic_service_should_run">Service should be running to do this</string>
 
 </resources>
 

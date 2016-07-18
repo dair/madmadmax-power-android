@@ -74,11 +74,18 @@ public class ServiceStatusActivity extends AppCompatActivity
     }
 
     @Override
-    protected void onResume()
-    {
+    protected void onResume() {
         super.onResume();
 
-//        bindService();
+        Button mockButton = (Button) findViewById(R.id.mockButton);
+        if (Settings.getLong(Settings.KEY_MOCK_AVAILABLE) == 1)
+        {
+            mockButton.setVisibility(View.VISIBLE);
+        }
+        else
+        {
+            mockButton.setVisibility(View.VISIBLE);
+        }
 
         mExecutor = new ScheduledThreadPoolExecutor(1);
         mExecutor.scheduleAtFixedRate(new Runnable()
@@ -91,6 +98,7 @@ public class ServiceStatusActivity extends AppCompatActivity
                                   @Override
                                   public void run()
                                   {
+                                      updateServiceState();
                                       updateNetworkState();
                                       updateText();
                                       updateThreadsState();
@@ -128,6 +136,20 @@ public class ServiceStatusActivity extends AppCompatActivity
         else
         {
             startService(new Intent(this, PowerService.class));
+        }
+    }
+
+    void updateServiceState()
+    {
+        Button mockButton = (Button) findViewById(R.id.mockButton);
+
+        if (Tools.isMyServiceRunning(this))
+        {
+            mockButton.setEnabled(false);
+        }
+        else
+        {
+            mockButton.setEnabled(true);
         }
     }
 
