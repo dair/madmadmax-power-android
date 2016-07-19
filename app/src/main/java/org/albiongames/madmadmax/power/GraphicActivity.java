@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.media.Image;
+import android.media.audiofx.BassBoost;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
@@ -62,8 +63,6 @@ public class GraphicActivity extends AppCompatActivity {
     int mCarState = -100;
     double mFuelNow = -100;
 
-    long counter = 0; //tmp
-
     boolean mServerRunning = false;
 
     ImageView mCoverImage = null;
@@ -72,6 +71,9 @@ public class GraphicActivity extends AppCompatActivity {
     ScheduledThreadPoolExecutor mFlashExecutor = null;
     long mFlashExecutorDuration = 0;
     long mFlashExecutorStart = 0;
+    ScheduledThreadPoolExecutor mTimerExecutor = null;
+    long mScreenTimerTime = 0;
+    TextView mScreenTimerTextView = null;
 
     int mBluetoothState = -100;
 
@@ -100,6 +102,8 @@ public class GraphicActivity extends AppCompatActivity {
                 });
             }
         }
+
+        mScreenTimerTextView = (TextView)findViewById(R.id.timerText);
 
         ProgressBar fuelBar = (ProgressBar)findViewById(R.id.progressBarFuel);
         fuelBar.setOnLongClickListener(new View.OnLongClickListener()
@@ -139,6 +143,65 @@ public class GraphicActivity extends AppCompatActivity {
             }
         });
 
+        ImageView logo = (ImageView)findViewById(R.id.logoImageView);
+        logo.setOnLongClickListener(new View.OnLongClickListener()
+        {
+            @Override
+            public boolean onLongClick(View v)
+            {
+                if (Tools.isMyServiceRunning(GraphicActivity.this))
+                {
+                    double averageSpeed = Settings.getDouble(Settings.KEY_AVERAGE_SPEED);
+                    long siegeState = Settings.getLong(Settings.KEY_SIEGE_STATE);
+                    if (siegeState == Settings.SIEGE_STATE_OFF)
+                    {
+                        if (averageSpeed < 1.0)
+                        {
+                            startScreenTimer(Settings.getLong(Settings.KEY_DRIVE2SIEGE_DELAY), new Runnable() {
+                                @Override
+                                public void run()
+                                {
+                                    Settings.setLong(Settings.KEY_SIEGE_STATE, Settings.SIEGE_STATE_ON);
+                                }
+                            });
+                        }
+                        else
+                        {
+                            Tools.messageBox(GraphicActivity.this, R.string.graphic_car_should_stop);
+                        }
+                    }
+                }
+                else
+                {
+                    Tools.messageBox(GraphicActivity.this, R.string.graphic_service_should_run);
+                }
+                return false;
+            }
+        });
+
+        ImageView fire = (ImageView)findViewById(R.id.fireImageView);
+        fire.setOnLongClickListener(new View.OnLongClickListener()
+        {
+            @Override
+            public boolean onLongClick(View v)
+            {
+                if (Tools.isMyServiceRunning(GraphicActivity.this))
+                {
+                    startScreenTimer(Settings.getLong(Settings.KEY_SIEGE2DRIVE_DELAY), new Runnable() {
+                        @Override
+                        public void run()
+                        {
+                            Settings.setLong(Settings.KEY_SIEGE_STATE, Settings.SIEGE_STATE_OFF);
+                        }
+                    });
+                }
+                else
+                {
+                    Tools.messageBox(GraphicActivity.this, R.string.graphic_service_should_run);
+                }
+                return false;
+            }
+        });
     }
 
     @Override
@@ -218,34 +281,35 @@ public class GraphicActivity extends AppCompatActivity {
         ImageView fuel = (ImageView)findViewById(R.id.fuelImageView);
         ImageView stop = (ImageView)findViewById(R.id.stopSignImageView);
         ImageView death = (ImageView)findViewById(R.id.deathImageView);
+        ImageView fire = (ImageView)findViewById(R.id.fireImageView);
 
         LinearLayout background = (LinearLayout)findViewById(R.id.background);
 
-        View parent = findViewById(R.id.statusParent);
+        logo.setVisibility(View.INVISIBLE);
+        engine.setVisibility(View.INVISIBLE);
+        fuel.setVisibility(View.INVISIBLE);
+        stop.setVisibility(View.INVISIBLE);
+        death.setVisibility(View.INVISIBLE);
+        fire.setVisibility(View.INVISIBLE);
+        background.setBackgroundColor(Color.BLACK);
 
         if (!mServerRunning)
         {
             logo.setVisibility(View.VISIBLE);
-            engine.setVisibility(View.INVISIBLE);
-            fuel.setVisibility(View.INVISIBLE);
-            stop.setVisibility(View.INVISIBLE);
-            death.setVisibility(View.INVISIBLE);
-
-            background.setBackgroundColor(Color.BLACK);
         }
         else
         if (currentHp <= 0)
         {
-            // death
-            logo.setVisibility(View.INVISIBLE);
-            engine.setVisibility(View.INVISIBLE);
-            fuel.setVisibility(View.INVISIBLE);
-            stop.setVisibility(View.INVISIBLE);
-            death.setVisibility(View.VISIBLE);
-
-            death.setColorFilter(Color.RED);
-            background.setBackgroundColor(Color.BLACK);
-
+            if (averageSpeed > 1)
+            {
+                stop.setVisibility(View.VISIBLE);
+            }
+            else
+            {
+                // death
+                death.setVisibility(View.VISIBLE);
+                death.setColorFilter(Color.RED);
+            }
             mCarStatusHitPoints = currentHp;
         }
         else
@@ -253,21 +317,12 @@ public class GraphicActivity extends AppCompatActivity {
         {
             if (averageSpeed > 1)
             {
-                logo.setVisibility(View.INVISIBLE);
-                engine.setVisibility(View.VISIBLE);
-                fuel.setVisibility(View.INVISIBLE);
                 stop.setVisibility(View.VISIBLE);
-                death.setVisibility(View.INVISIBLE);
             }
             else
             {
                 //Malfunction 2
-                logo.setVisibility(View.INVISIBLE);
                 engine.setVisibility(View.VISIBLE);
-                fuel.setVisibility(View.INVISIBLE);
-                stop.setVisibility(View.INVISIBLE);
-                death.setVisibility(View.INVISIBLE);
-
                 engine.setColorFilter(Color.RED);
             }
             background.setBackgroundColor(Color.argb(0xFF, 0x77, 0, 0));
@@ -279,49 +334,42 @@ public class GraphicActivity extends AppCompatActivity {
             {
                 if (averageSpeed > 1.0)
                 {
-                    logo.setVisibility(View.INVISIBLE);
-                    engine.setVisibility(View.VISIBLE);
-                    fuel.setVisibility(View.INVISIBLE);
                     stop.setVisibility(View.VISIBLE);
-                    death.setVisibility(View.INVISIBLE);
                 }
                 else
                 {
                     // out of fuel
-                    logo.setVisibility(View.INVISIBLE);
-                    engine.setVisibility(View.INVISIBLE);
                     fuel.setVisibility(View.VISIBLE);
-                    stop.setVisibility(View.INVISIBLE);
-                    death.setVisibility(View.INVISIBLE);
-
                     fuel.setColorFilter(Color.RED);
                 }
-                background.setBackgroundColor(Color.BLACK);
             }
             else
             {
                 // enough fuel
+                long siegeState = Settings.getLong(Settings.KEY_SIEGE_STATE);
+                ImageView view = null;
+                if (siegeState == Settings.SIEGE_STATE_OFF)
+                {
+                    view = logo;
+                }
+                else
+                {
+                    view = fire;
+                    fire.setColorFilter(Color.YELLOW);
+                }
+
                 switch (state)
                 {
                     case Settings.CAR_STATE_OK:
-                        logo.setVisibility(View.VISIBLE); // color will be updated by speed
-                        engine.setVisibility(View.INVISIBLE);
-                        fuel.setVisibility(View.INVISIBLE);
-                        stop.setVisibility(View.INVISIBLE);
-                        death.setVisibility(View.INVISIBLE);
-
+                        view.setVisibility(View.VISIBLE); // color will be updated by speed
                         background.setBackgroundColor(Color.BLACK);
                         break;
                     case Settings.CAR_STATE_MALFUNCTION_1:
-                        logo.setVisibility(View.VISIBLE); // color will be updated by speed
-                        engine.setVisibility(View.INVISIBLE);
-                        fuel.setVisibility(View.INVISIBLE);
-                        stop.setVisibility(View.INVISIBLE);
-                        death.setVisibility(View.INVISIBLE);
-
+                        view.setVisibility(View.VISIBLE); // color will be updated by speed
                         background.setBackgroundColor(Color.argb(0xFF, 0x77, 0, 0));
                         break;
                 }
+
             }
         }
 
@@ -380,8 +428,8 @@ public class GraphicActivity extends AppCompatActivity {
 
         if (Tools.isMyServiceRunning(this))
         {
-            float averageSpeed = (float) Settings.getDouble(Settings.KEY_AVERAGE_SPEED);
-            float redZoneSpeed = 0;
+            double averageSpeed = Settings.getDouble(Settings.KEY_AVERAGE_SPEED);
+            double redZoneSpeed = LogicThread.getCurrentRedZone();
 
             switch (state)
             {
@@ -715,4 +763,46 @@ public class GraphicActivity extends AppCompatActivity {
         menu.show();
     }
 
+    void startScreenTimer(long time, final Runnable runnable)
+    {
+        if (mTimerExecutor != null)
+        {
+            mTimerExecutor.shutdownNow();
+            mTimerExecutor = null;
+        }
+
+        mScreenTimerTime = System.currentTimeMillis() + time;
+        mScreenTimerTextView.setVisibility(View.VISIBLE);
+
+        new Thread(new Runnable() {
+            @Override
+            public void run()
+            {
+                while (true) {
+                    long remain = mScreenTimerTime - System.currentTimeMillis();
+                    if (remain <= 0)
+                        break;
+
+                    final String remainString = String.format("%d.%03d", remain / 1000, remain % 1000);
+
+                    GraphicActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mScreenTimerTextView.setText(remainString);
+                        }
+                    });
+                    Tools.sleep(30);
+                }
+
+                GraphicActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mScreenTimerTextView.setVisibility(View.INVISIBLE);
+                    }
+                });
+
+                GraphicActivity.this.runOnUiThread(runnable);
+            }
+        }).start();
+    }
 }

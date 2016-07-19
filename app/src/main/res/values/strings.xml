@@ -88,6 +88,6 @@
     <string name="repair_load_mistype_code">Code should contain exactly 8 digits</string>
 
     <string name="graphic_service_should_run">Service should be running to do this</string>
-
+    <string name="graphic_car_should_stop">Car should stop to enter Siege Mode</string>
 </resources>
 

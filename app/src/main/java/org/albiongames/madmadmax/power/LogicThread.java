@@ -102,7 +102,7 @@ public class LogicThread extends StatusThread
         Settings.setDouble(Settings.KEY_HITPOINTS, hpNow);
 
         mService.getBluetoothThread().setLed(BluetoothThread.LED_RED, true);
-        mService.getBluetoothThread().setPause(500);
+        mService.getBluetoothThread().setPause(BluetoothThread.LED_RED, 500);
         mService.getBluetoothThread().setLed(BluetoothThread.LED_RED, false);
     }
 
@@ -243,20 +243,23 @@ public class LogicThread extends StatusThread
         return false;
     }
 
-    public double getCurrentRedZone()
+    public static double getCurrentRedZone()
     {
         double ret = 0.0;
-        switch ((int)Settings.getLong(Settings.KEY_CAR_STATE))
+
+        if (Settings.getLong(Settings.KEY_SIEGE_STATE) == Settings.SIEGE_STATE_OFF)
         {
-            case Settings.CAR_STATE_OK:
-                ret = Settings.getDouble(Settings.KEY_RED_ZONE);
-                break;
-            case Settings.CAR_STATE_MALFUNCTION_1:
-                ret = Settings.getDouble(Settings.KEY_MALFUNCTION1_RED_ZONE);
-                break;
-            case Settings.CAR_STATE_MALFUNCTION_2:
-                ret = 0.0;
-                break;
+            switch ((int) Settings.getLong(Settings.KEY_CAR_STATE)) {
+                case Settings.CAR_STATE_OK:
+                    ret = Settings.getDouble(Settings.KEY_RED_ZONE);
+                    break;
+                case Settings.CAR_STATE_MALFUNCTION_1:
+                    ret = Settings.getDouble(Settings.KEY_MALFUNCTION1_RED_ZONE);
+                    break;
+                case Settings.CAR_STATE_MALFUNCTION_2:
+                    ret = 0.0;
+                    break;
+            }
         }
 
         return ret;
@@ -358,34 +361,30 @@ public class LogicThread extends StatusThread
         return Settings.getDouble(Settings.KEY_MAXHITPOINTS);
     }
 
-    double mLedsRatio = -100;
 
+    int mLedState = -100;
 
     void updateLeds()
     {
         double hp = getCurrentHitPoints();
-        double maxHp = getMaxHitPoints();
+        int newState = -100;
 
-        double ratio = hp / maxHp;
-
-        if (Math.abs(ratio - mLedsRatio) < 0.005)
-            return;
-
-        mLedsRatio = ratio;
-
-        double greenLed = Settings.getDouble(Settings.KEY_GREEN_LED);
-
-        if (ratio >= greenLed)
-        {
-            mService.getBluetoothThread().setLed(BluetoothThread.LED_GREEN, true);
-            mService.getBluetoothThread().setLed(BluetoothThread.LED_YELLOW, false);
-            mService.getBluetoothThread().setLed(BluetoothThread.LED_RED, false);
-        }
+        if (hp < 0.0)
+            newState = 0;
+        else if (Settings.getLong(Settings.KEY_SIEGE_STATE) == Settings.SIEGE_STATE_OFF)
+            newState = 1;
         else
+            newState = 2;
+
+        if (newState == mLedState)
+            return;
+        mLedState = newState;
+
+        if (mLedState == 0)
         {
-            mService.getBluetoothThread().setLed(BluetoothThread.LED_GREEN, false);
-            mService.getBluetoothThread().setLed(BluetoothThread.LED_YELLOW, true);
-            mService.getBluetoothThread().setLed(BluetoothThread.LED_RED, false);
+            mService.getBluetoothThread().setLed(BluetoothThread.LED_RED, true);
         }
+        mService.getBluetoothThread().setLed(BluetoothThread.LED_GREEN, mLedState == 1);
+        mService.getBluetoothThread().setLed(BluetoothThread.LED_YELLOW, mLedState == 2);
     }
 }

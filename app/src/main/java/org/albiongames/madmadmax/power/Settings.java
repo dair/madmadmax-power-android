@@ -94,8 +94,14 @@ public class Settings
     public static final int MOCK_DATA_RECORD = 1;
     public static final int MOCK_DATA_PLAY = 2;
 
+    public static final String KEY_SIEGE_STATE = "siege_state";
+    public static final int SIEGE_STATE_OFF = 0;
+    public static final int SIEGE_STATE_ON = 1;
 
     public static final String KEY_MOCK_AVAILABLE = PARAMS_PREFIX + "mock_available";
+
+    public static final String KEY_DRIVE2SIEGE_DELAY = PARAMS_PREFIX + "drive2siege_delay";
+    public static final String KEY_SIEGE2DRIVE_DELAY = PARAMS_PREFIX + "siege2drive_delay";
 
     private static Settings instance = new Settings();
 
@@ -247,6 +253,10 @@ public class Settings
         mDefaults.put(KEY_MOCK_DATA, Integer.toString(MOCK_DATA_OFF));
 
         mDefaults.put(KEY_MOCK_AVAILABLE, "0");
+        mDefaults.put(KEY_SIEGE_STATE, Integer.toString(SIEGE_STATE_OFF));
+
+        mDefaults.put(KEY_DRIVE2SIEGE_DELAY, Long.toString(10000));
+        mDefaults.put(KEY_SIEGE2DRIVE_DELAY, Long.toString(5000));
 
 // FORMULAS
 

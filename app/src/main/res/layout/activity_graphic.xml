@@ -76,6 +76,22 @@
                     android:src="@drawable/death"
                     android:id="@+id/deathImageView"
                     />
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/fire"
+                    android:id="@+id/fireImageView"
+                    />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:id="@+id/timerText"
+                    android:text="00.000"
+                    android:textSize="80dp"
+                    android:gravity="center_vertical|center_horizontal"
+                    android:textColor="#ffffff"
+                    android:background="#000000"
+                    android:visibility="invisible" />
             </RelativeLayout>
 
             <RelativeLayout
