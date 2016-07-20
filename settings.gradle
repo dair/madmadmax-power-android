@@ -1,1 +1,1 @@
-include ':app', ':BluetoothSPPLibrary:library'
+include ':madmadmax-power', ':BluetoothSPPLibrary:library'

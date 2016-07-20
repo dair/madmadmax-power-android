@@ -129,24 +129,26 @@ public class Upgrades
                     while (it2.hasNext())
                     {
                         String key = (String)it2.next();
-                        double value = Double.valueOf(object.getString(key));
-                        if (value != 0)
+                        try
                         {
-                            double was = 0;
-                            if (mValues.containsKey(key)) {
-                                was = mValues.get(key);
+                            double value = Double.valueOf(object.getString(key));
+                            if (value != 0) {
+                                double was = 0;
+                                if (mValues.containsKey(key))
+                                {
+                                    was = mValues.get(key);
+                                }
+                                double become = was + value;
+                                mValues.put(key, become);
                             }
-                            double become = was + value;
-                            mValues.put(key, become);
+                        }
+                        catch (NumberFormatException ex)
+                        {
                         }
                     }
                 }
                 catch (JSONException ex)
                 {}
-                catch (NumberFormatException ex)
-                {
-
-                }
             }
         }
     }
