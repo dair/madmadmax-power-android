@@ -257,6 +257,9 @@ public class NetworkingThread extends StatusThread
             long lastCommandId = Settings.getLong(Settings.KEY_LAST_COMMAND_ID);
             object.put("c", lastCommandId);
 
+            long lastUpgradeTime = Settings.getLong(Settings.KEY_LAST_UPGRADE_TIME);
+            object.put("u", lastUpgradeTime);
+
             ret = object.toString();
         }
         catch (JSONException ex)
@@ -339,6 +342,29 @@ public class NetworkingThread extends StatusThread
                 Settings.networkUpdate(params);
                 object.remove("params");
                 mLastParamsRequest = System.currentTimeMillis();
+            }
+
+            if (object.has("upgrades"))
+            {
+                JSONObject params = object.getJSONObject("upgrades");
+
+                long storeTime = Settings.getLong(Settings.KEY_LAST_UPGRADE_TIME);
+
+                if (params.has("time"))
+                {
+                    storeTime = params.getLong("time");
+                    params.remove("time");
+                }
+
+                if (PowerService.instance() != null && PowerService.instance().getUpgrades() != null)
+                {
+                    PowerService.instance().getUpgrades().upgradesFromNetwork(params);
+                }
+                Settings.setLong(Settings.KEY_LAST_UPGRADE_TIME, storeTime);
+
+
+
+                object.remove("upgrades");
             }
 //            Tools.log("cathcing eof: 6");
 

@@ -55,6 +55,8 @@ public class PowerService extends Service
 
     Error mError = null;
 
+    Upgrades mUpgrades = null;
+
     public class LocalBinder extends Binder
     {
         PowerService getService()
@@ -100,6 +102,7 @@ public class PowerService extends Service
             }
 
             dump(COMPONENT, "start");
+            mUpgrades = new Upgrades(this);
 
             mLocationThread = new LocationThread(this);
             mBluetoothThread = new BluetoothThread(this);
@@ -120,6 +123,7 @@ public class PowerService extends Service
     public void onDestroy()
     {
         Tools.log("Service: onDestroy");
+        mInstance = null;
         super.onDestroy();
     }
 
@@ -161,6 +165,8 @@ public class PowerService extends Service
     public static void graciousStop()
     {
         Tools.log("Service graciousStop");
+        if (mInstance == null)
+            return;
 
         new Thread(new Runnable()
         {
@@ -231,5 +237,10 @@ public class PowerService extends Service
         }
         StorageEntry.Dump entry = new StorageEntry.Dump(component + ": " + message);
         mNetworkStorage.put(entry);
+    }
+
+    public Upgrades getUpgrades()
+    {
+        return mUpgrades;
     }
 }
