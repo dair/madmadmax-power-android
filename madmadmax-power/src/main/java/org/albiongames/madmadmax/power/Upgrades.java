@@ -1,6 +1,7 @@
 package org.albiongames.madmadmax.power;
 
 import android.content.Context;
+import android.os.Environment;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -25,17 +26,30 @@ import java.util.Map;
 public class Upgrades
 {
     private final String FILENAME = "upgrades.json";
-    Context mContext;
+    String mPath = null;
     JSONObject mObject = null;
 
     Map<String, Double> mValues = new HashMap<>();
 
-    public Upgrades(Context context)
-    {
-        mContext = context;
+    private static Upgrades instance = new Upgrades();
 
+    public static void setPath(final String path)
+    {
+        instance.pSetPath(path);
+    }
+
+    private void pSetPath(final String path)
+    {
+        if (mPath != null && mPath.equals(path))
+            return;
+
+        mPath = path;
         readFile();
         recalculate();
+    }
+
+    public Upgrades()
+    {
     }
 
     public static String convertStreamToString(InputStream is) throws IOException
@@ -54,7 +68,7 @@ public class Upgrades
     {
         try
         {
-            FileInputStream fin = mContext.openFileInput(FILENAME);
+            FileInputStream fin = new FileInputStream(mPath + FILENAME);
             String jsonString = convertStreamToString(fin);
             fin.close();
             mObject = new JSONObject(jsonString);
@@ -77,7 +91,7 @@ public class Upgrades
         FileOutputStream outputStream;
 
         try {
-            outputStream = mContext.openFileOutput(FILENAME, Context.MODE_PRIVATE);
+            outputStream = new FileOutputStream(mPath + FILENAME);
             outputStream.write(mObject.toString().getBytes());
             outputStream.close();
         } catch (Exception e) {
@@ -85,7 +99,25 @@ public class Upgrades
         }
     }
 
-    public Double getUpgrade(final String name)
+    public static double upgradeValue(final String name, double value)
+    {
+        if (name == null)
+            return value;
+        Double u = instance.pGetUpgrade(name);
+        if (u == null || u.doubleValue() == 0)
+        {
+            return value;
+        }
+
+        return value * u;
+    }
+
+    public static Double getUpgrade(final String name)
+    {
+        return instance.pGetUpgrade(name);
+    }
+
+    public Double pGetUpgrade(final String name)
     {
         if (mValues.containsKey(name))
             return mValues.get(name);
@@ -93,7 +125,12 @@ public class Upgrades
             return null;
     }
 
-    public void upgradesFromNetwork(JSONObject object)
+    public static void upgradesFromNetwork(JSONObject object)
+    {
+        instance.pUpgradesFromNetwork(object);
+    }
+
+    private void pUpgradesFromNetwork(JSONObject object)
     {
         try
         {

@@ -96,7 +96,9 @@ public class LogicThread extends StatusThread
     {
         double hpNow = Settings.getDouble(Settings.KEY_HITPOINTS);
         int damageNum = damage.getDamage();
-        hpNow -= damageNum;
+        double damageModified = damageNum - getCurrentDamageResistance();
+
+        hpNow -= damageModified;
         if (hpNow < 0)
             hpNow = 0;
         Settings.setDouble(Settings.KEY_HITPOINTS, hpNow);
@@ -246,21 +248,29 @@ public class LogicThread extends StatusThread
     public static double getCurrentRedZone()
     {
         double ret = 0.0;
+        String key = null;
 
         if (Settings.getLong(Settings.KEY_SIEGE_STATE) == Settings.SIEGE_STATE_OFF)
         {
-            switch ((int) Settings.getLong(Settings.KEY_CAR_STATE)) {
+            switch ((int) Settings.getLong(Settings.KEY_CAR_STATE))
+            {
                 case Settings.CAR_STATE_OK:
-                    ret = Settings.getDouble(Settings.KEY_RED_ZONE);
+                    key = Settings.KEY_RED_ZONE;
                     break;
                 case Settings.CAR_STATE_MALFUNCTION_1:
-                    ret = Settings.getDouble(Settings.KEY_MALFUNCTION1_RED_ZONE);
+                    key = Settings.KEY_MALFUNCTION1_RED_ZONE;
                     break;
                 case Settings.CAR_STATE_MALFUNCTION_2:
                     ret = 0.0;
                     break;
             }
         }
+
+        if (key == null)
+            return 0.0;
+
+        ret = Settings.getDouble(key);
+        ret = Upgrades.upgradeValue(key, ret);
 
         return ret;
     }
@@ -271,38 +281,47 @@ public class LogicThread extends StatusThread
         double averageSpeedMps = Settings.getDouble(Settings.KEY_AVERAGE_SPEED);
         double averageSpeedKmH = Tools.metersPerSecondToKilometersPerHour(averageSpeedMps);
         double redZone = getCurrentRedZone(); // in km/h
+        String key = null;
 
         switch ((int)Settings.getLong(Settings.KEY_CAR_STATE))
         {
             case Settings.CAR_STATE_OK:
                 if (averageSpeedKmH > redZone)
                 {
-                    expression = Settings.getExpression(Settings.KEY_RED_ZONE_FUEL_PER_KM);
+                    key = Settings.KEY_RED_ZONE_FUEL_PER_KM;
                 }
                 else
                 {
-                    expression = Settings.getExpression(Settings.KEY_FUEL_PER_KM);
+                 key = Settings.KEY_FUEL_PER_KM;
                 }
                 break;
             case Settings.CAR_STATE_MALFUNCTION_1:
                 if (averageSpeedKmH > redZone)
                 {
-                    expression = Settings.getExpression(Settings.KEY_MALFUNCTION1_RED_ZONE_FUEL_PER_KM);
+                    key = Settings.KEY_MALFUNCTION1_RED_ZONE_FUEL_PER_KM;
                 }
                 else
                 {
-                    expression = Settings.getExpression(Settings.KEY_MALFUNCTION1_FUEL_PER_KM);
+                    key = Settings.KEY_MALFUNCTION1_FUEL_PER_KM;
                 }
                 break;
             case Settings.CAR_STATE_MALFUNCTION_2:
                 return 0.0;
         }
 
+        if (key == null)
+        {
+            return 0.0;
+        }
+
+        expression = Settings.getExpression(key);
+
         double result = 0.0;
 
         if (expression != null)
         {
             result = expression.setVariable("x", averageSpeedKmH).setVariable("r", redZone).evaluate();
+            result = Upgrades.upgradeValue(key, result);
         }
 
         return result;
@@ -315,40 +334,56 @@ public class LogicThread extends StatusThread
         double averageSpeedKmH = Tools.metersPerSecondToKilometersPerHour(averageSpeedMps);
         double redZone = getCurrentRedZone();
 
+        String key = null;
+
         switch ((int)Settings.getLong(Settings.KEY_CAR_STATE))
         {
             case Settings.CAR_STATE_OK:
                 if (averageSpeedKmH > redZone)
                 {
-                    expression = Settings.getExpression(Settings.KEY_RED_ZONE_RELIABILITY);
+                    key = Settings.KEY_RED_ZONE_RELIABILITY;
                 }
                 else
                 {
-                    expression = Settings.getExpression(Settings.KEY_RELIABILITY);
+                    key = Settings.KEY_RELIABILITY;
                 }
                 break;
             case Settings.CAR_STATE_MALFUNCTION_1:
                 if (averageSpeedKmH > redZone)
                 {
-                    expression = Settings.getExpression(Settings.KEY_MALFUNCTION1_RED_ZONE_RELIABILITY);
+                    key = Settings.KEY_MALFUNCTION1_RED_ZONE_RELIABILITY;
                 }
                 else
                 {
-                    expression = Settings.getExpression(Settings.KEY_MALFUNCTION1_RELIABILITY);
+                    key = Settings.KEY_MALFUNCTION1_RELIABILITY;
                 }
                 break;
             case Settings.CAR_STATE_MALFUNCTION_2:
                 return 0.0;
         }
 
+        if (key == null)
+            return 0.0;
+
+        expression = Settings.getExpression(key);
+
         double result = 0.0;
+
 
         if (expression != null)
         {
             result = expression.setVariable("x", averageSpeedKmH).setVariable("r", redZone).evaluate();
+            result = Upgrades.upgradeValue(key, result);
         }
 
         return result;
+    }
+
+    double getCurrentDamageResistance()
+    {
+        double baseValue = Settings.getDouble(Settings.KEY_DAMAGE_RESISTANCE);
+        double value = Upgrades.upgradeValue(Settings.KEY_DAMAGE_RESISTANCE, baseValue);
+        return value;
     }
 
     double getCurrentHitPoints()
@@ -358,9 +393,10 @@ public class LogicThread extends StatusThread
 
     double getMaxHitPoints()
     {
-        return Settings.getDouble(Settings.KEY_MAXHITPOINTS);
+        double baseValue = Settings.getDouble(Settings.KEY_MAXHITPOINTS);
+        double value = Upgrades.upgradeValue(Settings.KEY_MAXHITPOINTS, baseValue);
+        return value;
     }
-
 
     int mLedState = -100;
 

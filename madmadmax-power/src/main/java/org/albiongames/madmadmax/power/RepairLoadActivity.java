@@ -136,6 +136,7 @@ public class RepairLoadActivity extends Activity
 
                     double repairNow = Settings.getDouble(Settings.KEY_HITPOINTS);
                     double repairMax = Settings.getDouble(Settings.KEY_MAXHITPOINTS);
+                    repairMax = Upgrades.upgradeValue(Settings.KEY_MAXHITPOINTS, repairMax);
 
                     double repairBecome = Tools.clamp(repairNow + amount, 0, repairMax);
                     Settings.setDouble(Settings.KEY_HITPOINTS, repairBecome);
