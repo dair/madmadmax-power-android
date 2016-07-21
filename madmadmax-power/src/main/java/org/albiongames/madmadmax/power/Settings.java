@@ -55,6 +55,8 @@ public class Settings
     public static final String KEY_P2_FORMULA = PARAMS_PREFIX + "p2_formula";
 
     public static final String KEY_LAST_COMMAND_ID = PARAMS_PREFIX + "last_command_id";
+    public static final String KEY_LAST_UPGRADE_TIME = PARAMS_PREFIX + "last_upgrade_time";
+
     public static final String KEY_NETWORK_TIMEOUT = PARAMS_PREFIX + "timeout";
 
     public static final String KEY_MALFUNCTION_CHECK_INTERVAL = PARAMS_PREFIX + "malfunction_interval"; // in meters!
@@ -202,6 +204,7 @@ public class Settings
         mDefaults.put(KEY_P2_FORMULA, "1-(2*x)^0.3");
 
         mDefaults.put(KEY_LAST_COMMAND_ID, "0");
+        mDefaults.put(KEY_LAST_UPGRADE_TIME, "0");
         mDefaults.put(KEY_NETWORK_TIMEOUT, "10000");
 
         mDefaults.put(KEY_LATEST_FAILED_CONNECTION, "0");
