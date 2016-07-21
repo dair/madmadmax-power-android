@@ -27,8 +27,8 @@ public class LocationThread extends StatusThread implements LocationListener
     private Looper mLooper = null;
     Timer mTimer = null;
 
-    long mGpsTime = 0;
-    long mGpsDistance = 0;
+    long mGpsTime = -100;
+    long mGpsDistance = -100;
 
     Location mLastLocation = null;
     List<Location> mLastLocations = new LinkedList<>();
@@ -181,6 +181,8 @@ public class LocationThread extends StatusThread implements LocationListener
                 mGpsTime = newGpsTime;
                 mGpsDistance = newGpsDistance;
 
+                locationManager = (LocationManager) mService.getSystemService(Context.LOCATION_SERVICE);
+
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, mGpsTime, mGpsDistance, this);
             }
             catch (SecurityException ex)
@@ -203,6 +205,9 @@ public class LocationThread extends StatusThread implements LocationListener
             if (locationManager == null)
                 return;
         }
+
+        mGpsTime = -100;
+        mGpsDistance = -100;
 
         mLastUpdate = System.currentTimeMillis();
         mLastLocation = null;
@@ -444,7 +449,7 @@ public class LocationThread extends StatusThread implements LocationListener
 
             if (x < minTime)
             {
-                System.out.println("x < minTime");
+//                System.out.println("x < minTime");
                 if (haveBorder)
                 {
 //                    System.out.println("not processing");
