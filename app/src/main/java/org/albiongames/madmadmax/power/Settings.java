@@ -69,7 +69,6 @@ public class Settings
     public static final String KEY_MALFUNCTION1_FUEL_PER_KM = PARAMS_PREFIX + "malfunction1_fuel_per_km"; // formula from speed x
 
     public static final String KEY_DAMAGE_CODE = PARAMS_PREFIX + "damage_code"; // json of values from 0 to 15 to any integers
-    public static final String KEY_GREEN_LED = PARAMS_PREFIX + "green_led"; // border (0..1) to turn green LEDs
 
     public static final String KEY_LATEST_SUCCESS_CONNECTION = "latest_success_connection";
     public static final String KEY_LATEST_FAILED_CONNECTION = "latest_failed_connection";
@@ -247,8 +246,6 @@ public class Settings
                         "\"14\": 75," +
                         "\"15\": 100" +
                 "}");
-
-        mDefaults.put(KEY_GREEN_LED, "0.5");
 
         mDefaults.put(KEY_MOCK_DATA, Integer.toString(MOCK_DATA_OFF));
 
