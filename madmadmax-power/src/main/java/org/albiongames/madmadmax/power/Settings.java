@@ -13,6 +13,7 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -278,6 +279,11 @@ public class Settings
         // malfunction 1 AND red zone driving
         mFormulaValues.add(KEY_MALFUNCTION1_RED_ZONE_RELIABILITY);
         mFormulaValues.add(KEY_MALFUNCTION1_RED_ZONE_FUEL_PER_KM);
+    }
+
+    public Set<String> possibleKeys()
+    {
+        return mDefaults.keySet();
     }
 
     private void pSetContext(Context context)

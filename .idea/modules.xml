@@ -3,8 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/BluetoothSPPLibrary/BluetoothSPPLibrary.iml" filepath="$PROJECT_DIR$/BluetoothSPPLibrary/BluetoothSPPLibrary.iml" />
-      <module fileurl="file://$PROJECT_DIR$/BluetoothSPPLibrary/library/library.iml" filepath="$PROJECT_DIR$/BluetoothSPPLibrary/library/library.iml" />
       <module fileurl="file://$PROJECT_DIR$/madmadmax-power/app.iml" filepath="$PROJECT_DIR$/madmadmax-power/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/BluetoothSPPLibrary/library/library.iml" filepath="$PROJECT_DIR$/BluetoothSPPLibrary/library/library.iml" />
+      <module fileurl="file://$PROJECT_DIR$/madmadmax-power/madmadmax-power.iml" filepath="$PROJECT_DIR$/madmadmax-power/madmadmax-power.iml" />
       <module fileurl="file://$PROJECT_DIR$/power.iml" filepath="$PROJECT_DIR$/power.iml" />
     </modules>
   </component>
