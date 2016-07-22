@@ -8,8 +8,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.location.LocationManager;
-import android.provider.*;
-import android.provider.Settings;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -171,7 +169,7 @@ public class Tools {
             return false;
         }
 
-        if (locationManager.isProviderEnabled(Settings.Secure.LOCATION_MODE))
+        if (locationManager.isProviderEnabled(android.provider.Settings.Secure.LOCATION_MODE))
         {
             messageBox(activity, R.string.tools_check_gps_disabled);
             return false;
@@ -191,5 +189,14 @@ public class Tools {
         }
 
         return true;
+    }
+
+    public static double getAverageSpeed()
+    {
+        double real = Settings.getDouble(Settings.KEY_AVERAGE_SPEED);
+        double mock = Tools.kilometersPerHourToMetersPerSecond(Settings.getDouble(Settings.KEY_MOCK_AVERAGE_SPEED));
+        if (mock < 0)
+            return real;
+        return mock;
     }
 }

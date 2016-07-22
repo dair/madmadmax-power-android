@@ -105,6 +105,8 @@ public class Settings
     public static final String KEY_DRIVE2SIEGE_DELAY = PARAMS_PREFIX + "drive2siege_delay";
     public static final String KEY_SIEGE2DRIVE_DELAY = PARAMS_PREFIX + "siege2drive_delay";
 
+    public static final String KEY_MOCK_AVERAGE_SPEED = PARAMS_PREFIX + "mock_average_speed";
+
     private static Settings instance = new Settings();
 
 
@@ -258,6 +260,8 @@ public class Settings
 
         mDefaults.put(KEY_DRIVE2SIEGE_DELAY, Long.toString(10000));
         mDefaults.put(KEY_SIEGE2DRIVE_DELAY, Long.toString(5000));
+
+        mDefaults.put(KEY_MOCK_AVERAGE_SPEED, "-1"); // negative means use real one
 
 // FORMULAS
 

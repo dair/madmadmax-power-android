@@ -278,7 +278,7 @@ public class LogicThread extends StatusThread
     double getCurrentFuelPerKm()
     {
         Expression expression = null;
-        double averageSpeedMps = Settings.getDouble(Settings.KEY_AVERAGE_SPEED);
+        double averageSpeedMps = Tools.getAverageSpeed();
         double averageSpeedKmH = Tools.metersPerSecondToKilometersPerHour(averageSpeedMps);
         double redZone = getCurrentRedZone(); // in km/h
         String key = null;
@@ -330,7 +330,7 @@ public class LogicThread extends StatusThread
     double getCurrentReliability()
     {
         Expression expression = null;
-        double averageSpeedMps = Settings.getDouble(Settings.KEY_AVERAGE_SPEED);
+        double averageSpeedMps = Tools.getAverageSpeed();
         double averageSpeedKmH = Tools.metersPerSecondToKilometersPerHour(averageSpeedMps);
         double redZone = getCurrentRedZone();
 
