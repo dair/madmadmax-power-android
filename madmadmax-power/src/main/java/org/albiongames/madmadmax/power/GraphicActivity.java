@@ -6,6 +6,8 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.media.Image;
 import android.media.audiofx.BassBoost;
@@ -37,6 +39,7 @@ import android.widget.TextView;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -253,6 +256,20 @@ public class GraphicActivity extends AppCompatActivity {
                 );
             }
         }, 0, 1, TimeUnit.SECONDS);
+
+        String version = "???";
+        try
+        {
+            PackageInfo info = getPackageManager().getPackageInfo("org.albiongames.madmadmax.power", 0);
+            version = info.versionName;
+        }
+        catch (PackageManager.NameNotFoundException ex)
+        {
+
+        }
+
+        TextView versionView = (TextView)findViewById(R.id.versionTextView);
+        versionView.setText(version);
     }
 
     @Override
