@@ -137,6 +137,7 @@ public class FuelLoadActivity extends Activity {
 
                     double fuelNow = Settings.getDouble(Settings.KEY_FUEL_NOW);
                     double fuelMax = Settings.getDouble(Settings.KEY_FUEL_MAX);
+                    fuelMax = Upgrades.upgradeValue(Settings.KEY_FUEL_MAX, fuelMax);
 
                     double fuelBecome = Tools.clamp(fuelNow + amount, 0, fuelMax);
                     Settings.setDouble(Settings.KEY_FUEL_NOW, fuelBecome);

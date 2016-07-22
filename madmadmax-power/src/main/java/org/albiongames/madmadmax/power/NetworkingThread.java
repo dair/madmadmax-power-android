@@ -356,9 +356,9 @@ public class NetworkingThread extends StatusThread
                     params.remove("time");
                 }
 
-                if (PowerService.instance() != null && PowerService.instance().getUpgrades() != null)
+                if (PowerService.instance() != null)
                 {
-                    PowerService.instance().getUpgrades().upgradesFromNetwork(params);
+                    Upgrades.upgradesFromNetwork(params);
                 }
                 Settings.setLong(Settings.KEY_LAST_UPGRADE_TIME, storeTime);
 

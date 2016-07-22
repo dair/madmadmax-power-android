@@ -551,7 +551,8 @@ public class GraphicActivity extends AppCompatActivity {
     void updateFuel()
     {
         double currentFuel = Settings.getDouble(Settings.KEY_FUEL_NOW);
-        double maxFuel = (double)Settings.getDouble(Settings.KEY_FUEL_MAX);
+        double maxFuel = Settings.getDouble(Settings.KEY_FUEL_MAX);
+        maxFuel = Upgrades.upgradeValue(Settings.KEY_FUEL_MAX, maxFuel);
 
         if (currentFuel == mFuel && maxFuel == mMaxFuel)
             return;

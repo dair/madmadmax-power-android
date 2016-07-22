@@ -13,6 +13,7 @@ public class MainActivity extends Activity
         super.onCreate(savedInstanceState);
 
         Settings.setContext(this);
+        Upgrades.setPath(getFilesDir().getPath());
 
         final Class<? extends Activity> activityClass;
 

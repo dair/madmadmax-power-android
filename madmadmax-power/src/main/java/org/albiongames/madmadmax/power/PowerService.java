@@ -55,8 +55,6 @@ public class PowerService extends Service
 
     Error mError = null;
 
-    Upgrades mUpgrades = null;
-
     public class LocalBinder extends Binder
     {
         PowerService getService()
@@ -86,6 +84,8 @@ public class PowerService extends Service
     public int onStartCommand(Intent intent, int flags, int startId)
     {
         Tools.log("Service: onStartCommand");
+        Upgrades.setPath(getFilesDir().getPath());
+
 
         if (mStatus == STATUS_OFF)
         {
@@ -102,7 +102,6 @@ public class PowerService extends Service
             }
 
             dump(COMPONENT, "start");
-            mUpgrades = new Upgrades(this);
 
             mLocationThread = new LocationThread(this);
             mBluetoothThread = new BluetoothThread(this);
@@ -237,10 +236,5 @@ public class PowerService extends Service
         }
         StorageEntry.Dump entry = new StorageEntry.Dump(component + ": " + message);
         mNetworkStorage.put(entry);
-    }
-
-    public Upgrades getUpgrades()
-    {
-        return mUpgrades;
     }
 }

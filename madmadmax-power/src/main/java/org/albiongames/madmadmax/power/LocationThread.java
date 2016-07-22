@@ -294,6 +294,8 @@ public class LocationThread extends StatusThread implements LocationListener
         if (location == null)
             return;
 
+        long localTime = System.currentTimeMillis();
+
         if (Settings.getLong(Settings.KEY_MOCK_DATA) == Settings.MOCK_DATA_RECORD)
         {
             Parcel p = Parcel.obtain();
@@ -351,10 +353,9 @@ public class LocationThread extends StatusThread implements LocationListener
         double lat = location.getLatitude();
         double lon = location.getLongitude();
         float speed = location.getSpeed();
-        long time = location.getTime();
 
         Settings.setDouble(Settings.KEY_LAST_INSTANT_SPEED, speed);
-        Settings.setLong(Settings.KEY_LAST_GPS_UPDATE, time);
+        Settings.setLong(Settings.KEY_LAST_GPS_UPDATE, localTime);
 
         double localDistance = 0;
         if (mLastLocation != null && speed > 0.001)
@@ -363,11 +364,11 @@ public class LocationThread extends StatusThread implements LocationListener
         }
         mLastLocation = location;
 
-        StorageEntry.Location location1 = new StorageEntry.Location(time, lat, lon, acc, speed, localDistance, satellites);
+        StorageEntry.Location location1 = new StorageEntry.Location(localTime, lat, lon, acc, speed, localDistance, satellites);
         mService.getPositions().add(location1);
 
         mService.getLogicStorage().put(location1);
-        mLastUpdate = time;
+        mLastUpdate = localTime;
 
         addLocation(location);
 
@@ -430,7 +431,7 @@ public class LocationThread extends StatusThread implements LocationListener
             return 0.0f;
 
         float speed = 0;
-        long now = System.currentTimeMillis();//mLastLocations.get(mLastLocations.size()-1).getTime();//
+        long now = System.currentTimeMillis(); //mLastLocations.get(mLastLocations.size()-1).getTime();//
         long minTime = now - duration;
 //        System.out.println("now is: " + Long.toString(now) + ", minTime: " + Long.toString(minTime));
 
