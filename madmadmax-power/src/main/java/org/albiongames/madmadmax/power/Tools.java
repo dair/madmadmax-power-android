@@ -8,6 +8,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.location.LocationManager;
+import android.provider.*;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -169,7 +171,7 @@ public class Tools {
             return false;
         }
 
-        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
+        if (locationManager.isProviderEnabled(Settings.Secure.LOCATION_MODE))
         {
             messageBox(activity, R.string.tools_check_gps_disabled);
             return false;

@@ -502,7 +502,7 @@ public class GraphicActivity extends AppCompatActivity {
         }
         else
         {
-            logo.setColorFilter(Color.DKGRAY);
+            logo.setColorFilter(Color.argb(255, 25, 25, 25));
         }
     }
 
