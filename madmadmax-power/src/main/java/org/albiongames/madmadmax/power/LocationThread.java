@@ -181,8 +181,6 @@ public class LocationThread extends StatusThread implements LocationListener
                 mGpsTime = newGpsTime;
                 mGpsDistance = newGpsDistance;
 
-                locationManager = (LocationManager) mService.getSystemService(Context.LOCATION_SERVICE);
-
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, mGpsTime, mGpsDistance, this);
             }
             catch (SecurityException ex)

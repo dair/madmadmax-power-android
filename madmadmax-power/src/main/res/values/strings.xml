@@ -89,5 +89,12 @@
 
     <string name="graphic_service_should_run">Service should be running to do this</string>
     <string name="graphic_car_should_stop">Car should stop to enter Siege Mode</string>
+
+
+    <string name="tools_check_bluetooth_unavailable">Bluetooth seems unavailable. It should be to participate in the game. NOT starting the service.</string>
+    <string name="tools_check_bluetooth_disabled">It looks that Bluetooth is turned off. You should turn it on to participate in the game while it is fine for testing. Running service.</string>
+
+    <string name="tools_check_gps_unavailable">GPS is unavailable. There\'s no point to run without GPS, canceling start</string>
+    <string name="tools_check_gps_disabled">GPS is disabled. There\'s no point to run without GPS, canceling start. Please turn GPS on.</string>
 </resources>
 

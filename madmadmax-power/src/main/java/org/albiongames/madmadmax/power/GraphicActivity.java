@@ -270,6 +270,9 @@ public class GraphicActivity extends AppCompatActivity {
 
         TextView versionView = (TextView)findViewById(R.id.versionTextView);
         versionView.setText(version);
+
+        TextView nameView = (TextView)findViewById(R.id.nameTextView);
+        nameView.setText(Settings.getString(Settings.KEY_DEVICE_NAME));
     }
 
     @Override
@@ -617,6 +620,7 @@ public class GraphicActivity extends AppCompatActivity {
                     color = Color.WHITE;
                     break;
                 case BluetoothThread.STATUS_DISCONNECTED:
+                case BluetoothThread.STATUS_DISABLED:
                     color = Color.argb(0xFF, 0x77, 0, 0);
                     break;
                 case BluetoothThread.STATUS_FAILED:
@@ -714,7 +718,10 @@ public class GraphicActivity extends AppCompatActivity {
         }
         else
         {
-            startService(new Intent(this, PowerService.class));
+            if (Tools.checkServerStart(this))
+            {
+                startService(new Intent(this, PowerService.class));
+            }
         }
     }
 

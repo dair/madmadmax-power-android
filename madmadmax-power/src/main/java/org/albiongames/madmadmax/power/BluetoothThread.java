@@ -31,6 +31,7 @@ public class BluetoothThread extends Thread
     public static final int STATUS_CONNECTED = 3;
     public static final int STATUS_FAILED = 4;
     public static final int STATUS_STOPPING = 5;
+    public static final int STATUS_DISABLED = 6;
 
     int mStatus = STATUS_OFF;
 
@@ -77,15 +78,8 @@ public class BluetoothThread extends Thread
         }
     }
 
-    @Override
-    public void run()
+    void setupSPP()
     {
-        Looper.prepare();
-        mLooper = Looper.myLooper();
-//        mTimeWaiting = 0;
-        mWaitingResponse = false;
-
-        mSPP = new BluetoothSPP(mService);
         mSPP.setupService();
         mSPP.startService(BluetoothState.DEVICE_OTHER);
 
@@ -130,8 +124,19 @@ public class BluetoothThread extends Thread
                 mWaitingResponse = false;
             }
         });
+    }
 
-        setStatus(STATUS_DISCONNECTED);
+    @Override
+    public void run()
+    {
+        Looper.prepare();
+        mLooper = Looper.myLooper();
+//        mTimeWaiting = 0;
+
+        mWaitingResponse = false;
+
+        setStatus(STATUS_DISABLED);
+        mSPP = new BluetoothSPP(mService);
 
         mHandler = new Handler() {
             @Override
@@ -192,6 +197,17 @@ public class BluetoothThread extends Thread
         {
             switch (getStatus())
             {
+                case STATUS_DISABLED:
+                    if (mSPP.isBluetoothAvailable() && mSPP.isBluetoothEnabled())
+                    {
+                        setupSPP();
+                        setStatus(STATUS_DISCONNECTED);
+                    }
+                    else
+                    {
+                        Tools.sleep(1000);
+                    }
+                    break;
                 case STATUS_CONNECTING:
                     Tools.sleep(50);
                     break;

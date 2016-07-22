@@ -92,6 +92,19 @@
                     android:textColor="#ffffff"
                     android:background="#000000"
                     android:visibility="invisible" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="New Text"
+                    android:textSize="20dp"
+                    android:id="@+id/nameTextView"
+                    android:textColor="#999999"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentLeft="true"
+                    />
+
+
             </RelativeLayout>
 
             <RelativeLayout
@@ -176,5 +189,4 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         />
-
 </RelativeLayout>

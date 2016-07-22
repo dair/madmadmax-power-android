@@ -7,12 +7,15 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.location.LocationManager;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 
 import java.io.File;
+
+import app.akexorcist.bluetotohspp.library.BluetoothSPP;
 
 /**
  * Created by dair on 28/05/16.
@@ -155,5 +158,36 @@ public class Tools {
             view = new View(activity);
         }
         imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
+
+    public static boolean checkServerStart(Activity activity)
+    {
+        BluetoothSPP bt = new BluetoothSPP(activity);
+        if (!bt.isBluetoothAvailable())
+        {
+            messageBox(activity, R.string.tools_check_bluetooth_unavailable);
+            return false;
+        }
+
+        if (!bt.isBluetoothEnabled())
+        {
+            messageBox(activity, R.string.tools_check_bluetooth_disabled);
+            // and it is fine
+        }
+
+        LocationManager locationManager = (LocationManager) activity.getSystemService(Context.LOCATION_SERVICE);
+        if (locationManager == null)
+        {
+            messageBox(activity, R.string.tools_check_gps_unavailable);
+            return false;
+        }
+
+        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
+        {
+            messageBox(activity, R.string.tools_check_gps_disabled);
+            return false;
+        }
+
+        return true;
     }
 }

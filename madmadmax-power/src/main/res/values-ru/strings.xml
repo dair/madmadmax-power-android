@@ -41,6 +41,16 @@
     <string name="repair_load_mistype_code">Опечатка. В коде должно быть ровно 8 цифр (даже если первая ноль)</string>
 
     <string name="graphic_service_should_run">Сервис должен работать для этого действия</string>
-    <string name="graphic_car_should_stop">Машину надо полностью остановить чтобы был доступенрежим стрельбы</string>
+    <string name="graphic_car_should_stop">Машину надо полностью остановить чтобы был доступен режим стрельбы</string>
+
+
+
+
+    <string name="tools_check_bluetooth_unavailable">Кажется, у вас отсутствует Bluetooth. Нужно устройство с Bluetooth. Фоновый сервис не будет запущен.</string>
+    <string name="tools_check_bluetooth_disabled">Кажется, у вас выключен Bluetooth. Тестировать без Bluetooth нормально, но для игры понадобится его включить. Фоновый сервис будет запущен.</string>
+
+    <string name="tools_check_gps_unavailable">GPS недоступен. Смысла в этой программе без GPS нет, фоновый сервис не будет запущен.</string>
+    <string name="tools_check_gps_disabled">GPS выключен. Смысла в этой программе без GPS нет, фоновый сервис не будет запущен. Включите GPS в настройках устройства.</string>
+
 </resources>
 
