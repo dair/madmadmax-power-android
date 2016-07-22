@@ -159,6 +159,7 @@ public class RegisterActivity extends AppCompatActivity
                             EditText deviceNameWidget = (EditText)RegisterActivity.this.findViewById(R.id.deviceName);
                             mStoredDeviceName = deviceNameWidget.getText().toString();
                             Settings.setString(Settings.KEY_DEVICE_NAME, mStoredDeviceName);
+                            Tools.hideKeyboard(RegisterActivity.this);
 
                             Intent newActivity = new Intent(RegisterActivity.this, GraphicActivity.class);
                             startActivity(newActivity);

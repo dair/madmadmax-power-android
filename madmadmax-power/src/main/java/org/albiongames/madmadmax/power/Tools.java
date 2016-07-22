@@ -162,19 +162,6 @@ public class Tools {
 
     public static boolean checkServerStart(Activity activity)
     {
-        BluetoothSPP bt = new BluetoothSPP(activity);
-        if (!bt.isBluetoothAvailable())
-        {
-            messageBox(activity, R.string.tools_check_bluetooth_unavailable);
-            return false;
-        }
-
-        if (!bt.isBluetoothEnabled())
-        {
-            messageBox(activity, R.string.tools_check_bluetooth_disabled);
-            // and it is fine
-        }
-
         LocationManager locationManager = (LocationManager) activity.getSystemService(Context.LOCATION_SERVICE);
         if (locationManager == null)
         {
@@ -186,6 +173,19 @@ public class Tools {
         {
             messageBox(activity, R.string.tools_check_gps_disabled);
             return false;
+        }
+
+        BluetoothSPP bt = new BluetoothSPP(activity);
+        if (!bt.isBluetoothAvailable())
+        {
+            messageBox(activity, R.string.tools_check_bluetooth_unavailable);
+            return false;
+        }
+
+        if (!bt.isBluetoothEnabled())
+        {
+            messageBox(activity, R.string.tools_check_bluetooth_disabled);
+            // and it is fine
         }
 
         return true;

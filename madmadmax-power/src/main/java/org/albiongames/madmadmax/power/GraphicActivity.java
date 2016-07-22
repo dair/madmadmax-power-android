@@ -165,6 +165,7 @@ public class GraphicActivity extends AppCompatActivity {
                                 public void run()
                                 {
                                     Settings.setLong(Settings.KEY_SIEGE_STATE, Settings.SIEGE_STATE_ON);
+                                    updateEverything();
                                 }
                             });
                         }
@@ -195,6 +196,7 @@ public class GraphicActivity extends AppCompatActivity {
                         public void run()
                         {
                             Settings.setLong(Settings.KEY_SIEGE_STATE, Settings.SIEGE_STATE_OFF);
+                            updateEverything();
                         }
                     });
                 }
@@ -237,20 +239,7 @@ public class GraphicActivity extends AppCompatActivity {
                                   @Override
                                   public void run()
                                   {
-                                      boolean serverRunning = Tools.isMyServiceRunning(GraphicActivity.this);
-                                      if (mServerRunning != serverRunning)
-                                      {
-                                          mServerRunning = serverRunning;
-                                          invalidateOptionsMenu();
-                                      }
-
-                                      updateCarStatus();
-                                      updateAverageSpeed();
-                                      updateNetworkState();
-                                      updateGpsStatus();
-                                      updateHitPoints();
-                                      updateFuel();
-                                      updateBluetoothStatus();
+                                      updateEverything();
                                   }
                               }
                 );
@@ -273,6 +262,24 @@ public class GraphicActivity extends AppCompatActivity {
 
         TextView nameView = (TextView)findViewById(R.id.nameTextView);
         nameView.setText(Settings.getString(Settings.KEY_DEVICE_NAME));
+    }
+
+    synchronized void updateEverything()
+    {
+        boolean serverRunning = Tools.isMyServiceRunning(GraphicActivity.this);
+        if (mServerRunning != serverRunning)
+        {
+            mServerRunning = serverRunning;
+            invalidateOptionsMenu();
+        }
+
+        updateCarStatus();
+        updateAverageSpeed();
+        updateNetworkState();
+        updateGpsStatus();
+        updateHitPoints();
+        updateFuel();
+        updateBluetoothStatus();
     }
 
     @Override
