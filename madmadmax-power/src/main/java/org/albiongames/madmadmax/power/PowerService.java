@@ -85,7 +85,7 @@ public class PowerService extends Service
     {
         Tools.log("Service: onStartCommand");
         Upgrades.setPath(getFilesDir().getPath());
-
+        FuelQuality.setPath(getFilesDir().getPath());
 
         if (mStatus == STATUS_OFF)
         {

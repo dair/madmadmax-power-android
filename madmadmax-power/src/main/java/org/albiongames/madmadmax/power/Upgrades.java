@@ -44,59 +44,18 @@ public class Upgrades
             return;
 
         mPath = path;
-        readFile();
+
+        mObject = Tools.readFileToJson(mPath + "/" + FILENAME);
+        if (mObject == null)
+        {
+            mObject = new JSONObject();
+        }
+
         recalculate();
     }
 
     public Upgrades()
     {
-    }
-
-    public static String convertStreamToString(InputStream is) throws IOException
-    {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-        StringBuilder sb = new StringBuilder();
-        String line = null;
-        while ((line = reader.readLine()) != null) {
-            sb.append(line).append("\n");
-        }
-        reader.close();
-        return sb.toString();
-    }
-
-    void readFile()
-    {
-        try
-        {
-            FileInputStream fin = new FileInputStream(mPath + FILENAME);
-            String jsonString = convertStreamToString(fin);
-            fin.close();
-            mObject = new JSONObject(jsonString);
-        }
-        catch (IOException ex)
-        {
-
-        }
-        catch (JSONException ex)
-        {
-
-        }
-
-        if (mObject == null)
-            mObject = new JSONObject();
-    }
-
-    void writeFile()
-    {
-        FileOutputStream outputStream;
-
-        try {
-            outputStream = new FileOutputStream(mPath + FILENAME);
-            outputStream.write(mObject.toString().getBytes());
-            outputStream.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public static double upgradeValue(final String name, double value)
@@ -141,7 +100,7 @@ public class Upgrades
                 mObject.put(key, object.get(key));
             }
 
-            writeFile();
+            Tools.writeJsonToFile(mPath + "/" + FILENAME, mObject);
             recalculate();
         }
         catch (JSONException ex)

@@ -271,6 +271,7 @@ public class LogicThread extends StatusThread
 
         ret = Settings.getDouble(key);
         ret = Upgrades.upgradeValue(key, ret);
+        ret = FuelQuality.upgradeValue(key, ret);
 
         return ret;
     }
@@ -322,6 +323,7 @@ public class LogicThread extends StatusThread
         {
             result = expression.setVariable("x", averageSpeedKmH).setVariable("r", redZone).evaluate();
             result = Upgrades.upgradeValue(key, result);
+            result = FuelQuality.upgradeValue(key, result);
         }
 
         return result;
@@ -374,6 +376,7 @@ public class LogicThread extends StatusThread
         {
             result = expression.setVariable("x", averageSpeedKmH).setVariable("r", redZone).evaluate();
             result = Upgrades.upgradeValue(key, result);
+            result = FuelQuality.upgradeValue(key, result);
         }
 
         return result;

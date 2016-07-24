@@ -143,6 +143,13 @@ public class FuelLoadActivity extends Activity {
                     double fuelBecome = Tools.clamp(fuelNow + amount, 0, fuelMax);
                     Settings.setDouble(Settings.KEY_FUEL_NOW, fuelBecome);
 
+                    JSONObject upgrades = null;
+                    if (object.has("upgrades"))
+                    {
+                        upgrades = object.getJSONObject("upgrades");
+                    }
+                    FuelQuality.fuelAdd(fuelNow, fuelBecome - fuelNow, upgrades);
+
                     Tools.messageBox(this, R.string.fuel_load_success, new Runnable() {
                         @Override
                         public void run() {
