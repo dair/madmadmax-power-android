@@ -107,6 +107,8 @@ public class Settings
 
     public static final String KEY_MOCK_AVERAGE_SPEED = PARAMS_PREFIX + "mock_average_speed";
 
+    public static final String KEY_EXTRA_DEBUG = PARAMS_PREFIX + "extra_debug";
+
     private static Settings instance = new Settings();
 
 
@@ -233,6 +235,8 @@ public class Settings
 
         mDefaults.put(KEY_BLUETOOTH_STATUS, Integer.toString(BluetoothThread.STATUS_OFF));
 
+        mDefaults.put(KEY_EXTRA_DEBUG, "0");
+
         mDefaults.put(KEY_DAMAGE_CODE,
                 "{" +
                         "\"0\": 1," +
@@ -285,9 +289,14 @@ public class Settings
         mFormulaValues.add(KEY_MALFUNCTION1_RED_ZONE_FUEL_PER_KM);
     }
 
-    public Set<String> possibleKeys()
+    public Set<String> pPossibleKeys()
     {
         return mDefaults.keySet();
+    }
+
+    public static Set<String> possibleKeys()
+    {
+        return instance.pPossibleKeys();
     }
 
     private void pSetContext(Context context)

@@ -7,7 +7,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.security.InvalidParameterException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * Created by dair on 12/06/16.
@@ -19,6 +23,7 @@ public class LogicThread extends StatusThread
     PowerService mService = null;
     Random mRandom = new Random();
     double mLastMalfunctionCheckDistance = 0.0;
+    long mFirstHighSpeedTime = 0;
 
     LogicThread(PowerService service)
     {
@@ -89,7 +94,29 @@ public class LogicThread extends StatusThread
             mService.dump(COMPONENT, "NOT Checking probabilities");
         }
 
+        double averageSpeed = Tools.getAverageSpeed();
+        double maxSpeed = Settings.getDouble(Settings.KEY_MAX_SPEED);
+        if (averageSpeed > maxSpeed)
+        {
+            if (mFirstHighSpeedTime == 0)
+                mFirstHighSpeedTime = location.getTime();
+            else
+            {
+                long duration = location.getTime() - mFirstHighSpeedTime;
+                if (duration > 10000) // 10 seconds of high speed
+                {
+                    Settings.setLong(Settings.KEY_CAR_STATE, Settings.CAR_STATE_MALFUNCTION_2);
+                }
+            }
+        }
+        else
+        {
+            mFirstHighSpeedTime = 0;
+        }
+
         mService.dump(COMPONENT, "Done processing location {" + location.toString() + "}");
+
+        generateInfo();
     }
 
     void processDamage(StorageEntry.Damage damage)
@@ -106,7 +133,11 @@ public class LogicThread extends StatusThread
         mService.getBluetoothThread().setLed(BluetoothThread.LED_RED, true);
         mService.getBluetoothThread().setPause(BluetoothThread.LED_RED, 500);
         mService.getBluetoothThread().setLed(BluetoothThread.LED_RED, false);
+
+        generateInfo();
     }
+
+    long mLastInfoSent = 0;
 
     @Override
     public void run()
@@ -152,6 +183,10 @@ public class LogicThread extends StatusThread
             else
             {
                 Tools.sleep(250);
+                if (System.currentTimeMillis() - mLastInfoSent > 10000)
+                {
+                    generateInfo();
+                }
             }
         }
 
@@ -425,5 +460,50 @@ public class LogicThread extends StatusThread
         }
         mService.getBluetoothThread().setLed(BluetoothThread.LED_GREEN, mLedState == 1);
         mService.getBluetoothThread().setLed(BluetoothThread.LED_YELLOW, mLedState == 2);
+    }
+
+    Map<String, String> mInfoMap = new HashMap<>();
+
+    void generateInfo()
+    {
+        Map<String, String> info = new HashMap<>();
+        Map<String, String> diff = new HashMap<>();
+
+        Set<String> keys = Settings.possibleKeys();
+        for (String key: keys)
+        {
+            if (key.equals(Settings.KEY_LAST_COMMAND_ID) ||
+                    key.equals(Settings.KEY_LATEST_SUCCESS_CONNECTION) ||
+                    key.equals(Settings.KEY_LATEST_FAILED_CONNECTION) ||
+                    key.equals(Settings.KEY_LAST_GPS_UPDATE) ||
+                    key.equals(Settings.KEY_BLUETOOTH_DEVICE) ||
+                    key.equals(Settings.KEY_EXTRA_DEBUG) ||
+                    key.equals(Settings.KEY_LOCATION_THREAD_LAST_QUALITY) ||
+                    key.equals(Settings.KEY_LAST_INSTANT_SPEED) ||
+                    key.equals(Settings.KEY_SERVER_URL))
+                continue;
+
+            String value = Settings.getString(key);
+            if (value != null)
+                info.put(key, value);
+
+            if (mInfoMap.containsKey(key) &&
+                    mInfoMap.get(key) != null &&
+                    mInfoMap.get(key).equals(value))
+                continue;
+
+            diff.put(key, value);
+        }
+
+
+        mInfoMap = info;
+
+        if (!diff.isEmpty())
+        {
+            StorageEntry.Info infoPackage = new StorageEntry.Info(diff);
+            mService.getNetworkStorage().put(infoPackage);
+        }
+
+        mLastInfoSent = System.currentTimeMillis();
     }
 }

@@ -24,6 +24,8 @@ public class NetworkingThread extends StatusThread
 
     String mDeviceId = null;
 
+    long mErrorSleep = 500;
+
     public static class Request
     {
         private String mMethod;
@@ -137,12 +139,9 @@ public class NetworkingThread extends StatusThread
         return false;
     }
 
-    boolean processOneItem()
+    boolean processOneItem(StorageEntry.Base entry)
     {
         boolean ret = false;
-        StorageEntry.Base entry = mService.getNetworkStorage().get();
-        if (entry == null)
-            return false;
 
         JSONObject object = entry.toJsonObject();
         try
@@ -188,7 +187,7 @@ public class NetworkingThread extends StatusThread
         {
             Tools.log("Networking exception: " + ex.toString());
             Settings.setLong(Settings.KEY_LATEST_FAILED_CONNECTION, System.currentTimeMillis());
-            ret = true;
+            ret = false;
         }
 
         return ret; // try again later
@@ -198,6 +197,7 @@ public class NetworkingThread extends StatusThread
     public void run()
     {
         Tools.log("NetworkingThread: start");
+        int mErrorCountOnExit = 0;
 
         super.run();
 
@@ -220,30 +220,57 @@ public class NetworkingThread extends StatusThread
                 }
             }
 
-            boolean result = processOneItem();
+            int number = 0;
 
-            if (!result)
+            if (mService.getNetworkStorage().isEmpty())
             {
-                try
-                {
-                    Thread.sleep(2000);
-                }
-                catch (Exception ex)
-                {
-                }
+                // no data
+                if (getStatus() == STATUS_STOPPING)
+                    break;
+                Tools.sleep(500);
             }
-
-            long now = System.currentTimeMillis();
-            long lastChange = getLastStatusChangeTime();
-            long timeout = Settings.getLong(Settings.KEY_NETWORK_TIMEOUT);
-
-            if (getStatus() == STATUS_STOPPING &&
-                now - lastChange > 2*timeout)
+            else
             {
-                setStatus(STATUS_OFF);
-                break;
+                StorageEntry.Base entry = mService.getNetworkStorage().get();
+                if (entry == null)
+                {
+                    mService.getNetworkStorage().remove(); // wtf?
+                }
+                else
+                {
+                    boolean result = processOneItem(entry);
+
+                    if (!result) {
+                        // network error
+                        if (getStatus() == STATUS_STOPPING) {
+                            mErrorSleep = 500;
+                            if (mErrorCountOnExit > 3)
+                                break;
+                            else
+                                ++mErrorCountOnExit;
+                        }
+
+                        Tools.sleep(mErrorSleep);
+                        if (mErrorSleep < 5000)
+                            mErrorSleep += 500;
+                    } else {
+                        // successfully sent a packet to the server
+                        mErrorCountOnExit = 0;
+                        mErrorSleep = 500;
+
+                        // on success let's see how much we have left
+                        if (getStatus() == STATUS_STOPPING) {
+                            if (mService.getNetworkStorage().size() > 10) // whoa, that's too much, stop now
+                            {
+                                break;
+                            }
+                        }
+                    }
+                }
             }
         }
+
+        setStatus(STATUS_OFF);
 
         Tools.log("NetworkingThread: stop");
     }

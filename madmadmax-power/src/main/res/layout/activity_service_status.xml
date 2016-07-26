@@ -185,6 +185,23 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
         </TableRow>
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:text="Net queue size:"
+                android:id="@+id/textNetQueue"
+                android:layout_column="0"
+                />
+
+            <TextView
+                android:text="0.0"
+                android:id="@+id/netQueueTextView"
+                android:layout_column="1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </TableRow>
     </TableLayout>
 
     <ProgressBar

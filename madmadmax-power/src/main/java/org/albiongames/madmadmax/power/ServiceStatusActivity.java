@@ -104,11 +104,13 @@ public class ServiceStatusActivity extends AppCompatActivity
                                       updateThreadsState();
                                       updateCarState();
                                       updateAverageSpeed();
+                                      updateDistance();
+                                      updateQueueSizes();
                                   }
                               }
                 );
             }
-        }, 0, 1, TimeUnit.SECONDS);
+        }, 0, 300, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -287,7 +289,7 @@ public class ServiceStatusActivity extends AppCompatActivity
         if (textView == null)
             return;
 
-        double averageSpeed = Settings.getDouble(Settings.KEY_AVERAGE_SPEED);
+        double averageSpeed = Tools.getAverageSpeed();
         double averageSpeedKmH = Tools.metersPerSecondToKilometersPerHour(averageSpeed);
 
         textView.setText(Double.toString(averageSpeedKmH));
@@ -325,6 +327,30 @@ public class ServiceStatusActivity extends AppCompatActivity
 
         double distance = Settings.getDouble(Settings.KEY_TRACK_DISTANCE);
         textView.setText(Double.toString(distance));
+    }
+
+    protected void updateQueueSizes()
+    {
+        if (Tools.isMyServiceRunning(this))
+        {
+            int nSize = -1;
+            int lSize = -1;
+            if (PowerService.instance() != null) {
+                if (PowerService.instance().getNetworkStorage() != null)
+                {
+                    nSize = PowerService.instance().getNetworkStorage().size();
+                }
+
+                if (PowerService.instance().getLogicStorage() != null)
+                {
+                    lSize = PowerService.instance().getLogicStorage().size();
+                }
+            }
+
+            String text = Integer.toString(lSize) + " / " + Integer.toString(nSize);
+            TextView n = (TextView)findViewById(R.id.netQueueTextView);
+            n.setText(text);
+        }
     }
 
     private boolean isMyServiceRunning(Class<?> serviceClass)

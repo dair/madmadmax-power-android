@@ -203,10 +203,10 @@ public class Tools {
     public static double getAverageSpeed()
     {
         double real = Settings.getDouble(Settings.KEY_AVERAGE_SPEED);
-        double mock = Tools.kilometersPerHourToMetersPerSecond(Settings.getDouble(Settings.KEY_MOCK_AVERAGE_SPEED));
-        if (mock < 0)
-            return real;
-        return mock;
+//        double mock = Tools.kilometersPerHourToMetersPerSecond(Settings.getDouble(Settings.KEY_MOCK_AVERAGE_SPEED));
+//        if (mock < 0.0)
+        return real;
+//        return mock;
     }
 
     public static String convertStreamToString(InputStream is) throws IOException

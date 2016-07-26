@@ -14,6 +14,8 @@ public class Storage
 {
     QueueFile mQueueFile = null;
 
+    long mCount = 0;
+
     public Storage(String name) throws IOException
     {
         File file = new File(name);
@@ -27,9 +29,12 @@ public class Storage
         try
         {
             String s = entry.toString();
-            byte[] data = s.getBytes("UTF-8");
-            mQueueFile.add(data);
-
+            if (!s.isEmpty())
+            {
+                byte[] data = s.getBytes("UTF-8");
+                mQueueFile.add(data);
+                ++mCount;
+            }
         }
         catch (Exception ex)
         {
@@ -61,6 +66,7 @@ public class Storage
         try
         {
             mQueueFile.remove();
+            --mCount;
         }
         catch (IOException ex)
         {

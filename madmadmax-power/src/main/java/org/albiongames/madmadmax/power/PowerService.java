@@ -121,6 +121,7 @@ public class PowerService extends Service
     @Override
     public void onDestroy()
     {
+
         Tools.log("Service: onDestroy");
         mInstance = null;
         super.onDestroy();
@@ -156,6 +157,9 @@ public class PowerService extends Service
         {
             Tools.sleep(100);
         }
+
+        if (mDumpBundle != null)
+            mNetworkStorage.put(mDumpBundle);
 
         mStatus = STATUS_OFF;
         stopSelf();
@@ -218,8 +222,14 @@ public class PowerService extends Service
         return mBluetoothThread;
     }
 
+    StorageEntry.Bundle mDumpBundle = null;
+
+
     public void dump(final String component, final String message)
     {
+        if (Settings.getLong(Settings.KEY_EXTRA_DEBUG) != 1)
+            return;
+
         String string = component + ": " + message;
         synchronized (this)
         {
@@ -235,6 +245,16 @@ public class PowerService extends Service
             }
         }
         StorageEntry.Dump entry = new StorageEntry.Dump(component + ": " + message);
-        mNetworkStorage.put(entry);
+
+        if (mDumpBundle == null)
+            mDumpBundle = new StorageEntry.Bundle();
+
+        mDumpBundle.add(entry);
+
+        if (mDumpBundle.size() >= 20)
+        {
+            mNetworkStorage.put(mDumpBundle);
+            mDumpBundle = null;
+        }
     }
 }
