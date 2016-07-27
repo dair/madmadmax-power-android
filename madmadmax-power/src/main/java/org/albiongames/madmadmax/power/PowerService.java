@@ -52,6 +52,7 @@ public class PowerService extends Service
 
     Storage mLogicStorage = null;
     Storage mNetworkStorage = null;
+    Storage mLocationStorage = null;
 
     Error mError = null;
 
@@ -96,6 +97,7 @@ public class PowerService extends Service
             {
                 mLogicStorage = new Storage(getFilesDir() + "/logic");
                 mNetworkStorage = new Storage(getFilesDir() + "/network");
+                mLocationStorage = new Storage(getFilesDir() + "/location");
             } catch (IOException ex)
             {
                 mError = new Error(ex.getLocalizedMessage());
@@ -140,6 +142,11 @@ public class PowerService extends Service
     public Storage getNetworkStorage()
     {
         return mNetworkStorage;
+    }
+
+    public Storage getLocationStorage()
+    {
+        return mLocationStorage;
     }
 
     protected void iGraciousStop()

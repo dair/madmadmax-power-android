@@ -114,6 +114,8 @@ public class Settings
     public static final String KEY_RX_BYTES = "rx_bytes";
     public static final String KEY_TX_BYTES = "tx_bytes";
 
+    public static final String KEY_LOCATION_PACKAGE_SIZE = PARAMS_PREFIX + "location_package_size";
+
     private static Settings instance = new Settings();
 
 
@@ -272,6 +274,7 @@ public class Settings
 
         mDefaults.put(KEY_MOCK_AVERAGE_SPEED, "-1"); // negative means use real one
         mDefaults.put(KEY_GPS_TIMEOUT, "20000");
+        mDefaults.put(KEY_LOCATION_PACKAGE_SIZE, "30");
 
 // FORMULAS
 

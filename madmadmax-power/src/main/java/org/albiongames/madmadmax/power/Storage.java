@@ -83,4 +83,9 @@ public class Storage
     {
         return mQueueFile.isEmpty();
     }
+
+    public void forEach(QueueFile.ElementReader reader) throws IOException
+    {
+        mQueueFile.forEach(reader);
+    }
 }

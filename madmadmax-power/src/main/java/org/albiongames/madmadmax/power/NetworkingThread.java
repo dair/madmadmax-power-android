@@ -247,6 +247,11 @@ public class NetworkingThread extends StatusThread
                 {
                     mService.getNetworkStorage().remove(); // wtf?
                 }
+                else if (entry.isTypeOf(StorageEntry.TYPE_LOCATION))
+                {
+                    mService.getLocationStorage().put(entry);
+                    mService.getNetworkStorage().remove();
+                }
                 else
                 {
                     boolean result = processOneItem(entry);
@@ -292,6 +297,22 @@ public class NetworkingThread extends StatusThread
                             }
                         }
                     }
+                }
+            }
+
+            synchronized (mService.getLocationStorage())
+            {
+                if (mService.getLocationStorage().size() > Settings.getLong(Settings.KEY_LOCATION_PACKAGE_SIZE))
+                {
+                    StorageEntry.Bundle bundle = new StorageEntry.Bundle();
+                    while (!mService.getLocationStorage().isEmpty())
+                    {
+                        StorageEntry.Base entry = mService.getLocationStorage().get();
+                        bundle.add(entry);
+                        mService.getLocationStorage().remove();
+                    }
+
+                    mService.getNetworkStorage().put(bundle);
                 }
             }
         }
