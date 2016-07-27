@@ -109,6 +109,11 @@ public class Settings
 
     public static final String KEY_EXTRA_DEBUG = PARAMS_PREFIX + "extra_debug";
 
+    public static final String KEY_GPS_TIMEOUT = PARAMS_PREFIX + "gps_timeout";
+
+    public static final String KEY_RX_BYTES = "rx_bytes";
+    public static final String KEY_TX_BYTES = "tx_bytes";
+
     private static Settings instance = new Settings();
 
 
@@ -182,12 +187,12 @@ public class Settings
     {
         mDefaults.put(KEY_DEVICE_ID, null);
         mDefaults.put(KEY_DEVICE_NAME, null);
-        mDefaults.put(KEY_SERVER_URL, "http://power.madmax.su:3000");
+        mDefaults.put(KEY_SERVER_URL, "http://p.madmax.su");
         mDefaults.put(KEY_BLUETOOTH_DEVICE, null);
 
         mDefaults.put(KEY_GPS_IDLE_INTERVAL, "5000"); // milliseconds
-        mDefaults.put(KEY_MIN_GPS_TIME, "2000"); // milliseconds
-        mDefaults.put(KEY_MIN_GPS_DISTANCE, "20"); //meters
+        mDefaults.put(KEY_MIN_GPS_TIME, "0"); // milliseconds
+        mDefaults.put(KEY_MIN_GPS_DISTANCE, "0"); //meters
         mDefaults.put(KEY_MIN_SATELLITES, "3");
         mDefaults.put(KEY_MIN_ACCURACY, "20");
         mDefaults.put(KEY_AVERAGE_SPEED_TIME, "3000"); // milliseconds
@@ -266,6 +271,7 @@ public class Settings
         mDefaults.put(KEY_SIEGE2DRIVE_DELAY, Long.toString(5000));
 
         mDefaults.put(KEY_MOCK_AVERAGE_SPEED, "-1"); // negative means use real one
+        mDefaults.put(KEY_GPS_TIMEOUT, "20000");
 
 // FORMULAS
 

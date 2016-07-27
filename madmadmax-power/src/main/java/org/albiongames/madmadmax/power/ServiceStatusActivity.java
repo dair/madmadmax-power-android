@@ -106,6 +106,7 @@ public class ServiceStatusActivity extends AppCompatActivity
                                       updateAverageSpeed();
                                       updateDistance();
                                       updateQueueSizes();
+                                      updateTraffic();
                                   }
                               }
                 );
@@ -385,5 +386,14 @@ public class ServiceStatusActivity extends AppCompatActivity
         if (ret)
             return ret;
         return super.onOptionsItemSelected(item);
+    }
+
+    void updateTraffic()
+    {
+        long rx = Settings.getLong(Settings.KEY_RX_BYTES);
+        long tx = Settings.getLong(Settings.KEY_TX_BYTES);
+        String value = Long.toString(rx) + " / " + Long.toString(tx);
+        TextView textView = (TextView)findViewById(R.id.trafficTextView);
+        textView.setText(value);
     }
 }

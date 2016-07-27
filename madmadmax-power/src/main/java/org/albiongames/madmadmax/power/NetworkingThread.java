@@ -1,5 +1,7 @@
 package org.albiongames.madmadmax.power;
 
+import android.net.TrafficStats;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -193,6 +195,9 @@ public class NetworkingThread extends StatusThread
         return ret; // try again later
     }
 
+    long mRxBytes = -1;
+    long mTxBytes = -1;
+
     @Override
     public void run()
     {
@@ -204,6 +209,12 @@ public class NetworkingThread extends StatusThread
         mDeviceId = Settings.getString(Settings.KEY_DEVICE_ID);
         if (mDeviceId == null || mDeviceId.isEmpty())
             return;
+
+        int uid = android.os.Process.myUid();
+        mRxBytes = TrafficStats.getUidTxBytes(uid);
+        mTxBytes = TrafficStats.getUidRxBytes(uid);
+        Settings.setLong(Settings.KEY_RX_BYTES, 0);
+        Settings.setLong(Settings.KEY_TX_BYTES, 0);
 
         setStatus(STATUS_ON);
 
@@ -254,6 +265,21 @@ public class NetworkingThread extends StatusThread
                         if (mErrorSleep < 5000)
                             mErrorSleep += 500;
                     } else {
+
+                        long rxBytes = TrafficStats.getUidTxBytes(uid);
+                        long txBytes = TrafficStats.getUidRxBytes(uid);
+                        long rx = rxBytes - mRxBytes;
+                        long tx = txBytes - mTxBytes;
+
+                        long storedRx = Settings.getLong(Settings.KEY_RX_BYTES);
+                        long storedTx = Settings.getLong(Settings.KEY_TX_BYTES);
+
+                        storedRx += rx;
+                        storedTx += tx;
+
+                        Settings.setLong(Settings.KEY_RX_BYTES, storedRx);
+                        Settings.setLong(Settings.KEY_TX_BYTES, storedTx);
+
                         // successfully sent a packet to the server
                         mErrorCountOnExit = 0;
                         mErrorSleep = 500;

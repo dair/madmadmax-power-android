@@ -480,7 +480,9 @@ public class LogicThread extends StatusThread
                     key.equals(Settings.KEY_EXTRA_DEBUG) ||
                     key.equals(Settings.KEY_LOCATION_THREAD_LAST_QUALITY) ||
                     key.equals(Settings.KEY_LAST_INSTANT_SPEED) ||
-                    key.equals(Settings.KEY_SERVER_URL))
+                    key.equals(Settings.KEY_SERVER_URL) ||
+                    key.equals(Settings.KEY_RX_BYTES) ||
+                    key.equals(Settings.KEY_TX_BYTES))
                 continue;
 
             String value = Settings.getString(key);

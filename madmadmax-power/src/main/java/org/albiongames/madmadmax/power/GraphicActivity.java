@@ -326,6 +326,7 @@ public class GraphicActivity extends AppCompatActivity {
         ImageView stop = (ImageView)findViewById(R.id.stopSignImageView);
         ImageView death = (ImageView)findViewById(R.id.deathImageView);
         ImageView fire = (ImageView)findViewById(R.id.fireImageView);
+        ImageView gpsError = (ImageView)findViewById(R.id.gpsErrorImageView);
 
         LinearLayout background = (LinearLayout)findViewById(R.id.background);
 
@@ -335,6 +336,7 @@ public class GraphicActivity extends AppCompatActivity {
         stop.setVisibility(View.INVISIBLE);
         death.setVisibility(View.INVISIBLE);
         fire.setVisibility(View.INVISIBLE);
+        gpsError.setVisibility(View.INVISIBLE);
         background.setBackgroundColor(Color.BLACK);
 
         if (!mServerRunning)
@@ -389,31 +391,42 @@ public class GraphicActivity extends AppCompatActivity {
             }
             else
             {
-                // enough fuel
-                long siegeState = Settings.getLong(Settings.KEY_SIEGE_STATE);
-                ImageView view = null;
-                if (siegeState == Settings.SIEGE_STATE_OFF)
+                long lastGpsSignal = Settings.getLong(Settings.KEY_LAST_GPS_UPDATE);
+                long now = System.currentTimeMillis();
+                long timeout = Settings.getLong(Settings.KEY_GPS_TIMEOUT);
+                if (now - lastGpsSignal > timeout)
                 {
-                    view = logo;
+                    gpsError.setVisibility(View.VISIBLE);
+                    stop.setVisibility(View.VISIBLE);
                 }
                 else
                 {
-                    view = fire;
-                    fire.setColorFilter(Color.YELLOW);
-                }
 
-                switch (state)
-                {
-                    case Settings.CAR_STATE_OK:
-                        view.setVisibility(View.VISIBLE); // color will be updated by speed
-                        background.setBackgroundColor(Color.BLACK);
-                        break;
-                    case Settings.CAR_STATE_MALFUNCTION_1:
-                        view.setVisibility(View.VISIBLE); // color will be updated by speed
-                        background.setBackgroundColor(Color.argb(0xFF, 0x77, 0, 0));
-                        break;
-                }
+                    // enough fuel
+                    long siegeState = Settings.getLong(Settings.KEY_SIEGE_STATE);
+                    ImageView view = null;
+                    if (siegeState == Settings.SIEGE_STATE_OFF)
+                    {
+                        view = logo;
+                    }
+                    else
+                    {
+                        view = fire;
+                        fire.setColorFilter(Color.YELLOW);
+                    }
 
+                    switch (state)
+                    {
+                        case Settings.CAR_STATE_OK:
+                            view.setVisibility(View.VISIBLE); // color will be updated by speed
+                            background.setBackgroundColor(Color.BLACK);
+                            break;
+                        case Settings.CAR_STATE_MALFUNCTION_1:
+                            view.setVisibility(View.VISIBLE); // color will be updated by speed
+                            background.setBackgroundColor(Color.argb(0xFF, 0x77, 0, 0));
+                            break;
+                    }
+                }
             }
         }
 
