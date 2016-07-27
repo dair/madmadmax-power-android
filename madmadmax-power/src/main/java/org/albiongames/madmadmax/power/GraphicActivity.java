@@ -9,12 +9,6 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.media.Image;
-import android.media.audiofx.BassBoost;
-import android.os.AsyncTask;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.SystemClock;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -116,8 +110,19 @@ public class GraphicActivity extends AppCompatActivity {
             {
                 if (Tools.isMyServiceRunning(GraphicActivity.this))
                 {
-                    Intent intent = new Intent(GraphicActivity.this, FuelLoadActivity.class);
-                    startActivity(intent);
+                    double averageSpeedKmh = Tools.metersPerSecondToKilometersPerHour(Tools.getAverageSpeed());
+                    if (averageSpeedKmh < 1.0)
+                    {
+                        if (Settings.getDouble(Settings.KEY_HITPOINTS) > 0)
+                        {
+                            Intent intent = new Intent(GraphicActivity.this, FuelLoadActivity.class);
+                            startActivity(intent);
+                        }
+                    }
+                    else
+                    {
+                        Tools.messageBox(GraphicActivity.this, R.string.graphic_car_should_stop);
+                    }
                 }
                 else
                 {
@@ -135,8 +140,19 @@ public class GraphicActivity extends AppCompatActivity {
             {
                 if (Tools.isMyServiceRunning(GraphicActivity.this))
                 {
-                    Intent intent = new Intent(GraphicActivity.this, RepairLoadActivity.class);
-                    startActivity(intent);
+                    double averageSpeedKmh = Tools.metersPerSecondToKilometersPerHour(Tools.getAverageSpeed());
+                    if (averageSpeedKmh < 1.0)
+                    {
+                        if (Settings.getDouble(Settings.KEY_HITPOINTS) > 0)
+                        {
+                            Intent intent = new Intent(GraphicActivity.this, RepairLoadActivity.class);
+                            startActivity(intent);
+                        }
+                    }
+                    else
+                    {
+                        Tools.messageBox(GraphicActivity.this, R.string.graphic_car_should_stop);
+                    }
                 }
                 else
                 {
@@ -154,11 +170,12 @@ public class GraphicActivity extends AppCompatActivity {
             {
                 if (Tools.isMyServiceRunning(GraphicActivity.this))
                 {
-                    double averageSpeed = Settings.getDouble(Settings.KEY_AVERAGE_SPEED);
+                    double averageSpeedKmh = Tools.metersPerSecondToKilometersPerHour(Tools.getAverageSpeed());
+
                     long siegeState = Settings.getLong(Settings.KEY_SIEGE_STATE);
                     if (siegeState == Settings.SIEGE_STATE_OFF)
                     {
-                        if (averageSpeed < 1.0)
+                        if (averageSpeedKmh < 1.0)
                         {
                             startScreenTimer(Settings.getLong(Settings.KEY_DRIVE2SIEGE_DELAY), new Runnable() {
                                 @Override
@@ -296,11 +313,11 @@ public class GraphicActivity extends AppCompatActivity {
         int state = (int)Settings.getLong(Settings.KEY_CAR_STATE);
         double currentFuel = Settings.getDouble(Settings.KEY_FUEL_NOW);
         double currentHp = Settings.getDouble(Settings.KEY_HITPOINTS);
-        double averageSpeed = Settings.getDouble(Settings.KEY_AVERAGE_SPEED);
+        double averageSpeedKmh = Tools.metersPerSecondToKilometersPerHour(Tools.getAverageSpeed());
 
         if (mCarState == state && Math.abs(currentFuel - mFuelNow) < 0.5 &&
                 Math.abs(currentHp - mCarStatusHitPoints) < 0.1 &&
-                Math.abs(averageSpeed - mCarStatusAverageSpeed) < 1)
+                Math.abs(averageSpeedKmh - mCarStatusAverageSpeed) < 1)
             return;
 
         ImageView logo = (ImageView)findViewById(R.id.logoImageView);
@@ -309,6 +326,7 @@ public class GraphicActivity extends AppCompatActivity {
         ImageView stop = (ImageView)findViewById(R.id.stopSignImageView);
         ImageView death = (ImageView)findViewById(R.id.deathImageView);
         ImageView fire = (ImageView)findViewById(R.id.fireImageView);
+        ImageView gpsError = (ImageView)findViewById(R.id.gpsErrorImageView);
 
         LinearLayout background = (LinearLayout)findViewById(R.id.background);
 
@@ -318,6 +336,7 @@ public class GraphicActivity extends AppCompatActivity {
         stop.setVisibility(View.INVISIBLE);
         death.setVisibility(View.INVISIBLE);
         fire.setVisibility(View.INVISIBLE);
+        gpsError.setVisibility(View.INVISIBLE);
         background.setBackgroundColor(Color.BLACK);
 
         if (!mServerRunning)
@@ -327,7 +346,7 @@ public class GraphicActivity extends AppCompatActivity {
         else
         if (currentHp <= 0)
         {
-            if (averageSpeed > 1)
+            if (averageSpeedKmh > 1)
             {
                 stop.setVisibility(View.VISIBLE);
             }
@@ -342,7 +361,7 @@ public class GraphicActivity extends AppCompatActivity {
         else
         if (state == Settings.CAR_STATE_MALFUNCTION_2)
         {
-            if (averageSpeed > 1)
+            if (averageSpeedKmh > 1)
             {
                 stop.setVisibility(View.VISIBLE);
             }
@@ -359,7 +378,7 @@ public class GraphicActivity extends AppCompatActivity {
             // no malfunction 2
             if (currentFuel < 1.0)
             {
-                if (averageSpeed > 1.0)
+                if (averageSpeedKmh > 1.0)
                 {
                     stop.setVisibility(View.VISIBLE);
                 }
@@ -372,31 +391,42 @@ public class GraphicActivity extends AppCompatActivity {
             }
             else
             {
-                // enough fuel
-                long siegeState = Settings.getLong(Settings.KEY_SIEGE_STATE);
-                ImageView view = null;
-                if (siegeState == Settings.SIEGE_STATE_OFF)
+                long lastGpsSignal = Settings.getLong(Settings.KEY_LAST_GPS_UPDATE);
+                long now = System.currentTimeMillis();
+                long timeout = Settings.getLong(Settings.KEY_GPS_TIMEOUT);
+                if (now - lastGpsSignal > timeout)
                 {
-                    view = logo;
+                    gpsError.setVisibility(View.VISIBLE);
+                    stop.setVisibility(View.VISIBLE);
                 }
                 else
                 {
-                    view = fire;
-                    fire.setColorFilter(Color.YELLOW);
-                }
 
-                switch (state)
-                {
-                    case Settings.CAR_STATE_OK:
-                        view.setVisibility(View.VISIBLE); // color will be updated by speed
-                        background.setBackgroundColor(Color.BLACK);
-                        break;
-                    case Settings.CAR_STATE_MALFUNCTION_1:
-                        view.setVisibility(View.VISIBLE); // color will be updated by speed
-                        background.setBackgroundColor(Color.argb(0xFF, 0x77, 0, 0));
-                        break;
-                }
+                    // enough fuel
+                    long siegeState = Settings.getLong(Settings.KEY_SIEGE_STATE);
+                    ImageView view = null;
+                    if (siegeState == Settings.SIEGE_STATE_OFF)
+                    {
+                        view = logo;
+                    }
+                    else
+                    {
+                        view = fire;
+                        fire.setColorFilter(Color.YELLOW);
+                    }
 
+                    switch (state)
+                    {
+                        case Settings.CAR_STATE_OK:
+                            view.setVisibility(View.VISIBLE); // color will be updated by speed
+                            background.setBackgroundColor(Color.BLACK);
+                            break;
+                        case Settings.CAR_STATE_MALFUNCTION_1:
+                            view.setVisibility(View.VISIBLE); // color will be updated by speed
+                            background.setBackgroundColor(Color.argb(0xFF, 0x77, 0, 0));
+                            break;
+                    }
+                }
             }
         }
 
@@ -455,7 +485,9 @@ public class GraphicActivity extends AppCompatActivity {
 
         if (Tools.isMyServiceRunning(this))
         {
-            double averageSpeed = Settings.getDouble(Settings.KEY_AVERAGE_SPEED);
+            double averageSpeedMps = Tools.getAverageSpeed();
+            double averageSpeedKmh = Tools.metersPerSecondToKilometersPerHour(averageSpeedMps);
+
             double redZoneSpeed = LogicThread.getCurrentRedZone();
 
             switch (state)
@@ -476,21 +508,21 @@ public class GraphicActivity extends AppCompatActivity {
                 return; // already done in updateCarStatus()
             }
 
-            if (averageSpeed < 0.5)
+            if (averageSpeedKmh < 1)
             {
                 logo.setColorFilter(Color.GRAY);
                 return;
             }
 
-            if (averageSpeed > redZoneSpeed)
+            if (averageSpeedKmh > redZoneSpeed)
             {
                 logo.setColorFilter(Color.RED);
                 return;
             }
 
-            if (averageSpeed > redZoneSpeed * 0.75)
+            if (averageSpeedKmh > redZoneSpeed * 0.75)
             {
-                int color = Tools.colorMiddle(Color.WHITE, Color.RED, (averageSpeed - redZoneSpeed * 0.75) / (redZoneSpeed * 0.25));
+                int color = Tools.colorMiddle(Color.WHITE, Color.RED, (averageSpeedKmh - redZoneSpeed * 0.75) / (redZoneSpeed * 0.25));
                 logo.setColorFilter(color);
                 return;
             }
@@ -502,7 +534,7 @@ public class GraphicActivity extends AppCompatActivity {
         }
         else
         {
-            logo.setColorFilter(Color.DKGRAY);
+            logo.setColorFilter(Color.argb(255, 25, 25, 25));
         }
     }
 

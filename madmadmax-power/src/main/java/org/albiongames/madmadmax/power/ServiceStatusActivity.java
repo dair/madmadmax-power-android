@@ -104,11 +104,14 @@ public class ServiceStatusActivity extends AppCompatActivity
                                       updateThreadsState();
                                       updateCarState();
                                       updateAverageSpeed();
+                                      updateDistance();
+                                      updateQueueSizes();
+                                      updateTraffic();
                                   }
                               }
                 );
             }
-        }, 0, 1, TimeUnit.SECONDS);
+        }, 0, 300, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -287,7 +290,7 @@ public class ServiceStatusActivity extends AppCompatActivity
         if (textView == null)
             return;
 
-        double averageSpeed = Settings.getDouble(Settings.KEY_AVERAGE_SPEED);
+        double averageSpeed = Tools.getAverageSpeed();
         double averageSpeedKmH = Tools.metersPerSecondToKilometersPerHour(averageSpeed);
 
         textView.setText(Double.toString(averageSpeedKmH));
@@ -327,6 +330,30 @@ public class ServiceStatusActivity extends AppCompatActivity
         textView.setText(Double.toString(distance));
     }
 
+    protected void updateQueueSizes()
+    {
+        if (Tools.isMyServiceRunning(this))
+        {
+            int nSize = -1;
+            int lSize = -1;
+            if (PowerService.instance() != null) {
+                if (PowerService.instance().getNetworkStorage() != null)
+                {
+                    nSize = PowerService.instance().getNetworkStorage().size();
+                }
+
+                if (PowerService.instance().getLogicStorage() != null)
+                {
+                    lSize = PowerService.instance().getLogicStorage().size();
+                }
+            }
+
+            String text = Integer.toString(lSize) + " / " + Integer.toString(nSize);
+            TextView n = (TextView)findViewById(R.id.netQueueTextView);
+            n.setText(text);
+        }
+    }
+
     private boolean isMyServiceRunning(Class<?> serviceClass)
     {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
@@ -359,5 +386,14 @@ public class ServiceStatusActivity extends AppCompatActivity
         if (ret)
             return ret;
         return super.onOptionsItemSelected(item);
+    }
+
+    void updateTraffic()
+    {
+        long rx = Settings.getLong(Settings.KEY_RX_BYTES);
+        long tx = Settings.getLong(Settings.KEY_TX_BYTES);
+        String value = Long.toString(rx) + " / " + Long.toString(tx);
+        TextView textView = (TextView)findViewById(R.id.trafficTextView);
+        textView.setText(value);
     }
 }

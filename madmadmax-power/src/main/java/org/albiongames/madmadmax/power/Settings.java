@@ -105,6 +105,15 @@ public class Settings
     public static final String KEY_DRIVE2SIEGE_DELAY = PARAMS_PREFIX + "drive2siege_delay";
     public static final String KEY_SIEGE2DRIVE_DELAY = PARAMS_PREFIX + "siege2drive_delay";
 
+    public static final String KEY_MOCK_AVERAGE_SPEED = PARAMS_PREFIX + "mock_average_speed";
+
+    public static final String KEY_EXTRA_DEBUG = PARAMS_PREFIX + "extra_debug";
+
+    public static final String KEY_GPS_TIMEOUT = PARAMS_PREFIX + "gps_timeout";
+
+    public static final String KEY_RX_BYTES = "rx_bytes";
+    public static final String KEY_TX_BYTES = "tx_bytes";
+
     private static Settings instance = new Settings();
 
 
@@ -178,12 +187,12 @@ public class Settings
     {
         mDefaults.put(KEY_DEVICE_ID, null);
         mDefaults.put(KEY_DEVICE_NAME, null);
-        mDefaults.put(KEY_SERVER_URL, "http://power.madmax.su:3000");
+        mDefaults.put(KEY_SERVER_URL, "http://p.madmax.su");
         mDefaults.put(KEY_BLUETOOTH_DEVICE, null);
 
         mDefaults.put(KEY_GPS_IDLE_INTERVAL, "5000"); // milliseconds
-        mDefaults.put(KEY_MIN_GPS_TIME, "2000"); // milliseconds
-        mDefaults.put(KEY_MIN_GPS_DISTANCE, "20"); //meters
+        mDefaults.put(KEY_MIN_GPS_TIME, "0"); // milliseconds
+        mDefaults.put(KEY_MIN_GPS_DISTANCE, "0"); //meters
         mDefaults.put(KEY_MIN_SATELLITES, "3");
         mDefaults.put(KEY_MIN_ACCURACY, "20");
         mDefaults.put(KEY_AVERAGE_SPEED_TIME, "3000"); // milliseconds
@@ -231,6 +240,8 @@ public class Settings
 
         mDefaults.put(KEY_BLUETOOTH_STATUS, Integer.toString(BluetoothThread.STATUS_OFF));
 
+        mDefaults.put(KEY_EXTRA_DEBUG, "0");
+
         mDefaults.put(KEY_DAMAGE_CODE,
                 "{" +
                         "\"0\": 1," +
@@ -259,6 +270,9 @@ public class Settings
         mDefaults.put(KEY_DRIVE2SIEGE_DELAY, Long.toString(10000));
         mDefaults.put(KEY_SIEGE2DRIVE_DELAY, Long.toString(5000));
 
+        mDefaults.put(KEY_MOCK_AVERAGE_SPEED, "-1"); // negative means use real one
+        mDefaults.put(KEY_GPS_TIMEOUT, "20000");
+
 // FORMULAS
 
         mFormulaValues.add(KEY_P1_FORMULA);
@@ -281,9 +295,14 @@ public class Settings
         mFormulaValues.add(KEY_MALFUNCTION1_RED_ZONE_FUEL_PER_KM);
     }
 
-    public Set<String> possibleKeys()
+    public Set<String> pPossibleKeys()
     {
         return mDefaults.keySet();
+    }
+
+    public static Set<String> possibleKeys()
+    {
+        return instance.pPossibleKeys();
     }
 
     private void pSetContext(Context context)

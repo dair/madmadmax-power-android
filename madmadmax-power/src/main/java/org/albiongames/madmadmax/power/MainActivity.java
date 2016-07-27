@@ -14,6 +14,7 @@ public class MainActivity extends Activity
 
         Settings.setContext(this);
         Upgrades.setPath(getFilesDir().getPath());
+        FuelQuality.setPath(getFilesDir().getPath());
 
         final Class<? extends Activity> activityClass;
 

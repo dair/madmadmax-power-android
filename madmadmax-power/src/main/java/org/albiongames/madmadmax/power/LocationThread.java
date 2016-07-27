@@ -106,6 +106,7 @@ public class LocationThread extends StatusThread implements LocationListener
                 Location l = Location.CREATOR.createFromParcel(p);
 
                 long time = l.getTime();
+
                 if (lastLocationTime == 0)
                 {
                     sleepTime = 0;
@@ -119,6 +120,8 @@ public class LocationThread extends StatusThread implements LocationListener
                 {
                     Tools.sleep(sleepTime);
                 }
+
+                l.setTime(System.currentTimeMillis());
 
                 onLocationChanged(l);
 
@@ -293,6 +296,7 @@ public class LocationThread extends StatusThread implements LocationListener
             return;
 
         long localTime = System.currentTimeMillis();
+        location.setTime(localTime);
 
         if (Settings.getLong(Settings.KEY_MOCK_DATA) == Settings.MOCK_DATA_RECORD)
         {
@@ -438,15 +442,27 @@ public class LocationThread extends StatusThread implements LocationListener
         boolean haveBorder = false;
 
         Location prevLocation = null;
+
+        String dump = "";
+
         for (int i = mLastLocations.size() - 1; i >= 0; --i)
         {
             Location l = mLastLocations.get(i);
+
 //            System.out.println("position: " + Integer.toString(i) + ", location: " + l.toString());
 
-            long x = l.getTime();
+            long x = l.getTime() - minTime;
             float y = l.getSpeed();
 
-            if (x < minTime)
+            dump += Long.toString(x) + ", " + Float.toString(y) + "; ";
+
+            if (prevLocation == null)
+            {
+                xs.add(duration);
+                ys.add(y);
+            }
+
+            if (x < 0)
             {
 //                System.out.println("x < minTime");
                 if (haveBorder)
@@ -464,19 +480,15 @@ public class LocationThread extends StatusThread implements LocationListener
                     return l.getSpeed();
 
                 float df = prevLocation.getSpeed() - y;
-                long dt = prevLocation.getTime() - x;
+                long dt = (prevLocation.getTime() - minTime) - x;
 
-                long mt = minTime - x;
+                long mt = -x;
 
-                float s = (mt * df) / dt;
+                float s = y + (mt * df) / dt;
 
-                x = minTime;
+                x = 0;
                 y = s;
             }
-
-
-//            System.out.println("adding x: " + Long.toString(x));
-//            System.out.println("adding y: " + Float.toString(y));
 
             xs.add(0, x);
             ys.add(0, y);
@@ -484,12 +496,14 @@ public class LocationThread extends StatusThread implements LocationListener
             prevLocation = l;
         }
 
+        Tools.log(dump);
+
         if (!haveBorder)
         {
 //            System.out.println("adding x: " + Long.toString(minTime));
 //            System.out.println("adding y: " + Float.toString(0.0f));
 
-            xs.add(0, minTime);
+            xs.add(0, 0L);
             ys.add(0, 0.0f);
         }
 

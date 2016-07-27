@@ -1,5 +1,7 @@
 package org.albiongames.madmadmax.power;
 
+import android.net.TrafficStats;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -23,6 +25,8 @@ public class NetworkingThread extends StatusThread
     static long mLastNetworkInteraction = 0;
 
     String mDeviceId = null;
+
+    long mErrorSleep = 500;
 
     public static class Request
     {
@@ -137,12 +141,9 @@ public class NetworkingThread extends StatusThread
         return false;
     }
 
-    boolean processOneItem()
+    boolean processOneItem(StorageEntry.Base entry)
     {
         boolean ret = false;
-        StorageEntry.Base entry = mService.getNetworkStorage().get();
-        if (entry == null)
-            return false;
 
         JSONObject object = entry.toJsonObject();
         try
@@ -188,22 +189,32 @@ public class NetworkingThread extends StatusThread
         {
             Tools.log("Networking exception: " + ex.toString());
             Settings.setLong(Settings.KEY_LATEST_FAILED_CONNECTION, System.currentTimeMillis());
-            ret = true;
+            ret = false;
         }
 
         return ret; // try again later
     }
 
+    long mRxBytes = -1;
+    long mTxBytes = -1;
+
     @Override
     public void run()
     {
         Tools.log("NetworkingThread: start");
+        int mErrorCountOnExit = 0;
 
         super.run();
 
         mDeviceId = Settings.getString(Settings.KEY_DEVICE_ID);
         if (mDeviceId == null || mDeviceId.isEmpty())
             return;
+
+        int uid = android.os.Process.myUid();
+        mRxBytes = TrafficStats.getUidTxBytes(uid);
+        mTxBytes = TrafficStats.getUidRxBytes(uid);
+        Settings.setLong(Settings.KEY_RX_BYTES, 0);
+        Settings.setLong(Settings.KEY_TX_BYTES, 0);
 
         setStatus(STATUS_ON);
 
@@ -220,30 +231,72 @@ public class NetworkingThread extends StatusThread
                 }
             }
 
-            boolean result = processOneItem();
+            int number = 0;
 
-            if (!result)
+            if (mService.getNetworkStorage().isEmpty())
             {
-                try
-                {
-                    Thread.sleep(2000);
-                }
-                catch (Exception ex)
-                {
-                }
+                // no data
+                if (getStatus() == STATUS_STOPPING)
+                    break;
+                Tools.sleep(500);
             }
-
-            long now = System.currentTimeMillis();
-            long lastChange = getLastStatusChangeTime();
-            long timeout = Settings.getLong(Settings.KEY_NETWORK_TIMEOUT);
-
-            if (getStatus() == STATUS_STOPPING &&
-                now - lastChange > 2*timeout)
+            else
             {
-                setStatus(STATUS_OFF);
-                break;
+                StorageEntry.Base entry = mService.getNetworkStorage().get();
+                if (entry == null)
+                {
+                    mService.getNetworkStorage().remove(); // wtf?
+                }
+                else
+                {
+                    boolean result = processOneItem(entry);
+
+                    if (!result) {
+                        // network error
+                        if (getStatus() == STATUS_STOPPING) {
+                            mErrorSleep = 500;
+                            if (mErrorCountOnExit > 3)
+                                break;
+                            else
+                                ++mErrorCountOnExit;
+                        }
+
+                        Tools.sleep(mErrorSleep);
+                        if (mErrorSleep < 5000)
+                            mErrorSleep += 500;
+                    } else {
+
+                        long rxBytes = TrafficStats.getUidTxBytes(uid);
+                        long txBytes = TrafficStats.getUidRxBytes(uid);
+                        long rx = rxBytes - mRxBytes;
+                        long tx = txBytes - mTxBytes;
+
+                        long storedRx = Settings.getLong(Settings.KEY_RX_BYTES);
+                        long storedTx = Settings.getLong(Settings.KEY_TX_BYTES);
+
+                        storedRx += rx;
+                        storedTx += tx;
+
+                        Settings.setLong(Settings.KEY_RX_BYTES, storedRx);
+                        Settings.setLong(Settings.KEY_TX_BYTES, storedTx);
+
+                        // successfully sent a packet to the server
+                        mErrorCountOnExit = 0;
+                        mErrorSleep = 500;
+
+                        // on success let's see how much we have left
+                        if (getStatus() == STATUS_STOPPING) {
+                            if (mService.getNetworkStorage().size() > 10) // whoa, that's too much, stop now
+                            {
+                                break;
+                            }
+                        }
+                    }
+                }
             }
         }
+
+        setStatus(STATUS_OFF);
 
         Tools.log("NetworkingThread: stop");
     }

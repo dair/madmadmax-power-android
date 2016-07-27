@@ -13,7 +13,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 import app.akexorcist.bluetotohspp.library.BluetoothSPP;
 
@@ -169,7 +178,7 @@ public class Tools {
             return false;
         }
 
-        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
+        if (locationManager.isProviderEnabled(android.provider.Settings.Secure.LOCATION_MODE))
         {
             messageBox(activity, R.string.tools_check_gps_disabled);
             return false;
@@ -189,5 +198,65 @@ public class Tools {
         }
 
         return true;
+    }
+
+    public static double getAverageSpeed()
+    {
+        double real = Settings.getDouble(Settings.KEY_AVERAGE_SPEED);
+//        double mock = Tools.kilometersPerHourToMetersPerSecond(Settings.getDouble(Settings.KEY_MOCK_AVERAGE_SPEED));
+//        if (mock < 0.0)
+        return real;
+//        return mock;
+    }
+
+    public static String convertStreamToString(InputStream is) throws IOException
+    {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        StringBuilder sb = new StringBuilder();
+        String line = null;
+        while ((line = reader.readLine()) != null) {
+            sb.append(line).append("\n");
+        }
+        reader.close();
+        return sb.toString();
+    }
+
+    public static JSONObject readFileToJson(final String filename)
+    {
+        JSONObject ret = null;
+        try
+        {
+            FileInputStream fin = new FileInputStream(filename);
+            String jsonString = convertStreamToString(fin);
+            fin.close();
+            ret = new JSONObject(jsonString);
+        }
+        catch (IOException ex)
+        {
+
+        }
+        catch (JSONException ex)
+        {
+
+        }
+
+        return ret;
+    }
+
+    public static void writeJsonToFile(final String filename, JSONObject object)
+    {
+        FileOutputStream outputStream;
+
+        try
+        {
+            outputStream = new FileOutputStream(filename);
+            outputStream.write(object.toString().getBytes());
+            outputStream.close();
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+
     }
 }

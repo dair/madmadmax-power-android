@@ -1,7 +1,14 @@
 package org.albiongames.madmadmax.power;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by dair on 26/05/16.
@@ -13,6 +20,8 @@ public class StorageEntry
     public static final String TYPE_LOCATION = "location";
     public static final String TYPE_DAMAGE = "damage";
     public static final String TYPE_DUMP = "dump";
+    public static final String TYPE_BUNDLE = "bundle";
+    public static final String TYPE_INFO = "info";
 
 
     public static abstract class Base
@@ -190,17 +199,26 @@ public class StorageEntry
 
     public static class Info extends Base
     {
-        String mInfo = null;
-        public Info(String info)
+        Map<String, String> mInfo = new HashMap<>();
+
+        public Info(Map<String, String> info)
         {
-            super("info");
+            super(TYPE_INFO);
             mInfo = info;
         }
 
         public Info(JSONObject object) throws JSONException
         {
             super(object);
-            mInfo = object.getString("info");
+            JSONObject infoObject = object.getJSONObject("info");
+            Iterator<String> iterator = infoObject.keys();
+            while (iterator.hasNext())
+            {
+                String key = iterator.next();
+                String value = infoObject.getString(key);
+
+                mInfo.put(key, value);
+            }
         }
 
         @Override
@@ -209,7 +227,8 @@ public class StorageEntry
             JSONObject jsonObject = super.toJsonObject();
             try
             {
-                jsonObject.put("info", mInfo);
+                JSONObject infoObject = new JSONObject(mInfo);
+                jsonObject.put("info", infoObject);
                 return jsonObject;
             }
             catch (JSONException e)
@@ -295,6 +314,10 @@ public class StorageEntry
             {
                 ret = new Damage(object);
             }
+            else if (type.equalsIgnoreCase("bundle"))
+            {
+                ret = new Bundle(object);
+            }
         }
         catch (JSONException ex)
         {
@@ -335,4 +358,57 @@ public class StorageEntry
             return jsonObject;
         }
     }
+
+    public static class Bundle extends Base
+    {
+        List<Base> mData = new LinkedList<>();
+
+        Bundle()
+        {
+            super(TYPE_BUNDLE);
+        }
+
+        Bundle(JSONObject object) throws JSONException
+        {
+            super(object);
+            JSONArray data = object.getJSONArray("data");
+            for (int i = 0; i < data.length(); ++i)
+            {
+                Base base = createFromJson(data.getJSONObject(i));
+                if (base != null)
+                    mData.add(base);
+            }
+        }
+
+        @Override
+        public JSONObject toJsonObject()
+        {
+            JSONObject jsonObject = super.toJsonObject();
+            JSONArray data = new JSONArray();
+            for (Base base: mData)
+            {
+                data.put(base.toJsonObject());
+            }
+            try
+            {
+                jsonObject.put("data", data);
+            }
+            catch (JSONException ex)
+            {//oh really?
+            }
+            return jsonObject;
+        }
+
+        public void add(Base object)
+        {
+            mData.add(object);
+        }
+
+        public int size()
+        {
+            return mData.size();
+        }
+    }
+
+
 }
