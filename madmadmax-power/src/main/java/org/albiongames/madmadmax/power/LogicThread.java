@@ -465,7 +465,7 @@ public class LogicThread extends StatusThread
 
     Map<String, String> mInfoMap = new HashMap<>();
 
-    void generateInfo()
+    synchronized void generateInfo()
     {
         Map<String, String> info = new HashMap<>();
         Map<String, String> diff = new HashMap<>();

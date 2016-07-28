@@ -110,18 +110,29 @@ public class GraphicActivity extends AppCompatActivity {
             {
                 if (Tools.isMyServiceRunning(GraphicActivity.this))
                 {
-                    double averageSpeedKmh = Tools.metersPerSecondToKilometersPerHour(Tools.getAverageSpeed());
-                    if (averageSpeedKmh < 1.0)
+                    long lastGpsSignal = Settings.getLong(Settings.KEY_LAST_GPS_UPDATE);
+                    long now = System.currentTimeMillis();
+                    long timeout = Settings.getLong(Settings.KEY_GPS_TIMEOUT);
+                    if (now - lastGpsSignal > timeout)
                     {
-                        if (Settings.getDouble(Settings.KEY_HITPOINTS) > 0)
-                        {
-                            Intent intent = new Intent(GraphicActivity.this, FuelLoadActivity.class);
-                            startActivity(intent);
-                        }
+                        Tools.messageBox(GraphicActivity.this, R.string.graphic_car_should_stop);
                     }
                     else
                     {
-                        Tools.messageBox(GraphicActivity.this, R.string.graphic_car_should_stop);
+
+                        double averageSpeedKmh = Tools.metersPerSecondToKilometersPerHour(Tools.getAverageSpeed());
+                        if (averageSpeedKmh < 1.0)
+                        {
+                            if (Settings.getDouble(Settings.KEY_HITPOINTS) > 0)
+                            {
+                                Intent intent = new Intent(GraphicActivity.this, FuelLoadActivity.class);
+                                startActivity(intent);
+                            }
+                        }
+                        else
+                        {
+                            Tools.messageBox(GraphicActivity.this, R.string.graphic_car_should_stop);
+                        }
                     }
                 }
                 else
@@ -140,18 +151,28 @@ public class GraphicActivity extends AppCompatActivity {
             {
                 if (Tools.isMyServiceRunning(GraphicActivity.this))
                 {
-                    double averageSpeedKmh = Tools.metersPerSecondToKilometersPerHour(Tools.getAverageSpeed());
-                    if (averageSpeedKmh < 1.0)
+                    long lastGpsSignal = Settings.getLong(Settings.KEY_LAST_GPS_UPDATE);
+                    long now = System.currentTimeMillis();
+                    long timeout = Settings.getLong(Settings.KEY_GPS_TIMEOUT);
+                    if (now - lastGpsSignal > timeout)
                     {
-                        if (Settings.getDouble(Settings.KEY_HITPOINTS) > 0)
-                        {
-                            Intent intent = new Intent(GraphicActivity.this, RepairLoadActivity.class);
-                            startActivity(intent);
-                        }
+                        Tools.messageBox(GraphicActivity.this, R.string.graphic_car_should_stop);
                     }
                     else
                     {
-                        Tools.messageBox(GraphicActivity.this, R.string.graphic_car_should_stop);
+                        double averageSpeedKmh = Tools.metersPerSecondToKilometersPerHour(Tools.getAverageSpeed());
+                        if (averageSpeedKmh < 1.0)
+                        {
+                            if (Settings.getDouble(Settings.KEY_HITPOINTS) > 0)
+                            {
+                                Intent intent = new Intent(GraphicActivity.this, RepairLoadActivity.class);
+                                startActivity(intent);
+                            }
+                        }
+                        else
+                        {
+                            Tools.messageBox(GraphicActivity.this, R.string.graphic_car_should_stop);
+                        }
                     }
                 }
                 else

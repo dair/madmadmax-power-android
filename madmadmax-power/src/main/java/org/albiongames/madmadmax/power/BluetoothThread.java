@@ -247,7 +247,7 @@ public class BluetoothThread extends Thread
         }
 
         long time = System.currentTimeMillis();
-        if (time < mTimeWaiting.get(queueCode))
+        if (mTimeWaiting.containsKey(queueCode) && time < mTimeWaiting.get(queueCode))
         {
             return false;
         }
