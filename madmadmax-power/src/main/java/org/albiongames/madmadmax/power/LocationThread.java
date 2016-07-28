@@ -366,6 +366,11 @@ public class LocationThread extends StatusThread implements LocationListener
         }
         mLastLocation = location;
 
+        if (localDistance < 0.01)
+        {
+            return;
+        }
+
         StorageEntry.Location location1 = new StorageEntry.Location(localTime, lat, lon, acc, speed, localDistance, satellites);
 
         mService.getLogicStorage().put(location1);
@@ -373,7 +378,6 @@ public class LocationThread extends StatusThread implements LocationListener
 
         addLocation(location);
 
-        Settings.setLong(Settings.KEY_LOCATION_THREAD_STATUS, STATUS_ON);
 
         long averageSpeedTime = Settings.getLong(Settings.KEY_AVERAGE_SPEED_TIME);
         Settings.setDouble(Settings.KEY_AVERAGE_SPEED, averageSpeed(averageSpeedTime));

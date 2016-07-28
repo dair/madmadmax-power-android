@@ -260,6 +260,11 @@ public class NetworkingThread extends StatusThread
                     mService.getLocationStorage().put(entry);
                     mService.getNetworkStorage().remove();
                 }
+                else if (entry.isTypeOf(StorageEntry.TYPE_INFO))
+                {
+                    mService.getInfoStorage().put(entry);
+                    mService.getNetworkStorage().remove();
+                }
                 else
                 {
                     boolean result = processOneItem(entry);
@@ -312,22 +317,38 @@ public class NetworkingThread extends StatusThread
             {
                 if (mService.getLocationStorage().size() > Settings.getLong(Settings.KEY_LOCATION_PACKAGE_SIZE))
                 {
-                    StorageEntry.Bundle bundle = new StorageEntry.Bundle();
-                    while (!mService.getLocationStorage().isEmpty())
-                    {
-                        StorageEntry.Base entry = mService.getLocationStorage().get();
-                        bundle.add(entry);
-                        mService.getLocationStorage().remove();
-                    }
-
-                    mService.getNetworkStorage().put(bundle);
+                    flushQueue(mService.getLocationStorage());
+                }
+                
+                if (mService.getLocationStorage().size() > Settings.getLong(Settings.KEY_LOCATION_PACKAGE_SIZE))
+                {
+                    flushQueue(mService.getLocationStorage());
                 }
             }
         }
 
+        // on exit, flush locationqueue
+        flushQueue(mService.getLocationStorage());
+        flushQueue(mService.getInfoStorage());
+
         setStatus(STATUS_OFF);
 
         Tools.log("NetworkingThread: stop");
+    }
+
+    void flushQueue(Storage storage)
+    {
+        StorageEntry.Bundle bundle = new StorageEntry.Bundle();
+        while (!storage.isEmpty())
+        {
+            StorageEntry.Base entry = storage.get();
+            bundle.add(entry);
+            storage.remove();
+        }
+
+        if (bundle.size() > 0)
+            mService.getNetworkStorage().put(bundle);
+
     }
 
     static String addParamUpdate(String s)

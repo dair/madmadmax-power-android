@@ -117,7 +117,7 @@ public class LogicThread extends StatusThread
 
         mService.dump(COMPONENT, "Done processing location {" + location.toString() + "}");
 
-        generateInfo();
+//        generateInfo();
     }
 
     void processDamage(StorageEntry.Damage damage)

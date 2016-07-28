@@ -115,6 +115,7 @@ public class Settings
     public static final String KEY_TX_BYTES = "tx_bytes";
 
     public static final String KEY_LOCATION_PACKAGE_SIZE = PARAMS_PREFIX + "location_package_size";
+    public static final String KEY_INFO_PACKAGE_SIZE = PARAMS_PREFIX + "info_package_size";
 
     public static final String KEY_INFO_KEYS = PARAMS_PREFIX + "info_keys";
 
@@ -197,7 +198,7 @@ public class Settings
         mDefaults.put(KEY_SERVER_URL, "http://p.madmax.su");
         mDefaults.put(KEY_BLUETOOTH_DEVICE, null);
 
-        mDefaults.put(KEY_GPS_IDLE_INTERVAL, "5000"); // milliseconds
+        mDefaults.put(KEY_GPS_IDLE_INTERVAL, "30000"); // milliseconds
         mDefaults.put(KEY_MIN_GPS_TIME, "0"); // milliseconds
         mDefaults.put(KEY_MIN_GPS_DISTANCE, "0"); //meters
         mDefaults.put(KEY_MIN_SATELLITES, "3");
@@ -279,7 +280,8 @@ public class Settings
 
         mDefaults.put(KEY_MOCK_AVERAGE_SPEED, "-1"); // negative means use real one
         mDefaults.put(KEY_GPS_TIMEOUT, "20000");
-        mDefaults.put(KEY_LOCATION_PACKAGE_SIZE, "30");
+        mDefaults.put(KEY_LOCATION_PACKAGE_SIZE, "100");
+        mDefaults.put(KEY_INFO_PACKAGE_SIZE, "30");
 
         mDefaults.put(KEY_INFO_KEYS, "[\"param:state\", \"param:fuel\", \"param:hit_points\", \"bluetooth_status\", \"siege_state\"]");
 // FORMULAS
