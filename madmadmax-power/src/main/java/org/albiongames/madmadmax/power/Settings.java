@@ -116,6 +116,11 @@ public class Settings
 
     public static final String KEY_LOCATION_PACKAGE_SIZE = PARAMS_PREFIX + "location_package_size";
 
+    public static final String KEY_INFO_KEYS = PARAMS_PREFIX + "info_keys";
+
+
+
+
     private static Settings instance = new Settings();
 
 
@@ -276,6 +281,7 @@ public class Settings
         mDefaults.put(KEY_GPS_TIMEOUT, "20000");
         mDefaults.put(KEY_LOCATION_PACKAGE_SIZE, "30");
 
+        mDefaults.put(KEY_INFO_KEYS, "[\"param:state\", \"param:fuel\", \"param:hit_points\", \"bluetooth_status\", \"siege_state\"]");
 // FORMULAS
 
         mFormulaValues.add(KEY_P1_FORMULA);
@@ -296,16 +302,6 @@ public class Settings
         // malfunction 1 AND red zone driving
         mFormulaValues.add(KEY_MALFUNCTION1_RED_ZONE_RELIABILITY);
         mFormulaValues.add(KEY_MALFUNCTION1_RED_ZONE_FUEL_PER_KM);
-    }
-
-    public Set<String> pPossibleKeys()
-    {
-        return mDefaults.keySet();
-    }
-
-    public static Set<String> possibleKeys()
-    {
-        return instance.pPossibleKeys();
     }
 
     private void pSetContext(Context context)

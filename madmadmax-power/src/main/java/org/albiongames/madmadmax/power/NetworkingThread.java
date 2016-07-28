@@ -6,6 +6,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
@@ -13,6 +14,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * Created by dair on 31/03/16.
@@ -27,6 +29,9 @@ public class NetworkingThread extends StatusThread
     String mDeviceId = null;
 
     long mErrorSleep = 500;
+
+    static long mTrafficRx;
+    static long mTrafficTx;
 
     public static class Request
     {
@@ -204,6 +209,9 @@ public class NetworkingThread extends StatusThread
         Tools.log("NetworkingThread: start");
         int mErrorCountOnExit = 0;
 
+        mTrafficRx = 0;
+        mTrafficTx = 0;
+
         super.run();
 
         mDeviceId = Settings.getString(Settings.KEY_DEVICE_ID);
@@ -363,8 +371,25 @@ public class NetworkingThread extends StatusThread
             bodyString = addParamUpdate(bodyString);
         }
 
-        byte[] bytes = bodyString.getBytes("UTF-8");
+        byte[] bytes;
+        if (bodyString.length() < 100)
+        {
+            bytes = bodyString.getBytes("UTF-8");
+        }
+        else
+        {
+            connection.setRequestProperty("Content-Encoding", "gzip");
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            GZIPOutputStream gzos = new GZIPOutputStream(baos);
+            gzos.write(bodyString.getBytes("UTF-8"));
+            gzos.close();
+            bytes = baos.toByteArray();
+        }
         int len = bytes.length;
+
+        mTrafficTx += len;
+
 //                connection.setRequestProperty("Content-Length", Integer.toString(len));
         connection.setFixedLengthStreamingMode(len);
         connection.setUseCaches(false);
@@ -407,6 +432,8 @@ public class NetworkingThread extends StatusThread
 //            Tools.log("cathcing eof: 4");
             rd.close();
 //            Tools.log("cathcing eof: 5");
+
+            mTrafficRx += responseString.length();
 
             JSONObject object = new JSONObject(responseString.toString());
 
@@ -459,6 +486,16 @@ public class NetworkingThread extends StatusThread
     {
         if (getStatus() == STATUS_ON)
             setStatus(STATUS_STOPPING);
+    }
+
+    public static long getRx()
+    {
+        return mTrafficRx;
+    }
+
+    public static long getTx()
+    {
+        return mTrafficTx;
     }
 
 }

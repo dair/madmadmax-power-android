@@ -56,6 +56,8 @@ public class PowerService extends Service
 
     Error mError = null;
 
+    long mStartTime = 0;
+
     public class LocalBinder extends Binder
     {
         PowerService getService()
@@ -85,6 +87,8 @@ public class PowerService extends Service
     public int onStartCommand(Intent intent, int flags, int startId)
     {
         Tools.log("Service: onStartCommand");
+        mStartTime = System.currentTimeMillis();
+
         Upgrades.setPath(getFilesDir().getPath());
         FuelQuality.setPath(getFilesDir().getPath());
 
@@ -118,6 +122,11 @@ public class PowerService extends Service
             mStatus = STATUS_ON;
         }
         return START_STICKY;
+    }
+
+    public long getStartTime()
+    {
+        return mStartTime;
     }
 
     @Override
@@ -197,10 +206,10 @@ public class PowerService extends Service
 //        }.execute();
     }
 
-    public List<StorageEntry.Base> getPositions()
-    {
-        return mPositions;
-    }
+//    public List<StorageEntry.Base> getPositions()
+//    {
+//        return mPositions;
+//    }
 
     public int getStatusThreadStatus(StatusThread t)
     {

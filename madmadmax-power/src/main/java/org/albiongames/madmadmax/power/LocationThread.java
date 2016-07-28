@@ -367,7 +367,6 @@ public class LocationThread extends StatusThread implements LocationListener
         mLastLocation = location;
 
         StorageEntry.Location location1 = new StorageEntry.Location(localTime, lat, lon, acc, speed, localDistance, satellites);
-        mService.getPositions().add(location1);
 
         mService.getLogicStorage().put(location1);
         mLastUpdate = localTime;

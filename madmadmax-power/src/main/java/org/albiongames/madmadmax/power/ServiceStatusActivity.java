@@ -392,8 +392,15 @@ public class ServiceStatusActivity extends AppCompatActivity
     {
         long rx = Settings.getLong(Settings.KEY_RX_BYTES);
         long tx = Settings.getLong(Settings.KEY_TX_BYTES);
-        String value = Long.toString(rx) + " / " + Long.toString(tx);
+        String value = Long.toString(rx) + "/" + Long.toString(tx) + " (" + Long.toString(rx + tx) + ")";
         TextView textView = (TextView)findViewById(R.id.trafficTextView);
         textView.setText(value);
+
+        TextView ratio = (TextView)findViewById(R.id.ratioTextView);
+        rx = NetworkingThread.getRx();
+        tx = NetworkingThread.getTx();
+        value = Long.toString(rx) + "/" + Long.toString(tx) + " (" + Long.toString(rx + tx) + ")";
+        ratio.setText(value);
+
     }
 }

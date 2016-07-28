@@ -3,6 +3,7 @@ package org.albiongames.madmadmax.power;
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -469,34 +470,31 @@ public class LogicThread extends StatusThread
         Map<String, String> info = new HashMap<>();
         Map<String, String> diff = new HashMap<>();
 
-        Set<String> keys = Settings.possibleKeys();
-        for (String key: keys)
+        String keysString = Settings.getString(Settings.KEY_INFO_KEYS);
+        try
         {
-            if (key.equals(Settings.KEY_LAST_COMMAND_ID) ||
-                    key.equals(Settings.KEY_LATEST_SUCCESS_CONNECTION) ||
-                    key.equals(Settings.KEY_LATEST_FAILED_CONNECTION) ||
-                    key.equals(Settings.KEY_LAST_GPS_UPDATE) ||
-                    key.equals(Settings.KEY_BLUETOOTH_DEVICE) ||
-                    key.equals(Settings.KEY_EXTRA_DEBUG) ||
-                    key.equals(Settings.KEY_LOCATION_THREAD_LAST_QUALITY) ||
-                    key.equals(Settings.KEY_LAST_INSTANT_SPEED) ||
-                    key.equals(Settings.KEY_SERVER_URL) ||
-                    key.equals(Settings.KEY_RX_BYTES) ||
-                    key.equals(Settings.KEY_TX_BYTES))
-                continue;
+            JSONArray keysArray = new JSONArray(keysString);
 
-            String value = Settings.getString(key);
-            if (value != null)
-                info.put(key, value);
+            for (int i = 0; i < keysArray.length(); ++i)
+            {
+                String key = keysArray.getString(i);
 
-            if (mInfoMap.containsKey(key) &&
-                    mInfoMap.get(key) != null &&
-                    mInfoMap.get(key).equals(value))
-                continue;
+                String value = Settings.getString(key);
+                if (value != null)
+                    info.put(key, value);
 
-            diff.put(key, value);
+                if (mInfoMap.containsKey(key) &&
+                        mInfoMap.get(key) != null &&
+                        mInfoMap.get(key).equals(value))
+                    continue;
+
+                diff.put(key, value);
+            }
         }
+        catch (JSONException ex)
+        {
 
+        }
 
         mInfoMap = info;
 
