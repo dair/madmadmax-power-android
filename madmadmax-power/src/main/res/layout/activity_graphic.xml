@@ -172,6 +172,7 @@
 
     <ImageView
         android:alpha="0"
+        android:background="@android:color/holo_red_dark"
         android:id="@+id/coverImage"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

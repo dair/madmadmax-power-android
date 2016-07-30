@@ -796,7 +796,7 @@ public class GraphicActivity extends AppCompatActivity {
         }
     }
 
-    public synchronized void damageReceived(long duration)
+    public synchronized void damageReceived(final long duration)
     {
         if (mFlashExecutor != null)
         {
@@ -805,11 +805,15 @@ public class GraphicActivity extends AppCompatActivity {
         }
 
         mFlashExecutor = new ScheduledThreadPoolExecutor(1);
-        mFlashExecutorDuration = duration;
-        mFlashExecutorStart = System.currentTimeMillis();
+
+        final long frame = 1000 / 30;
 
         mFlashExecutor.scheduleAtFixedRate(new Runnable()
         {
+            int mCount = 0;
+            long mDuration = duration;
+            long mFrame = frame;
+
             @Override
             public void run()
             {
@@ -818,8 +822,9 @@ public class GraphicActivity extends AppCompatActivity {
                                   @Override
                                   public void run()
                                   {
-                                      long timePassed = System.currentTimeMillis() - mFlashExecutorStart;
-                                      double rate = (double)timePassed / (double)mFlashExecutorDuration;
+                                      long timePassed = mCount * mFrame;
+
+                                      double rate = (double)timePassed / (double)mDuration;
                                       if (rate > 1.0)
                                           rate = 1.0;
 
@@ -827,18 +832,21 @@ public class GraphicActivity extends AppCompatActivity {
                                       if (alpha < 0)
                                           alpha = 0.0;
 
-                                      mCoverImage.setBackgroundColor(Color.argb((int)(alpha*255), 255, 0, 0));
+                                      mCoverImage.setAlpha((float)alpha);
+                                      //mCoverImage.setBackgroundColor(Color.argb((int)(alpha*255), 255, 0, 0));
 
-                                      if (timePassed > mFlashExecutorDuration)
+                                      if (timePassed > mDuration)
                                       {
                                           mFlashExecutor.shutdownNow();
                                           return;
                                       }
+
+                                      ++mCount;
                                   }
                               }
                 );
             }
-        }, 0, duration/40, TimeUnit.MILLISECONDS);
+        }, 0, frame, TimeUnit.MILLISECONDS);
     }
 
     public void showPopupMenu(View view)

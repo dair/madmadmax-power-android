@@ -447,7 +447,7 @@ public class BluetoothThread extends Thread
         {
             for (Character c: mCommandsWaiting.keySet())
             {
-                if (mCommandsWaiting.get(c).lastTime > 0 && now - mCommandsWaiting.get(c).lastTime > 1000)
+                if (mCommandsWaiting.get(c).lastTime > 0 && now - mCommandsWaiting.get(c).lastTime > 3000)
                 {
                     updateList.put(c, mCommandsWaiting.get(c).on);
                 }
