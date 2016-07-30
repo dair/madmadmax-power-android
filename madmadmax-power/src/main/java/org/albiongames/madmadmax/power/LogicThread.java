@@ -1,5 +1,7 @@
 package org.albiongames.madmadmax.power;
 
+import android.content.Intent;
+
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
 
@@ -124,18 +126,27 @@ public class LogicThread extends StatusThread
     {
         double hpNow = Settings.getDouble(Settings.KEY_HITPOINTS);
         int damageNum = damage.getDamage();
-        double damageModified = damageNum - getCurrentDamageResistance();
+        double damageModified = damageNum - getCurrentDamageResistance() + 1;
 
-        hpNow -= damageModified;
-        if (hpNow < 0)
-            hpNow = 0;
-        Settings.setDouble(Settings.KEY_HITPOINTS, hpNow);
+        if (damageModified > 0)
+        {
 
-        mService.getBluetoothThread().setLed(BluetoothThread.LED_RED, true);
-        mService.getBluetoothThread().setPause(BluetoothThread.LED_RED, 500);
-        mService.getBluetoothThread().setLed(BluetoothThread.LED_RED, false);
+            hpNow -= damageModified;
+            if (hpNow < 0)
+                hpNow = 0;
+            Settings.setDouble(Settings.KEY_HITPOINTS, hpNow);
 
-        generateInfo();
+            mService.getBluetoothThread().setLed(BluetoothThread.LED_RED, true);
+            mService.getBluetoothThread().setPause(BluetoothThread.LED_RED, 500);
+            mService.getBluetoothThread().setLed(BluetoothThread.LED_RED, false);
+
+
+            Intent intent = new Intent(Settings.DAMAGE_ACTION);
+            intent.putExtra("DAMAGE", damageModified);
+            mService.sendBroadcast(intent);
+
+            generateInfo();
+        }
     }
 
     long mLastInfoSent = 0;

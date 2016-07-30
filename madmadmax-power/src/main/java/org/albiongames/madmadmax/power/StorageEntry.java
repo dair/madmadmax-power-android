@@ -256,7 +256,7 @@ public class StorageEntry
 
             int code = Integer.valueOf(mRaw.substring(mRaw.length()-1), 16); // last symbol
 
-            return Settings.getDamageForCode(code);
+            return Settings.getDamageForCode(code) + 1;
         }
 
         public Damage(JSONObject object) throws  JSONException

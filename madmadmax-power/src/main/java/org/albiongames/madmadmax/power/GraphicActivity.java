@@ -3,9 +3,11 @@ package org.albiongames.madmadmax.power;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -73,6 +75,8 @@ public class GraphicActivity extends AppCompatActivity {
     TextView mScreenTimerTextView = null;
 
     int mBluetoothState = -100;
+
+    DamageReceiver mDamageReceiver = new DamageReceiver();
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -300,6 +304,11 @@ public class GraphicActivity extends AppCompatActivity {
 
         TextView nameView = (TextView)findViewById(R.id.nameTextView);
         nameView.setText(Settings.getString(Settings.KEY_DEVICE_NAME));
+
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(Settings.DAMAGE_ACTION);
+        registerReceiver(mDamageReceiver, intentFilter);
+
     }
 
     synchronized void updateEverything()
@@ -324,6 +333,8 @@ public class GraphicActivity extends AppCompatActivity {
     public void onPause()
     {
         super.onPause();
+
+        unregisterReceiver(mDamageReceiver);
 
         mExecutor.shutdownNow();
         mExecutor = null;
@@ -820,7 +831,7 @@ public class GraphicActivity extends AppCompatActivity {
 
                                       if (timePassed > mFlashExecutorDuration)
                                       {
-                                          mFlashExecutor.shutdown();
+                                          mFlashExecutor.shutdownNow();
                                           return;
                                       }
                                   }
@@ -889,5 +900,19 @@ public class GraphicActivity extends AppCompatActivity {
                 GraphicActivity.this.runOnUiThread(runnable);
             }
         }).start();
+    }
+
+
+    private class DamageReceiver extends BroadcastReceiver
+    {
+        @Override
+        public void onReceive(Context context, Intent intent)
+        {
+            double damage = intent.getDoubleExtra("DAMAGE", 0.0);
+            if (damage > 0.0)
+            {
+                damageReceived(Math.round(200 + damage * 5));
+            }
+        }
     }
 }

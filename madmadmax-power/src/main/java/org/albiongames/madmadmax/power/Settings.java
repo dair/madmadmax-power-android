@@ -120,7 +120,7 @@ public class Settings
     public static final String KEY_INFO_KEYS = PARAMS_PREFIX + "info_keys";
 
 
-
+    public final static String DAMAGE_ACTION = "DAMAGE_ACTION";
 
     private static Settings instance = new Settings();
 
