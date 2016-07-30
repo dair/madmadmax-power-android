@@ -136,11 +136,6 @@ public class LogicThread extends StatusThread
                 hpNow = 0;
             Settings.setDouble(Settings.KEY_HITPOINTS, hpNow);
 
-            mService.getBluetoothThread().setLed(BluetoothThread.LED_RED, true);
-            mService.getBluetoothThread().setPause(BluetoothThread.LED_RED, 500);
-            mService.getBluetoothThread().setLed(BluetoothThread.LED_RED, false);
-
-
             Intent intent = new Intent(Settings.DAMAGE_ACTION);
             intent.putExtra("DAMAGE", damageModified);
             mService.sendBroadcast(intent);
@@ -165,8 +160,6 @@ public class LogicThread extends StatusThread
 
         while (true)
         {
-            updateLeds();
-
             StorageEntry.Base entry = mService.getLogicStorage().get();
 
             if (entry != null)
@@ -446,32 +439,6 @@ public class LogicThread extends StatusThread
         double baseValue = Settings.getDouble(Settings.KEY_MAXHITPOINTS);
         double value = Upgrades.upgradeValue(Settings.KEY_MAXHITPOINTS, baseValue);
         return value;
-    }
-
-    int mLedState = -100;
-
-    void updateLeds()
-    {
-        double hp = getCurrentHitPoints();
-        int newState = -100;
-
-        if (hp < 0.0)
-            newState = 0;
-        else if (Settings.getLong(Settings.KEY_SIEGE_STATE) == Settings.SIEGE_STATE_OFF)
-            newState = 1;
-        else
-            newState = 2;
-
-        if (newState == mLedState)
-            return;
-        mLedState = newState;
-
-        if (mLedState == 0)
-        {
-            mService.getBluetoothThread().setLed(BluetoothThread.LED_RED, true);
-        }
-        mService.getBluetoothThread().setLed(BluetoothThread.LED_GREEN, mLedState == 1);
-        mService.getBluetoothThread().setLed(BluetoothThread.LED_YELLOW, mLedState == 2);
     }
 
     Map<String, String> mInfoMap = new HashMap<>();

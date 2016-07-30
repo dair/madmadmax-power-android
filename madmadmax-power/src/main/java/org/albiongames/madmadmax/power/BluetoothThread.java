@@ -12,7 +12,10 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.regex.Pattern;
 
 import app.akexorcist.bluetotohspp.library.BluetoothSPP;
@@ -32,6 +35,7 @@ public class BluetoothThread extends Thread
     public static final int STATUS_FAILED = 4;
     public static final int STATUS_STOPPING = 5;
     public static final int STATUS_DISABLED = 6;
+    public static final int STATUS_FINALIZING = 7;
 
     int mStatus = STATUS_OFF;
 
@@ -39,43 +43,67 @@ public class BluetoothThread extends Thread
     public static final char LED_GREEN = 'G';
     public static final char LED_YELLOW = 'Y';
 
+    char mCurrentLed = 0;
+
+    long mLastStatusTime = 0;
+
     PowerService mService = null;
     BluetoothSPP mSPP = null;
-
-    String mAddress = null;
 
     Looper mLooper = null;
     Handler mHandler = null;
 
-    Map<String, Long> mCommandsWaiting = new HashMap<>();
-
-    Map<Integer, Boolean> mLedStatus = new HashMap<>();
-
     Pattern mCommandResponsePattern = Pattern.compile("^[RGY][01]OK$");
+    boolean mStopping = false;
 
-    Map<Character, QueueFile> mQueueFiles = new HashMap<>();
-    Map<Character, Long> mTimeWaiting = new HashMap<>();
-    boolean mWaitingResponse = false;
+    private static class LedState
+    {
+        public boolean on = false;
+        public long lastTime = 0;
+
+        LedState(boolean b, long time)
+        {
+            on = b;
+            lastTime = time;
+        }
+    }
+
+
+    Map<Character, LedState> mCommandsWaiting = new  HashMap<>();
+    final String mCommandsWaitingSync = "Sync";
+
+    void resetCommandsWaiting()
+    {
+        synchronized (mCommandsWaitingSync)
+        {
+            mCommandsWaiting.clear();
+
+            long now = 0;
+            mCommandsWaiting.put(LED_GREEN, new LedState(false, now));
+            mCommandsWaiting.put(LED_YELLOW, new LedState(false, now));
+            mCommandsWaiting.put(LED_RED, new LedState(false, now));
+        }
+    }
+
+    boolean hasCommandWaiting()
+    {
+        synchronized (mCommandsWaitingSync)
+        {
+            for (Character c : mCommandsWaiting.keySet())
+            {
+                if (mCommandsWaiting.get(c).lastTime > 0)
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
     BluetoothThread(PowerService service)
     {
         mService = service;
-        mQueueFiles.clear();
-
         setStatus(STATUS_OFF);
-        try
-        {
-            File file = new File(mService.getFilesDir() + "/bluetooth_red");
-            mQueueFiles.put(LED_RED, new QueueFile(file));
-            file = new File(mService.getFilesDir() + "/bluetooth_green");
-            mQueueFiles.put(LED_GREEN, new QueueFile(file));
-            file = new File(mService.getFilesDir() + "/bluetooth_yellow");
-            mQueueFiles.put(LED_YELLOW, new QueueFile(file));
-        }
-        catch (IOException ex)
-        {
-            return;
-        }
     }
 
     void setupSPP()
@@ -97,31 +125,30 @@ public class BluetoothThread extends Thread
             @Override
             public void onDeviceConnected(String name, String address)
             {
+                Tools.log("BLUETOOTH: " + "connected to " + name + ", " + address);
                 mService.dump(COMPONENT, "connected to " + name + ", " + address);
                 setStatus(STATUS_CONNECTED);
             }
 
             @Override
             public void onDeviceDisconnected() {
+                Tools.log("BLUETOOTH: disconnected");
                 mService.dump(COMPONENT, "disconnected");
-                if (getStatus() != STATUS_STOPPING)
+                if (getStatus() != STATUS_STOPPING && getStatus() != STATUS_FINALIZING)
                 {
                     setStatus(STATUS_DISCONNECTED);
                 }
-//                mTimeWaiting = 0;
-                mWaitingResponse = false;
             }
 
             @Override
             public void onDeviceConnectionFailed()
             {
+                Tools.log("BLUETOOTH: connection failes");
                 mService.dump(COMPONENT, "connection failed");
                 if (getStatus() != STATUS_STOPPING)
                 {
                     setStatus(STATUS_FAILED);
                 }
-//                mTimeWaiting = 0;
-                mWaitingResponse = false;
             }
         });
     }
@@ -131,9 +158,8 @@ public class BluetoothThread extends Thread
     {
         Looper.prepare();
         mLooper = Looper.myLooper();
-//        mTimeWaiting = 0;
-
-        mWaitingResponse = false;
+        resetCommandsWaiting();
+        mStopping = false;
 
         setStatus(STATUS_DISABLED);
         mSPP = new BluetoothSPP(mService);
@@ -169,23 +195,7 @@ public class BluetoothThread extends Thread
         }
         catch (InterruptedException ex)
         {
-
         }
-
-        try
-        {
-            Iterator it = mQueueFiles.entrySet().iterator();
-            while (it.hasNext())
-            {
-                Map.Entry pair = (Map.Entry)it.next();
-                ((QueueFile)pair.getValue()).close();
-            }
-        }
-        catch (IOException ex)
-        {
-
-        }
-        mQueueFiles.clear();
 
         setStatus(STATUS_OFF);
     }
@@ -212,14 +222,71 @@ public class BluetoothThread extends Thread
                     Tools.sleep(50);
                     break;
                 case STATUS_CONNECTED:
-                    processQueues();
+                    Tools.sleep(250);
+                    if (mStopping)
+                    {
+                        setStatus(STATUS_STOPPING);
+                    }
+                    else
+                    {
+                        updateState();
+                    }
+
                     break;
                 case STATUS_DISCONNECTED:
                 case STATUS_FAILED:
-                    connect();
+                    resetCommandsWaiting();
+                    mCurrentLed = 0;
+                    if (mStopping)
+                    {
+                        setStatus(STATUS_FINALIZING);
+                    }
+                    else
+                    {
+                        connect();
+                    }
+                    break;
+                case STATUS_STOPPING:
+                    setLed(LED_GREEN, false);
+                    setLed(LED_RED, false);
+                    setLed(LED_YELLOW, false);
+                    setStatus(STATUS_FINALIZING);
+                    break;
+                case STATUS_FINALIZING:
+                    if (!hasCommandWaiting())
+                    {
+                        keepRunning = false;
+                        mHandler.post(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                mSPP.disconnect();
+                                mSPP.stopService();
+                                mSPP = null;
+                            }
+                        });
+
+                        Tools.sleep(500);
+
+                        mHandler.post(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                mLooper.quit();
+                            }
+                        });
+
+                    }
+                    else
+                    {
+                        Tools.sleep(50);
+                        updateCommandsWaiting();
+                    }
+
                     break;
                 case STATUS_OFF:
-                case STATUS_STOPPING:
                     keepRunning = false;
                     break;
 
@@ -227,54 +294,10 @@ public class BluetoothThread extends Thread
         }
     }
 
-    void processQueues()
-    {
-        Iterator it = mQueueFiles.entrySet().iterator();
-        while (it.hasNext())
-        {
-            Map.Entry pair = (Map.Entry)it.next();
-            processQueue((Character)pair.getKey());
-        }
-    }
-
-    boolean processQueue(char queueCode)
-    {
-        QueueFile queue = mQueueFiles.get(queueCode);
-
-        if (queue == null || queue.isEmpty())
-        {
-            return false;
-        }
-
-        long time = System.currentTimeMillis();
-        if (mTimeWaiting.containsKey(queueCode) && time < mTimeWaiting.get(queueCode))
-        {
-            return false;
-        }
-
-        try
-        {
-            byte[] data = queue.peek();
-            if (data == null)
-            {
-                return false;
-            }
-
-            String command = new String(data, "UTF-8");
-            addCommand(command);
-            queue.remove();
-        }
-        catch (IOException ex)
-        {
-
-        }
-
-        return true;
-    }
-
     public void setStatus(int status)
     {
         Settings.setLong(Settings.KEY_BLUETOOTH_STATUS, status);
+        mLastStatusTime = System.currentTimeMillis();
         Tools.log("setStatus: " + Integer.toString(status));
         mStatus = status;
     }
@@ -289,52 +312,7 @@ public class BluetoothThread extends Thread
         if (mLooper == null)
             return;
 
-        setStatus(STATUS_STOPPING);
-
-        mHandler.post(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                mSPP.stopService();
-                mSPP = null;
-            }
-        });
-
-        mHandler.post(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                mLooper.quit();
-            }
-        });
-    }
-
-    boolean checkAddressChange()
-    {
-        String storedAddress = Settings.getString(Settings.KEY_BLUETOOTH_DEVICE);
-        if (mAddress == null ||
-                !mAddress.equals(storedAddress))
-        {
-            mAddress = storedAddress;
-            return true;
-        }
-        return false;
-    }
-
-    boolean applyAddressChange()
-    {
-        if (getStatus() == STATUS_STOPPING)
-            return false;
-
-        if (checkAddressChange())
-        {
-            mSPP.disconnect();
-            setStatus(STATUS_DISCONNECTED);
-            return true;
-        }
-        return false;
+        mStopping = true;
     }
 
     void connect()
@@ -342,33 +320,33 @@ public class BluetoothThread extends Thread
         if (getStatus() == STATUS_STOPPING)
             return;
 
-        checkAddressChange();
-
-        if (mAddress != null)
+        String address = Settings.getString(Settings.KEY_BLUETOOTH_DEVICE);
+        if (address != null)
         {
             setStatus(STATUS_CONNECTING);
-            mSPP.connect(mAddress);
+            mSPP.connect(address);
         }
     }
 
     void parseDeviceMessage(String message)
     {
+        Tools.log("BLUETOOTH: << " + message);
+
         if (mCommandResponsePattern.matcher(message).matches())
         {
             // command response
-            String command = message.substring(0, 2);
-            if (mCommandsWaiting.containsKey(command))
+            char ledCode = message.charAt(0);
+            synchronized (mCommandsWaitingSync)
             {
-                long count = mCommandsWaiting.get(command);
-                if (count > 0)
+                if (mCommandsWaiting.containsKey(ledCode))
                 {
-                    --count;
+                    boolean on = message.charAt(1) == '1';
+                    LedState ledState = mCommandsWaiting.get(ledCode);
+                    if (ledState.lastTime > 0 && ledState.on == on)
+                    {
+                        ledState.lastTime = 0;
+                    }
                 }
-                else
-                {
-                    count = 0;
-                }
-                mCommandsWaiting.put(command, count);
             }
         }
         else
@@ -379,30 +357,18 @@ public class BluetoothThread extends Thread
         }
     }
 
-    synchronized void addCommand(String command)
-    {
-        char code = command.charAt(0);
-
-        if (command.charAt(1) == 'W')
-        {
-            // wait
-            long duration = Long.parseLong(command.substring(2));
-            mTimeWaiting.put(code, System.currentTimeMillis() + duration);
-            return;
-        }
-
-        sendCommand(command);
-    }
-
     void sendCommand(String command)
     {
-        long count = 0;
-        if (mCommandsWaiting.containsKey(command))
+        synchronized (mCommandsWaitingSync)
         {
-            count = mCommandsWaiting.get(command);
+            char ledCode = command.charAt(0);
+            boolean on = command.charAt(1) == '1';
+
+            mCommandsWaiting.get(ledCode).on = on;
+            mCommandsWaiting.get(ledCode).lastTime = System.currentTimeMillis();
         }
-        ++count;
-        mCommandsWaiting.put(command, count);
+
+        Tools.log("BLUETOOTH: >> " + command);
 
         synchronized (mSPP)
         {
@@ -429,24 +395,7 @@ public class BluetoothThread extends Thread
         return code;
     }
 
-    void enqueueCommand(String command)
-    {
-        QueueFile file = mQueueFiles.get(command.charAt(0));
-        if (file == null)
-            return;
-
-        try
-        {
-            byte[] data = command.getBytes("UTF-8");
-            file.add(data);
-        }
-        catch (UnsupportedEncodingException ex)
-        {}
-        catch (IOException ex)
-        {}
-    }
-
-    public void setLed(int ledCode, boolean on)
+    void setLed(int ledCode, boolean on)
     {
         String code = ledCode(ledCode);
         if (code.isEmpty())
@@ -456,16 +405,58 @@ public class BluetoothThread extends Thread
 
         String command = code + num;
 
-        enqueueCommand(command);
+        sendCommand(command);
     }
 
-    public void setPause(int ledCode, long duration)
+    void updateState()
     {
-        String code = ledCode(ledCode);
-        if (code.isEmpty())
-            return;
+        char newLed = 0;
+        if (Settings.getDouble(Settings.KEY_HITPOINTS) <= 0.0)
+        {
+            // red
+            newLed = LED_RED;
+        }
+        else if (Settings.getLong(Settings.KEY_SIEGE_STATE) == Settings.SIEGE_STATE_ON)
+        {
+            newLed = LED_YELLOW;
+        }
+        else
+        {
+            newLed = LED_GREEN;
+        }
 
-        String command = code + "W" + Long.toString(duration);
-        enqueueCommand(command);
+        if (newLed != mCurrentLed)
+        {
+            setLed(LED_RED, newLed == LED_RED);
+            setLed(LED_YELLOW, newLed == LED_YELLOW);
+            setLed(LED_GREEN, newLed == LED_GREEN);
+            mCurrentLed = newLed;
+        }
+        else
+        {
+            updateCommandsWaiting();
+        }
+    }
+
+    void updateCommandsWaiting()
+    {
+        Map<Character, Boolean> updateList = new HashMap<>();
+
+        long now = System.currentTimeMillis();
+        synchronized (mCommandsWaitingSync)
+        {
+            for (Character c: mCommandsWaiting.keySet())
+            {
+                if (mCommandsWaiting.get(c).lastTime > 0 && now - mCommandsWaiting.get(c).lastTime > 1000)
+                {
+                    updateList.put(c, mCommandsWaiting.get(c).on);
+                }
+            }
+        }
+
+        for (Character c: updateList.keySet())
+        {
+            setLed(c, updateList.get(c));
+        }
     }
 }
