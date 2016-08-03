@@ -24,6 +24,7 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -106,7 +107,7 @@ public class GraphicActivity extends AppCompatActivity {
 
         mScreenTimerTextView = (TextView)findViewById(R.id.timerText);
 
-        ProgressBar fuelBar = (ProgressBar)findViewById(R.id.progressBarFuel);
+        final ProgressBar fuelBar = (ProgressBar)findViewById(R.id.progressBarFuel);
         fuelBar.setOnLongClickListener(new View.OnLongClickListener()
         {
             @Override
@@ -129,8 +130,35 @@ public class GraphicActivity extends AppCompatActivity {
                         {
                             if (Settings.getDouble(Settings.KEY_HITPOINTS) > 0)
                             {
-                                Intent intent = new Intent(GraphicActivity.this, FuelLoadActivity.class);
-                                startActivity(intent);
+                                TextView t = (TextView)findViewById(R.id.fuelText);
+                                PopupMenu menu = new PopupMenu(GraphicActivity.this, t);
+                                menu.inflate(R.menu.fuel_menu);
+
+                                menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener()
+                                {
+                                    @Override
+                                    public boolean onMenuItemClick(MenuItem item)
+                                    {
+                                        switch (item.getItemId())
+                                        {
+                                            case R.id.menu_fuel_load:
+                                                Intent intent = new Intent(GraphicActivity.this, FuelLoadActivity.class);
+                                                startActivity(intent);
+                                                return true;
+
+                                            case R.id.menu_fuel_drop:
+                                                intent = new Intent(GraphicActivity.this, FuelDropActivity.class);
+                                                startActivity(intent);
+                                                return true;
+
+                                        }
+                                        return false;
+                                    }
+                                });
+
+                                menu.show();
+
+
                             }
                         }
                         else

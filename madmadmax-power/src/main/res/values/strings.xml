@@ -96,5 +96,14 @@
 
     <string name="tools_check_gps_unavailable">GPS is unavailable. There\'s no point to run without GPS, canceling start</string>
     <string name="tools_check_gps_disabled">GPS is disabled. There\'s no point to run without GPS, canceling start. Please turn GPS on.</string>
+
+
+    <string name="fuel_drop_description">Slide needed fuel by your finger over bar then press button to actually drop</string>
+    <string name="fuel_drop_commit">Drop fuel</string>
+    <string name="fuel_drop_confirm">Are you sure you want to drop fuel?</string>
+
+    <string name="menu_fuel_load">Load fuel</string>
+    <string name="menu_fuel_drop">Drop fuel</string>
+
 </resources>
 
