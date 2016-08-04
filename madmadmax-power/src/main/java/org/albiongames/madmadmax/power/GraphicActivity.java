@@ -118,11 +118,11 @@ public class GraphicActivity extends AppCompatActivity {
                     long lastGpsSignal = Settings.getLong(Settings.KEY_LAST_GPS_UPDATE);
                     long now = System.currentTimeMillis();
                     long timeout = Settings.getLong(Settings.KEY_GPS_TIMEOUT);
-                    if (now - lastGpsSignal > timeout)
-                    {
-                        Tools.messageBox(GraphicActivity.this, R.string.graphic_car_should_stop);
-                    }
-                    else
+//                    if (now - lastGpsSignal > timeout)
+//                    {
+//                        Tools.messageBox(GraphicActivity.this, R.string.graphic_car_should_stop);
+//                    }
+//                    else
                     {
 
                         double averageSpeedKmh = Tools.metersPerSecondToKilometersPerHour(Tools.getAverageSpeed());

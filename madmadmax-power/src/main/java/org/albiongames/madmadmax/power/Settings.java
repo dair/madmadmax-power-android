@@ -121,6 +121,9 @@ public class Settings
 
     public static final String KEY_RULES_BREAK_PERIOD = PARAMS_PREFIX + "rules_break_period";
 
+    public static final String KEY_FUEL_LOAD_SPEED = PARAMS_PREFIX + "fuel_load_speed";
+    public static final String KEY_HP_LOAD_SPEED = PARAMS_PREFIX + "hp_load_speed";
+
 
     public final static String DAMAGE_ACTION = "DAMAGE_ACTION";
 
@@ -288,6 +291,9 @@ public class Settings
         mDefaults.put(KEY_INFO_KEYS, "[\"param:state\", \"param:fuel\", \"param:hit_points\", \"bluetooth_status\", \"siege_state\"]");
 
         mDefaults.put(KEY_RULES_BREAK_PERIOD, "10000"); // 10 seconds
+
+        mDefaults.put(KEY_FUEL_LOAD_SPEED, "360"); // milliseconds for one unit of fuel
+        mDefaults.put(KEY_HP_LOAD_SPEED, "25000"); // milliseconds for one Hit Point
 // FORMULAS
 
         mFormulaValues.add(KEY_P1_FORMULA);

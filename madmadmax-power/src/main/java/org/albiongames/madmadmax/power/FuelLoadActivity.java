@@ -18,7 +18,9 @@ import org.json.JSONObject;
 
 import java.util.concurrent.ExecutionException;
 
-public class FuelLoadActivity extends Activity {
+public class FuelLoadActivity extends Activity
+{
+    boolean mTimerActive = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,8 +54,12 @@ public class FuelLoadActivity extends Activity {
 
     void handleSend()
     {
+        Tools.hideKeyboard(this);
+
+
         EditText text = (EditText)findViewById(R.id.fuelCodeText);
         String code = text.getText().toString().trim();
+
 
         if (code.length() != 8)
         {
@@ -107,7 +113,8 @@ public class FuelLoadActivity extends Activity {
         }
 
         @Override
-        protected void onPostExecute(JSONObject result) {
+        protected void onPostExecute(JSONObject result)
+        {
             super.onPostExecute(result);
 
             mProgressDialog.dismiss();
@@ -123,6 +130,15 @@ public class FuelLoadActivity extends Activity {
         new SendCode().execute(code);
     }
 
+    @Override
+    public void onBackPressed()
+    {
+        if (mTimerActive)
+            return;
+
+        super.onBackPressed();
+    }
+
     void processResponse(JSONObject object)
     {
         if (object == null)
@@ -132,32 +148,23 @@ public class FuelLoadActivity extends Activity {
         else
         {
             try {
-                if (object.getBoolean("code")) {
-                    // got some fuel
-                    int amount = object.getInt("amount");
+                if (object.getBoolean("code"))
+                {
+                    mReturnObject = object;
+                    int amount = mReturnObject.getInt("amount");
+                    long timeRatio = Settings.getLong(Settings.KEY_FUEL_LOAD_SPEED);
 
-                    double fuelNow = Settings.getDouble(Settings.KEY_FUEL_NOW);
-                    double fuelMax = Settings.getDouble(Settings.KEY_FUEL_MAX);
-                    fuelMax = Upgrades.upgradeValue(Settings.KEY_FUEL_MAX, fuelMax);
+                    long timeout = amount * timeRatio;
 
-                    double fuelBecome = Tools.clamp(fuelNow + amount, 0, fuelMax);
-                    Settings.setDouble(Settings.KEY_FUEL_NOW, fuelBecome);
-
-                    JSONObject upgrades = null;
-                    if (object.has("upgrades"))
+                    mTimerActive = true;
+                    Tools.showTimer(this, timeout, new Runnable()
                     {
-                        upgrades = object.getJSONObject("upgrades");
-                    }
-                    FuelQuality.fuelAdd(fuelNow, fuelBecome - fuelNow, upgrades);
-
-                    Tools.messageBox(this, R.string.fuel_load_success, new Runnable() {
                         @Override
                         public void run() {
-                            Tools.hideKeyboard(FuelLoadActivity.this);
-                            FuelLoadActivity.this.finish();
-                            return;
+                            afterTimer();
                         }
                     });
+
                 } else {
                     switch (object.getInt("amount")) {
                         case -1:
@@ -171,12 +178,44 @@ public class FuelLoadActivity extends Activity {
                             break;
 
                     }
+                    setEditText();
                 }
             } catch (JSONException ex) {
                 Tools.messageBox(this, R.string.fuel_load_unknown);
             }
         }
+    }
 
-        setEditText();
+    void afterTimer()
+    {
+        try {
+            // got some fuel
+            int amount = mReturnObject.getInt("amount");
+
+            double fuelNow = Settings.getDouble(Settings.KEY_FUEL_NOW);
+            double fuelMax = Settings.getDouble(Settings.KEY_FUEL_MAX);
+            fuelMax = Upgrades.upgradeValue(Settings.KEY_FUEL_MAX, fuelMax);
+
+            double fuelBecome = Tools.clamp(fuelNow + amount, 0, fuelMax);
+            Settings.setDouble(Settings.KEY_FUEL_NOW, fuelBecome);
+
+            JSONObject upgrades = null;
+            if (mReturnObject.has("upgrades")) {
+                upgrades = mReturnObject.getJSONObject("upgrades");
+            }
+            FuelQuality.fuelAdd(fuelNow, fuelBecome - fuelNow, upgrades);
+
+            Tools.messageBox(this, R.string.fuel_load_success, new Runnable() {
+                @Override
+                public void run() {
+                    FuelLoadActivity.this.finish();
+                    return;
+                }
+            });
+        }
+        catch (JSONException ex)
+        {
+
+        }
     }
 }

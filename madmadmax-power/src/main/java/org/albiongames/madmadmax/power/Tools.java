@@ -8,10 +8,16 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.FrameLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -258,5 +264,56 @@ public class Tools {
             e.printStackTrace();
         }
 
+    }
+
+
+    public static void showTimer(final Activity activity, final long time, final Runnable runnable)
+    {
+        final TextView timerView = new TextView(activity);
+        timerView.setBackgroundColor(Color.BLACK);
+        timerView.setTextColor(Color.WHITE);
+        timerView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        timerView.setTextSize(110);
+        timerView.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
+
+        final FrameLayout layout = (FrameLayout)activity.findViewById(android.R.id.content);
+        layout.addView(timerView);
+
+        long now = System.currentTimeMillis();
+        final long finishTime = now + time;
+
+        new Thread(new Runnable()
+        {
+            long mFinishTime = finishTime;
+            @Override
+            public void run()
+            {
+                while (true)
+                {
+                    long remain = mFinishTime - System.currentTimeMillis();
+                    if (remain <= 0)
+                        break;
+
+                    final String remainString = remain < 60000 ? String.format("%d.%03d", remain / 1000, remain % 1000) : String.format("%d:%02d", remain / 1000 / 60, (remain / 1000) % 60);
+
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            timerView.setText(remainString);
+                        }
+                    });
+                    Tools.sleep(30);
+                }
+
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        layout.removeView(timerView);
+                    }
+                });
+
+                activity.runOnUiThread(runnable);
+            }
+        }).start();
     }
 }

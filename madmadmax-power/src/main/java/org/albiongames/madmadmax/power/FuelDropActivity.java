@@ -10,7 +10,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
 
-public class FuelDropActivity extends Activity {
+public class FuelDropActivity extends Activity
+{
+    boolean mTimerActive = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,9 +61,8 @@ public class FuelDropActivity extends Activity {
                         getString(R.string.yes), new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                apply();
+                                startDropFuel();
                                 dialog.dismiss();
-                                FuelDropActivity.this.finish();
                             }
                         });
                 dlgAlert.setButton(AlertDialog.BUTTON_NEGATIVE,
@@ -92,11 +93,41 @@ public class FuelDropActivity extends Activity {
         bar.setProgress((int)Math.round(fuelNow));
     }
 
+    void startDropFuel()
+    {
+        ProgressBar bar = (ProgressBar)findViewById(R.id.progressBarFuel);
+        int fuel = bar.getProgress();
+        double fuelMax = Settings.getDouble(Settings.KEY_FUEL_MAX);
+        double fuelDrop = fuelMax - fuel;
+
+        long ratio = Settings.getLong(Settings.KEY_FUEL_LOAD_SPEED);
+        long timeout = Math.round(fuelDrop * ratio);
+
+        mTimerActive = true;
+        Tools.showTimer(this, timeout, new Runnable() {
+            @Override
+            public void run() {
+                apply();
+            }
+        });
+    }
+
     void apply()
     {
         ProgressBar bar = (ProgressBar)findViewById(R.id.progressBarFuel);
         int fuel = bar.getProgress();
 
         Settings.setDouble(Settings.KEY_FUEL_NOW, fuel);
+
+        FuelDropActivity.this.finish();
+    }
+
+    @Override
+    public void onBackPressed()
+    {
+        if (mTimerActive)
+            return;
+
+        super.onBackPressed();
     }
 }
