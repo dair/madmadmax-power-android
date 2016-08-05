@@ -86,6 +86,8 @@
     <string name="repair_load_used_code">Code has been used before, Repair Kit is unusable</string>
     <string name="repair_load_success">Car has been fixed a little bit. Please pass used Repair Kit to nearest Game Master.</string>
     <string name="repair_load_mistype_code">Code should contain exactly 8 digits</string>
+    <string name="repair_load_player_hint">Character code</string>
+    <string name="repair_load_mistype_player_code">Error in character code</string>
 
     <string name="graphic_service_should_run">Service should be running to do this</string>
     <string name="graphic_car_should_stop">Car should stop to do this</string>
@@ -104,6 +106,4 @@
 
     <string name="menu_fuel_load">Load fuel</string>
     <string name="menu_fuel_drop">Drop fuel</string>
-
 </resources>
-

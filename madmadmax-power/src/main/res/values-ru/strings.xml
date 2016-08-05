@@ -39,6 +39,8 @@
     <string name="repair_load_used_code">Этот код уже кто-то использовал до вас, ремонтный комплект израсходован.</string>
     <string name="repair_load_success">Автомобиль успешно немного починен. Сдайте использованный ремнабор ближайшему мастеру.</string>
     <string name="repair_load_mistype_code">Опечатка. В коде должно быть ровно 8 цифр (даже если первая ноль)</string>
+    <string name="repair_load_mistype_player_code">Ошибка во вводе кода персонажа</string>
+    <string name="repair_load_player_hint">Код персонажа</string>
 
     <string name="graphic_service_should_run">Сервис должен работать для этого действия</string>
     <string name="graphic_car_should_stop">Машину надо полностью остановить для этого действия</string>

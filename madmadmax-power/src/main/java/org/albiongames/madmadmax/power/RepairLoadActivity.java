@@ -19,6 +19,9 @@ import java.util.concurrent.ExecutionException;
 
 public class RepairLoadActivity extends Activity
 {
+    float mMultiplier = 0;
+    boolean mTimerActive = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,12 +42,12 @@ public class RepairLoadActivity extends Activity
     {
         super.onResume();
 
-        setEditText();
+        setEditText(R.id.repairCodeText);
     }
 
-    void setEditText()
+    void setEditText(int id)
     {
-        EditText text = (EditText)findViewById(R.id.repairCodeText);
+        EditText text = (EditText)findViewById(id);
         text.requestFocus();
         Tools.showKeyboard(this);
     }
@@ -57,6 +60,21 @@ public class RepairLoadActivity extends Activity
         if (code.length() != 8)
         {
             Tools.messageBox(this, R.string.repair_load_mistype_code);
+            return;
+        }
+
+        EditText player = (EditText)findViewById(R.id.playerCodeText);
+        String playerCode = player.getText().toString().trim();
+        if (playerCode.length() != 8)
+        {
+            Tools.messageBox(this, R.string.repair_load_mistype_player_code);
+            return;
+        }
+
+        mMultiplier = parsePlayerCode(playerCode);
+        if (mMultiplier < 0)
+        {
+            Tools.messageBox(this, R.string.repair_load_mistype_player_code);
             return;
         }
 
@@ -132,39 +150,23 @@ public class RepairLoadActivity extends Activity
             try {
                 if (object.getBoolean("code")) {
                     // got some repair
+                    mReturnObject = object;
                     int amount = object.getInt("amount");
 
-                    double repairNow = Settings.getDouble(Settings.KEY_HITPOINTS);
-                    double repairMax = Settings.getDouble(Settings.KEY_MAXHITPOINTS);
-                    repairMax = Upgrades.upgradeValue(Settings.KEY_MAXHITPOINTS, repairMax);
+                    long timeRatio = Settings.getLong(Settings.KEY_HP_LOAD_SPEED);
+                    long timeout = amount * timeRatio;
 
-                    double repairBecome = Tools.clamp(repairNow + amount, 0, repairMax);
-                    Settings.setDouble(Settings.KEY_HITPOINTS, repairBecome);
-
-                    int newState = Settings.CAR_STATE_OK;
-                    switch ((int)Settings.getLong(Settings.KEY_CAR_STATE))
+                    mTimerActive = true;
+                    Tools.showTimer(this, timeout, new Runnable()
                     {
-                        case Settings.CAR_STATE_OK:
-                            // do nothing
-                            break;
-                        case Settings.CAR_STATE_MALFUNCTION_1:
-                            newState = Settings.CAR_STATE_OK;
-                            break;
-                        case Settings.CAR_STATE_MALFUNCTION_2:
-                            newState = Settings.CAR_STATE_MALFUNCTION_1;
-                            break;
-                    }
-                    Settings.setLong(Settings.KEY_CAR_STATE, (long)newState);
-
-                    Tools.messageBox(this, R.string.repair_load_success, new Runnable() {
                         @Override
                         public void run() {
-                            Tools.hideKeyboard(RepairLoadActivity.this);
-                            RepairLoadActivity.this.finish();
-                            return;
+                            afterTimer();
                         }
                     });
-                } else {
+                }
+                else
+                {
                     switch (object.getInt("amount")) {
                         case -1:
                             // invalid code
@@ -183,6 +185,91 @@ public class RepairLoadActivity extends Activity
             }
         }
 
-        setEditText();
+        setEditText(R.id.repairCodeText);
+    }
+
+    void afterTimer()
+    {
+        int amount = 0;
+        try
+        {
+            amount = mReturnObject.getInt("amount");
+        }
+        catch (JSONException ex)
+        {
+        }
+
+        double repairNow = Settings.getDouble(Settings.KEY_HITPOINTS);
+        double repairMax = Settings.getDouble(Settings.KEY_MAXHITPOINTS);
+        repairMax = Upgrades.upgradeValue(Settings.KEY_MAXHITPOINTS, repairMax);
+
+        long amountFinal = Math.round(amount * mMultiplier);
+
+        double repairBecome = Tools.clamp(repairNow + amountFinal, 0, repairMax);
+        Settings.setDouble(Settings.KEY_HITPOINTS, repairBecome);
+
+        int newState = Settings.CAR_STATE_OK;
+        switch ((int)Settings.getLong(Settings.KEY_CAR_STATE))
+        {
+            case Settings.CAR_STATE_OK:
+                // do nothing
+                break;
+            case Settings.CAR_STATE_MALFUNCTION_1:
+                newState = Settings.CAR_STATE_OK;
+                break;
+            case Settings.CAR_STATE_MALFUNCTION_2:
+                newState = Settings.CAR_STATE_MALFUNCTION_1;
+                break;
+        }
+        Settings.setLong(Settings.KEY_CAR_STATE, (long)newState);
+
+        Tools.messageBox(this, R.string.repair_load_success, new Runnable() {
+            @Override
+            public void run() {
+                Tools.hideKeyboard(RepairLoadActivity.this);
+                RepairLoadActivity.this.finish();
+                return;
+            }
+        });
+    }
+
+    float parsePlayerCode(String code)
+    {
+        float ret = -1;
+        // third digit is 7 - mech
+        String third = code.substring(2, 3);
+        String prelast = code.substring(6, 7);
+        if (third.equals("7"))
+        {
+            // mech
+            ret = 2.0f;
+        }
+        else if (prelast.equals("2"))
+        {
+            // animal
+            ret = 0;
+        }
+        else if (prelast.equals("3"))
+        {
+            // warrior
+            ret = 0.5f;
+        }
+        else if (prelast.equals("4"))
+        {
+            // realist
+            ret = 1.0f;
+        }
+        else if (prelast.equals("5"))
+        {
+            // humanist
+            ret = 1.5f;
+        }
+        else if (prelast.equals("6"))
+        {
+            // immune
+            ret = 1.5f;
+        }
+
+        return ret;
     }
 }
