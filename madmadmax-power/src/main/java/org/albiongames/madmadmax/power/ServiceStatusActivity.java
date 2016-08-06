@@ -107,6 +107,7 @@ public class ServiceStatusActivity extends AppCompatActivity
                                       updateDistance();
                                       updateQueueSizes();
                                       updateTraffic();
+                                      updateHitPoints();
                                   }
                               }
                 );
@@ -403,4 +404,12 @@ public class ServiceStatusActivity extends AppCompatActivity
         ratio.setText(value);
 
     }
+
+    void updateHitPoints()
+    {
+        TextView hpView = (TextView)findViewById(R.id.hpTextView);
+        double hp = Settings.getDouble(Settings.KEY_HITPOINTS);
+        hpView.setText(Double.toString(hp));
+    }
+
 }

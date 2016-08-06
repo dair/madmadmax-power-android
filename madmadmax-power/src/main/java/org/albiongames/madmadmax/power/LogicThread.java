@@ -145,7 +145,7 @@ public class LogicThread extends StatusThread
     {
         double hpNow = Settings.getDouble(Settings.KEY_HITPOINTS);
         int damageNum = damage.getDamage();
-        double damageModified = damageNum - getCurrentDamageResistance() + 1;
+        double damageModified = damageNum - getCurrentDamageResistance();
 
         if (damageModified > 0)
         {

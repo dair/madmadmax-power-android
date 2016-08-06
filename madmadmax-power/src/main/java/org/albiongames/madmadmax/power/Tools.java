@@ -267,7 +267,7 @@ public class Tools {
     }
 
 
-    public static void showTimer(final Activity activity, final long time, final Runnable runnable)
+    public static void showTimer(final Activity activity, final long time, int stringId, final Runnable runnable)
     {
         final TextView timerView = new TextView(activity);
         timerView.setBackgroundColor(Color.BLACK);
@@ -278,6 +278,18 @@ public class Tools {
 
         final FrameLayout layout = (FrameLayout)activity.findViewById(android.R.id.content);
         layout.addView(timerView);
+
+
+
+        final TextView commentView = new TextView(activity);
+        commentView.setBackgroundColor(Color.BLACK);
+        commentView.setTextColor(Color.WHITE);
+        commentView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        commentView.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
+        commentView.setText(stringId);
+        layout.addView(commentView);
+
+
 
         long now = System.currentTimeMillis();
         final long finishTime = now + time;

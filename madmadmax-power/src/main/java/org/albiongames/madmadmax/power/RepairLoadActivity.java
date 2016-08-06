@@ -157,7 +157,7 @@ public class RepairLoadActivity extends Activity
                     long timeout = amount * timeRatio;
 
                     mTimerActive = true;
-                    Tools.showTimer(this, timeout, new Runnable()
+                    Tools.showTimer(this, timeout, R.string.repair_load_comment, new Runnable()
                     {
                         @Override
                         public void run() {
@@ -271,5 +271,14 @@ public class RepairLoadActivity extends Activity
         }
 
         return ret;
+    }
+
+    @Override
+    public void onBackPressed()
+    {
+        if (mTimerActive)
+            return;
+
+        super.onBackPressed();
     }
 }

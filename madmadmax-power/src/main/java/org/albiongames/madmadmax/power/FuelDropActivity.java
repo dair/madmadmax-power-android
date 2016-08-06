@@ -104,7 +104,7 @@ public class FuelDropActivity extends Activity
         long timeout = Math.round(fuelDrop * ratio);
 
         mTimerActive = true;
-        Tools.showTimer(this, timeout, new Runnable() {
+        Tools.showTimer(this, timeout, R.string.fuel_drop_comment, new Runnable() {
             @Override
             public void run() {
                 apply();

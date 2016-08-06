@@ -157,7 +157,7 @@ public class FuelLoadActivity extends Activity
                     long timeout = amount * timeRatio;
 
                     mTimerActive = true;
-                    Tools.showTimer(this, timeout, new Runnable()
+                    Tools.showTimer(this, timeout, R.string.fuel_load_comment, new Runnable()
                     {
                         @Override
                         public void run() {
