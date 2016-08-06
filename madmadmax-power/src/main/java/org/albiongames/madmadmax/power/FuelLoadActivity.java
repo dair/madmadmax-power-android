@@ -96,7 +96,7 @@ public class FuelLoadActivity extends Activity
                 object.put("code", mCode);
                 object.put("dev_id", Settings.getString(Settings.KEY_DEVICE_ID));
                 NetworkingThread.Request request = new NetworkingThread.Request("POST", NetworkingThread.fuelUrl(), object);
-                NetworkingThread.Response response = NetworkingThread.one(request);
+                NetworkingThread.Response response = NetworkingThread.one(request, NetworkingThread.ZIP_AUTO);
 
                 ret = response.getObject();
             } catch (JSONException ex) {

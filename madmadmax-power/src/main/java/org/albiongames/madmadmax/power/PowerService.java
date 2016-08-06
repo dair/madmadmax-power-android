@@ -2,6 +2,7 @@ package org.albiongames.madmadmax.power;
 
 import android.app.Activity;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Binder;
@@ -84,6 +85,37 @@ public class PowerService extends Service
         return mBinder;
     }
 
+    Storage openStorage(final String name)
+    {
+        Storage ret = null;
+
+        try
+        {
+            ret = new Storage(name);
+        }
+        catch (IOException ex)
+        {
+            // damn
+            Tools.log("Error opening NEW " + name + ": " + ex.toString());
+        }
+
+        if (ret == null)
+        {
+            deleteFile(name);
+            try
+            {
+                ret = new Storage(name);
+            }
+            catch (IOException ex)
+            {
+                // damn
+                Tools.log("Error opening NEW " + name + ": " + ex.toString());
+            }
+        }
+
+        return ret;
+    }
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId)
     {
@@ -98,30 +130,37 @@ public class PowerService extends Service
             mInstance = this;
 
             mStatus = STATUS_STARTING;
-            try
-            {
-                mLogicStorage = new Storage(getFilesDir() + "/logic");
-                mNetworkStorage = new Storage(getFilesDir() + "/network");
-                mLocationStorage = new Storage(getFilesDir() + "/location");
-                mInfoStorage = new Storage(getFilesDir() + "/info");
-            } catch (IOException ex)
-            {
-                mError = new Error(ex.getLocalizedMessage());
+
+            mLogicStorage = openStorage(getFilesDir() + "/logic");
+            mNetworkStorage = openStorage(getFilesDir() + "/network");
+            mLocationStorage = openStorage(getFilesDir() + "/location");
+            mInfoStorage = openStorage(getFilesDir() + "/info");
+
+
+            if (mLogicStorage != null &&
+                mNetworkStorage != null &&
+                mLocationStorage != null &&
+                mInfoStorage != null) {
+
+                dump(COMPONENT, "start");
+
+                mLocationThread = new LocationThread(this);
+                mBluetoothThread = new BluetoothThread(this);
+                mNetworkingThread = new NetworkingThread(this);
+                mLogicThread = new LogicThread(this);
+
+                mLocationThread.start();
+                mBluetoothThread.start();
+                mNetworkingThread.start();
+                mLogicThread.start();
+
+                mStatus = STATUS_ON;
             }
-
-            dump(COMPONENT, "start");
-
-            mLocationThread = new LocationThread(this);
-            mBluetoothThread = new BluetoothThread(this);
-            mNetworkingThread = new NetworkingThread(this);
-            mLogicThread = new LogicThread(this);
-
-            mLocationThread.start();
-            mBluetoothThread.start();
-            mNetworkingThread.start();
-            mLogicThread.start();
-
-            mStatus = STATUS_ON;
+            else
+            {
+                mStatus = STATUS_OFF;
+                stopSelf();
+            }
         }
         return START_STICKY;
     }

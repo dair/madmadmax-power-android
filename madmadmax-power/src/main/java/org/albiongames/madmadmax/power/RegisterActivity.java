@@ -145,7 +145,7 @@ public class RegisterActivity extends AppCompatActivity
             {
                 try
                 {
-                    final NetworkingThread.Response response = NetworkingThread.one(request);
+                    final NetworkingThread.Response response = NetworkingThread.one(request, NetworkingThread.ZIP_AUTO);
                     final String deviceId = response.getObject().getString("id");
 
                     RegisterActivity.this.runOnUiThread(new Runnable()

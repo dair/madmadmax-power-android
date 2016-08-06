@@ -243,6 +243,7 @@ public class BluetoothThread extends Thread
                     }
                     else
                     {
+                        Tools.sleep(1000);
                         connect();
                     }
                     break;

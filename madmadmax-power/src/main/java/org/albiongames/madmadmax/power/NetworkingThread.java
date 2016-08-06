@@ -165,7 +165,7 @@ public class NetworkingThread extends StatusThread
 
         try
         {
-            response = one(request);
+            response = one(request, ZIP_AUTO);
 
             JSONObject responseObject = response.getObject();
             if (responseObject == null)
@@ -373,7 +373,11 @@ public class NetworkingThread extends StatusThread
         return ret;
     }
 
-    public static synchronized Response one(Request request) throws Exception
+    public final static int ZIP_AUTO = 0;
+    public final static int ZIP_YES = 1;
+    public final static int ZIP_NO = 2;
+
+    public static synchronized Response one(Request request, int zip) throws Exception
     {
         HttpURLConnection connection = null;
         URL url = new URL(request.getUrl());
@@ -382,7 +386,7 @@ public class NetworkingThread extends StatusThread
         connection.setReadTimeout((int)Settings.getLong(Settings.KEY_NETWORK_TIMEOUT));
         connection.setConnectTimeout((int)Settings.getLong(Settings.KEY_NETWORK_TIMEOUT));
 
-        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
         String bodyString = request.getBody();
         if (bodyString == null || bodyString.isEmpty())
             bodyString = "{}";
@@ -393,8 +397,10 @@ public class NetworkingThread extends StatusThread
         }
 
         byte[] bytes;
-        if (bodyString.length() < 100)
+
+        if (zip == ZIP_NO || (zip == ZIP_AUTO && bodyString.length() < 255))
         {
+            // no zipping
             bytes = bodyString.getBytes("UTF-8");
         }
         else
@@ -404,7 +410,9 @@ public class NetworkingThread extends StatusThread
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             GZIPOutputStream gzos = new GZIPOutputStream(baos);
             gzos.write(bodyString.getBytes("UTF-8"));
+            gzos.flush();
             gzos.close();
+
             bytes = baos.toByteArray();
         }
         int len = bytes.length;
