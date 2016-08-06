@@ -28,6 +28,7 @@ public class LogicThread extends StatusThread
     double mLastMalfunctionCheckDistance = 0.0;
     long mFirstHighSpeedTime = 0;
     long mMalfunction2DriveTime = 0;
+    long mNoFuelDriveTime = 0;
 
     LogicThread(PowerService service)
     {
@@ -118,22 +119,48 @@ public class LogicThread extends StatusThread
             mFirstHighSpeedTime = 0;
         }
 
-        if (averageSpeed > 0.1)
+        // MALFUNCTION2
+
+        if (Settings.getLong(Settings.KEY_CAR_STATE) == Settings.CAR_STATE_MALFUNCTION_2)
         {
-            if (mMalfunction2DriveTime == 0)
-                mMalfunction2DriveTime = location.getTime();
-            else
+
+            if (averageSpeed > 0.1)
             {
-                long duration = location.getTime() - mMalfunction2DriveTime;
-                if (duration > Settings.getLong(Settings.KEY_RULES_BREAK_PERIOD)) // 10 seconds of driving in malfunction2 mode
+                if (mMalfunction2DriveTime == 0)
+                    mMalfunction2DriveTime = location.getTime();
+                else
                 {
-                    Settings.setDouble(Settings.KEY_HITPOINTS, 0); // zed's dead baby
+                    long duration = location.getTime() - mMalfunction2DriveTime;
+                    if (duration > Settings.getLong(Settings.KEY_RULES_BREAK_PERIOD)) // 10 seconds of driving in malfunction2 mode
+                    {
+                        Settings.setDouble(Settings.KEY_HITPOINTS, 0); // zed's dead baby
+                    }
                 }
+            } else
+            {
+                mMalfunction2DriveTime = 0;
             }
         }
-        else
+        else if (Settings.getDouble(Settings.KEY_FUEL_NOW) <= 0.0)
         {
-            mMalfunction2DriveTime = 0;
+            // driving without fuel
+            if (averageSpeed > 0.1)
+            {
+                if (mNoFuelDriveTime == 0)
+                    mNoFuelDriveTime = location.getTime();
+                else
+                {
+                    long duration = location.getTime() - mNoFuelDriveTime;
+                    if (duration > Settings.getLong(Settings.KEY_RULES_BREAK_PERIOD)) // 10 seconds of driving in malfunction2 mode
+                    {
+                        Settings.setLong(Settings.KEY_CAR_STATE, Settings.CAR_STATE_MALFUNCTION_2); // breaking the car
+                    }
+                }
+            }
+            else
+            {
+                mNoFuelDriveTime = 0;
+            }
         }
 
         mService.dump(COMPONENT, "Done processing location {" + location.toString() + "}");
