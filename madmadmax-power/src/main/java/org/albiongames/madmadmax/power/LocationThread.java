@@ -257,6 +257,7 @@ public class LocationThread extends StatusThread implements LocationListener
     {
         if (mTimer != null)
         {
+            mTimer.cancel();
             mTimer.purge();
             mTimer = null;
         }
