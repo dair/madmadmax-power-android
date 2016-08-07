@@ -124,9 +124,7 @@ public class GraphicActivity extends AppCompatActivity {
                     }
                     else
                     {
-
-                        double averageSpeedKmh = Tools.metersPerSecondToKilometersPerHour(Tools.getAverageSpeed());
-                        if (averageSpeedKmh < 1.0)
+                        if (!Tools.isCarMoving())
                         {
                             if (Settings.getDouble(Settings.KEY_HITPOINTS) > 0)
                             {
@@ -192,8 +190,7 @@ public class GraphicActivity extends AppCompatActivity {
                     }
                     else
                     {
-                        double averageSpeedKmh = Tools.metersPerSecondToKilometersPerHour(Tools.getAverageSpeed());
-                        if (averageSpeedKmh < 1.0)
+                        if (!Tools.isCarMoving())
                         {
                             if (Settings.getDouble(Settings.KEY_HITPOINTS) > 0)
                             {
@@ -223,12 +220,10 @@ public class GraphicActivity extends AppCompatActivity {
             {
                 if (Tools.isMyServiceRunning(GraphicActivity.this))
                 {
-                    double averageSpeedKmh = Tools.metersPerSecondToKilometersPerHour(Tools.getAverageSpeed());
-
                     long siegeState = Settings.getLong(Settings.KEY_SIEGE_STATE);
                     if (siegeState == Settings.SIEGE_STATE_OFF)
                     {
-                        if (averageSpeedKmh < 1.0)
+                        if (!Tools.isCarMoving())
                         {
                             startScreenTimer(Settings.getLong(Settings.KEY_DRIVE2SIEGE_DELAY), new Runnable() {
                                 @Override
@@ -568,7 +563,7 @@ public class GraphicActivity extends AppCompatActivity {
                 return; // already done in updateCarStatus()
             }
 
-            if (averageSpeedKmh < 1)
+            if (!Tools.isCarMoving())
             {
                 logo.setColorFilter(Color.GRAY);
                 return;

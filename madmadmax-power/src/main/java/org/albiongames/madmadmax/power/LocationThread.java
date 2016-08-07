@@ -366,11 +366,6 @@ public class LocationThread extends StatusThread implements LocationListener
             localDistance = location.distanceTo(mLastLocation);
         }
 
-        if (localDistance < 0.01 && speed < 0.01)
-        {
-            return;
-        }
-
         mLastLocation = location;
 
         StorageEntry.Location location1 = new StorageEntry.Location(localTime, lat, lon, acc, speed, localDistance, satellites);

@@ -30,6 +30,8 @@ public class LogicThread extends StatusThread
     long mMalfunction2DriveTime = 0;
     long mNoFuelDriveTime = 0;
 
+    StorageEntry.Location mLastLocation = null;
+
     LogicThread(PowerService service)
     {
         mService = service;
@@ -164,7 +166,6 @@ public class LogicThread extends StatusThread
         }
 
         mService.dump(COMPONENT, "Done processing location {" + location.toString() + "}");
-
 //        generateInfo();
     }
 
@@ -202,6 +203,7 @@ public class LogicThread extends StatusThread
         Settings.setDouble(Settings.KEY_TRACK_DISTANCE, 0.0);
         Settings.setDouble(Settings.KEY_AVERAGE_SPEED, 0.0);
         mLastMalfunctionCheckDistance = 0;
+        mLastLocation = null;
         setStatus(STATUS_ON);
 
         while (true)
@@ -210,17 +212,27 @@ public class LogicThread extends StatusThread
 
             if (entry != null)
             {
-
+                boolean sendToNetwork = true;
                 if (entry.isTypeOf(StorageEntry.TYPE_LOCATION))
                 {
-                    processLocation((StorageEntry.Location)entry);
+                    StorageEntry.Location location = (StorageEntry.Location)entry;
+                    processLocation(location);
+
+                    if (location.getDistance() < 0.1 && mLastLocation != null && mLastLocation.getDistance() < 0.1)
+                    {
+                        sendToNetwork = false;
+                    }
+                    mLastLocation = location;
                 }
                 else if (entry.isTypeOf(StorageEntry.TYPE_DAMAGE))
                 {
                     processDamage((StorageEntry.Damage)entry);
                 }
 
-                mService.getNetworkStorage().put(entry);
+                if (sendToNetwork)
+                {
+                    mService.getNetworkStorage().put(entry);
+                }
                 mService.getLogicStorage().remove();
 
 //                Tools.log("LogicThread: Logic: " + Integer.toString(mService.getLogicStorage().size()) + ", Network: " +

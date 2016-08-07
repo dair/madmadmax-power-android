@@ -157,6 +157,10 @@ public class FuelLoadActivity extends Activity
                     long timeout = amount * timeRatio;
 
                     mTimerActive = true;
+
+                    EditText text = (EditText)findViewById(R.id.fuelCodeText);
+                    text.setEnabled(false);
+
                     Tools.showTimer(this, timeout, R.string.fuel_load_comment, new Runnable()
                     {
                         @Override

@@ -153,8 +153,17 @@ public class RepairLoadActivity extends Activity
                     mReturnObject = object;
                     int amount = object.getInt("amount");
 
+                    double remain = Settings.getDouble(Settings.KEY_MAXHITPOINTS) - Settings.getDouble(Settings.KEY_HITPOINTS);
+                    double actualHP = Math.min(remain, amount);
+
                     long timeRatio = Settings.getLong(Settings.KEY_HP_LOAD_SPEED);
-                    long timeout = amount * timeRatio;
+                    long timeout = Math.round(actualHP * timeRatio);
+
+                    EditText text = (EditText)findViewById(R.id.repairCodeText);
+                    EditText player = (EditText)findViewById(R.id.playerCodeText);
+
+                    text.setEnabled(false);
+                    player.setEnabled(false);
 
                     mTimerActive = true;
                     Tools.showTimer(this, timeout, R.string.repair_load_comment, new Runnable()

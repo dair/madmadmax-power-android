@@ -215,6 +215,14 @@ public class Tools {
 //        return mock;
     }
 
+    public static boolean isCarMoving()
+    {
+        double mps = getAverageSpeed();
+        double kmh = metersPerSecondToKilometersPerHour(mps);
+
+        return kmh > 1.5;
+    }
+
     public static String convertStreamToString(InputStream is) throws IOException
     {
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
@@ -273,7 +281,7 @@ public class Tools {
         timerView.setBackgroundColor(Color.BLACK);
         timerView.setTextColor(Color.WHITE);
         timerView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        timerView.setTextSize(110);
+        timerView.setTextSize(100);
         timerView.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
 
         final FrameLayout layout = (FrameLayout)activity.findViewById(android.R.id.content);
@@ -287,6 +295,7 @@ public class Tools {
         commentView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         commentView.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
         commentView.setText(stringId);
+        commentView.setTextSize(24);
         layout.addView(commentView);
 
 

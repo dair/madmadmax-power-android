@@ -24,18 +24,18 @@
 
     <string name="fuel_load_hint">Код с канистры</string>
     <string name="fuel_load_send">Проверить код</string>
-    <string name="fuel_load_unknown">Неизвестная ошибка. Если повторяется постоянно (раза три) — сообщите мастеру.</string>
+    <string name="fuel_load_unknown">Ошибка соединения. Если повторяется постоянно проверьте сетевое соединение вашего устройства.</string>
     <string name="fuel_load_invalid_code">Ошибочный код, возможно, опечатка? Поддельные коды на игре запрещены, такого штатно быть не должно.</string>
     <string name="fuel_load_used_code">Этот код уже кто-то использовал до вас. Канистра пуста.</string>
     <string name="fuel_load_success">Топливо успешно заправлено, канистра теперь пуста. Сдайте пустую канистру ближайшему мастеру.</string>
     <string name="fuel_load_mistype_code">Опечатка. В коде должно быть ровно 8 цифр (даже если первая ноль)</string>
-    <string name="fuel_load_comment">Топливо межденно льётся из канистры в бак...</string>
+    <string name="fuel_load_comment">Топливо медленно льётся из канистры в бак&#8230;</string>
 
-    <string name="wait_dialog">Пожалуйста, подождите...</string>
+    <string name="wait_dialog">Пожалуйста, подождите&#8230;</string>
 
     <string name="repair_load_hint">Код с ремонтного набора</string>
     <string name="repair_load_send">Проверить код</string>
-    <string name="repair_load_unknown">Неизвестная ошибка. Если повторяется постоянно (раза три) — сообщите мастеру.</string>
+    <string name="repair_load_unknown">Ошибка соединения. Если повторяется постоянно проверьте сетевое соединение вашего устройства.</string>
     <string name="repair_load_invalid_code">Ошибочный код, возможно, опечатка? Поддельные коды на игре запрещены, такого штатно быть не должно.</string>
     <string name="repair_load_used_code">Этот код уже кто-то использовал до вас, ремонтный комплект израсходован.</string>
     <string name="repair_load_success">Автомобиль успешно немного починен. Сдайте использованный ремнабор ближайшему мастеру.</string>
@@ -60,7 +60,7 @@
     <string name="fuel_drop_description">Выставьте желаемый уровень топлива справа, потом нажмите кнопку. Топливо пропадёт безвовзратно.</string>
     <string name="fuel_drop_commit">Слить топливо в песок</string>
     <string name="fuel_drop_confirm">Топливо пропадёт навсегда. Вы уверены, что хотите слить топливо?</string>
-    <string name="fuel_drop_comment">Топливо медленно вытекает... Кап... Кап...</string>
+    <string name="fuel_drop_comment">Топливо медленно вытекает&#8230; Кап&#8230; Кап&#8230;</string>
 
     <string name="menu_fuel_load">Залить топливо</string>
     <string name="menu_fuel_drop">Слить топливо в песок</string>
