@@ -1,6 +1,8 @@
 package org.albiongames.madmadmax.power;
 
 import android.content.Intent;
+import android.text.TextUtils;
+import android.util.Log;
 
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
@@ -22,6 +24,7 @@ import java.util.Set;
 public class LogicThread extends StatusThread
 {
     final String COMPONENT = "LogicThread";
+    private static final String TAG = LogicThread.class.getSimpleName();
 
     PowerService mService = null;
     Random mRandom = new Random();
@@ -509,6 +512,11 @@ public class LogicThread extends StatusThread
         String keysString = Settings.getString(Settings.KEY_INFO_KEYS);
         try
         {
+            if (TextUtils.isEmpty(keysString)){
+                Log.e(TAG, "generateInfo KEY_INFO_KEYS contains null string!");
+                return;
+            }
+
             JSONArray keysArray = new JSONArray(keysString);
 
             for (int i = 0; i < keysArray.length(); ++i)
