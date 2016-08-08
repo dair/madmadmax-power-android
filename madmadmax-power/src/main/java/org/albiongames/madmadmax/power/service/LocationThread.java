@@ -1,4 +1,4 @@
-package org.albiongames.madmadmax.power;
+package org.albiongames.madmadmax.power.service;
 
 import android.content.Context;
 import android.location.Location;
@@ -7,6 +7,10 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Looper;
 import android.os.Parcel;
+
+import org.albiongames.madmadmax.power.Settings;
+import org.albiongames.madmadmax.power.Tools;
+import org.albiongames.madmadmax.power.data_storage.StorageEntry;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;

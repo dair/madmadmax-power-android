@@ -1,22 +1,23 @@
-package org.albiongames.madmadmax.power;
+package org.albiongames.madmadmax.power.service;
 
 import android.content.Intent;
 import android.text.TextUtils;
 import android.util.Log;
 
 import net.objecthunter.exp4j.Expression;
-import net.objecthunter.exp4j.ExpressionBuilder;
 
+import org.albiongames.madmadmax.power.Settings;
+import org.albiongames.madmadmax.power.Tools;
+import org.albiongames.madmadmax.power.data_storage.FuelQuality;
+import org.albiongames.madmadmax.power.data_storage.StorageEntry;
+import org.albiongames.madmadmax.power.data_storage.Upgrades;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.security.InvalidParameterException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
-import java.util.Set;
 
 /**
  * Created by dair on 12/06/16.

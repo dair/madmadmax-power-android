@@ -1,4 +1,4 @@
-package org.albiongames.madmadmax.power;
+package org.albiongames.madmadmax.power.activity;
 
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
@@ -12,6 +12,10 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+
+import org.albiongames.madmadmax.power.R;
+import org.albiongames.madmadmax.power.Settings;
+import org.albiongames.madmadmax.power.Tools;
 
 import java.util.ArrayList;
 import java.util.List;

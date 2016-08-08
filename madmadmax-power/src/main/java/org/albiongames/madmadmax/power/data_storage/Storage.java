@@ -1,4 +1,4 @@
-package org.albiongames.madmadmax.power;
+package org.albiongames.madmadmax.power.data_storage;
 
 import com.squareup.tape.QueueFile;
 

@@ -1,25 +1,18 @@
-package org.albiongames.madmadmax.power;
+package org.albiongames.madmadmax.power.service;
 
-import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 
-import com.squareup.tape.QueueFile;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.regex.Pattern;
 
 import app.akexorcist.bluetotohspp.library.BluetoothSPP;
 import app.akexorcist.bluetotohspp.library.BluetoothState;
+import org.albiongames.madmadmax.power.Settings;
+import org.albiongames.madmadmax.power.Tools;
+import org.albiongames.madmadmax.power.data_storage.StorageEntry;
 
 /**
  * Created by dair on 31/03/16.

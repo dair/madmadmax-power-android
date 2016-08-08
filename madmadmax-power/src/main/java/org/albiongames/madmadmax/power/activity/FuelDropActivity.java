@@ -1,14 +1,18 @@
-package org.albiongames.madmadmax.power;
+package org.albiongames.madmadmax.power.activity;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.view.DragEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
+
+import org.albiongames.madmadmax.power.R;
+import org.albiongames.madmadmax.power.Settings;
+import org.albiongames.madmadmax.power.Tools;
+import org.albiongames.madmadmax.power.data_storage.Upgrades;
 
 public class FuelDropActivity extends Activity
 {

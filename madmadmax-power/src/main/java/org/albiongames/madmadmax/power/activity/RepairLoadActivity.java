@@ -1,21 +1,20 @@
-package org.albiongames.madmadmax.power;
+package org.albiongames.madmadmax.power.activity;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 
+import org.albiongames.madmadmax.power.service.NetworkingThread;
+import org.albiongames.madmadmax.power.R;
+import org.albiongames.madmadmax.power.Settings;
+import org.albiongames.madmadmax.power.Tools;
+import org.albiongames.madmadmax.power.data_storage.Upgrades;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.concurrent.ExecutionException;
 
 public class RepairLoadActivity extends Activity
 {

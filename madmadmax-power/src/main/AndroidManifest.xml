@@ -18,7 +18,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat">
         <activity
-            android:name=".MainActivity"
+            android:name=".activity.MainActivity"
             android:theme="@android:style/Theme.NoDisplay">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -28,40 +28,40 @@
         </activity>
 
         <service
-            android:name=".PowerService"
+            android:name=".service.PowerService"
             android:enabled="true"
             android:exported="false" />
 
         <activity
-            android:name=".ServiceStatusActivity"
+            android:name=".activity.ServiceStatusActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".BluetoothDeviceActivity"
+            android:name=".activity.BluetoothDeviceActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".RegisterActivity"
+            android:name=".activity.RegisterActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".SettingsActivity"
+            android:name=".activity.SettingsActivity"
             android:label="@string/title_activity_settings"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".GraphicActivity"
+            android:name=".activity.GraphicActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.DayNight.NoActionBar" />
         <activity
-            android:name=".AboutActivity"
+            android:name=".activity.AboutActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".BluetoothConsoleActivity"
+            android:name=".activity.BluetoothConsoleActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".FuelLoadActivity"
+            android:name=".activity.FuelLoadActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".RepairLoadActivity"
+            android:name=".activity.RepairLoadActivity"
             android:screenOrientation="portrait" />
-        <activity android:name=".FuelDropActivity"
+        <activity android:name=".activity.FuelDropActivity"
             android:screenOrientation="portrait"/>
     </application>
 

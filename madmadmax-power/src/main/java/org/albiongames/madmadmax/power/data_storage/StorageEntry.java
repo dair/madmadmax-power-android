@@ -1,5 +1,6 @@
-package org.albiongames.madmadmax.power;
+package org.albiongames.madmadmax.power.data_storage;
 
+import org.albiongames.madmadmax.power.Settings;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -62,7 +63,7 @@ public class StorageEntry
             return mTime;
         }
 
-        protected JSONObject toJsonObject()
+        public JSONObject toJsonObject()
         {
             JSONObject object = new JSONObject();
             try
@@ -330,13 +331,13 @@ public class StorageEntry
     {
         String mText = null;
 
-        Dump(final String text)
+        public Dump(final String text)
         {
             super(TYPE_DUMP);
             mText = text;
         }
 
-        Dump(JSONObject object) throws JSONException
+        public Dump(JSONObject object) throws JSONException
         {
             super(object);
             mText = object.getString("text");
@@ -363,7 +364,7 @@ public class StorageEntry
     {
         List<Base> mData = new LinkedList<>();
 
-        Bundle()
+        public Bundle()
         {
             super(TYPE_BUNDLE);
         }
@@ -395,6 +396,7 @@ public class StorageEntry
             }
             catch (JSONException ex)
             {//oh really?
+                ex.printStackTrace(); // Ya rly!!! *owl picture*
             }
             return jsonObject;
         }

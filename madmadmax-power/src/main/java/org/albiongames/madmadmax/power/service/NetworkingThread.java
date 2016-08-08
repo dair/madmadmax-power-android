@@ -1,7 +1,12 @@
-package org.albiongames.madmadmax.power;
+package org.albiongames.madmadmax.power.service;
 
 import android.net.TrafficStats;
 
+import org.albiongames.madmadmax.power.Settings;
+import org.albiongames.madmadmax.power.Tools;
+import org.albiongames.madmadmax.power.data_storage.Storage;
+import org.albiongames.madmadmax.power.data_storage.StorageEntry;
+import org.albiongames.madmadmax.power.data_storage.Upgrades;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -9,7 +14,6 @@ import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;

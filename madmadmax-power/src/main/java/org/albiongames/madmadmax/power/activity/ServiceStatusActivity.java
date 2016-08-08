@@ -1,28 +1,25 @@
-package org.albiongames.madmadmax.power;
+package org.albiongames.madmadmax.power.activity;
 
-import android.app.Activity;
 import android.app.ActivityManager;
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
-import android.content.res.ColorStateList;
 import android.graphics.Color;
-import android.os.IBinder;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ListView;
 import android.widget.TextView;
 
-import java.util.List;
+import org.albiongames.madmadmax.power.service.NetworkingThread;
+import org.albiongames.madmadmax.power.service.PowerService;
+import org.albiongames.madmadmax.power.R;
+import org.albiongames.madmadmax.power.Settings;
+import org.albiongames.madmadmax.power.service.StatusThread;
+import org.albiongames.madmadmax.power.Tools;
+
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 

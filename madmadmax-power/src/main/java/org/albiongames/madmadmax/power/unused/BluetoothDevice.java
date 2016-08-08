@@ -1,4 +1,4 @@
-package org.albiongames.madmadmax.power;
+package org.albiongames.madmadmax.power.unused;
 
 import android.bluetooth.BluetoothAdapter;
 
