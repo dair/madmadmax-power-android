@@ -2,9 +2,7 @@ package org.albiongames.madmadmax.power;
 
 import android.app.Activity;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.IBinder;
 
@@ -13,10 +11,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 public class PowerService extends Service
 {
@@ -85,8 +81,7 @@ public class PowerService extends Service
         return mBinder;
     }
 
-    Storage openStorage(final String name)
-    {
+    Storage openStorage(final String name){
         Storage ret = null;
 
         try
@@ -95,20 +90,20 @@ public class PowerService extends Service
         }
         catch (IOException ex)
         {
-            // damn
+            ex.printStackTrace();
             Tools.log("Error opening NEW " + name + ": " + ex.toString());
         }
 
         if (ret == null)
         {
-            deleteFile(name);
             try
             {
+                deleteRecursive(new File(name));
                 ret = new Storage(name);
             }
             catch (IOException ex)
             {
-                // damn
+                ex.printStackTrace();
                 Tools.log("Error opening NEW " + name + ": " + ex.toString());
             }
         }
@@ -303,7 +298,7 @@ public class PowerService extends Service
             }
             catch (IOException ex)
             {
-                // fail
+                ex.printStackTrace();
             }
         }
         StorageEntry.Dump entry = new StorageEntry.Dump(component + ": " + message);
@@ -318,5 +313,17 @@ public class PowerService extends Service
             mNetworkStorage.put(mDumpBundle);
             mDumpBundle = null;
         }
+    }
+
+    public void deleteRecursive(File fileOrDirectory) throws IOException {
+
+        if (fileOrDirectory.isDirectory()) {
+            for (File child : fileOrDirectory.listFiles()) {
+                deleteRecursive(child);
+            }
+        }
+
+        if (!fileOrDirectory.delete())
+            throw new IOException();
     }
 }
