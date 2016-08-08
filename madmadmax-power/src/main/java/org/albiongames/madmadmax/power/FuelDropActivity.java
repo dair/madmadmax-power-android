@@ -114,10 +114,8 @@ public class FuelDropActivity extends Activity
 
     void apply()
     {
-        ProgressBar bar = (ProgressBar)findViewById(R.id.progressBarFuel);
-        int fuel = bar.getProgress();
-
-        Settings.setDouble(Settings.KEY_FUEL_NOW, fuel);
+        // No progress bar show now.
+        Settings.setDouble(Settings.KEY_FUEL_NOW, 0);
 
         FuelDropActivity.this.finish();
     }
