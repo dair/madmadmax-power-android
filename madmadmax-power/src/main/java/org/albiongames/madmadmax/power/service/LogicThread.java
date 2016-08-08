@@ -44,6 +44,8 @@ public class LogicThread extends StatusThread
 
     void processLocationGasoline(double rangePassedMeters)
     {
+        if (rangePassedMeters <= 0.0)
+            return;
         // gasoline
         double fuelNow = Settings.getDouble(Settings.KEY_FUEL_NOW); // units of gas
 
@@ -63,7 +65,10 @@ public class LogicThread extends StatusThread
 
     void processLocationHitPoints(double rangePassedMeters)
     {
-        // gasoline
+        if (rangePassedMeters <= 0)
+            return;
+
+        // hit points
         double hpNow = Settings.getDouble(Settings.KEY_HITPOINTS); // units of gas
         double hpPerKm = getCurrentReliability(); // units of gas per kilometer
 

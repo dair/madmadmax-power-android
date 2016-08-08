@@ -323,7 +323,7 @@ public class LocationThread extends StatusThread implements LocationListener
             }
             catch (IOException ex)
             {
-
+                ex.printStackTrace();
             }
         }
 
@@ -366,12 +366,22 @@ public class LocationThread extends StatusThread implements LocationListener
         Settings.setLong(Settings.KEY_LAST_GPS_UPDATE, localTime);
 
         double localDistance = 0;
-        if (mLastLocation != null && speed > 0.001)
+        if (mLastLocation != null)
         {
             localDistance = location.distanceTo(mLastLocation);
         }
 
-        mLastLocation = location;
+        if (localDistance < Settings.getDouble(Settings.KEY_GPS_FILTER_DISTANCE))
+        {
+            //skip it but gently
+            speed = 0;
+            localDistance = 0;
+        }
+        else
+        {
+            // really "else". If the user starts driving or even walking then range someday will increase
+            mLastLocation = location;
+        }
 
         StorageEntry.Location location1 = new StorageEntry.Location(localTime, lat, lon, acc, speed, localDistance, satellites);
 
@@ -504,7 +514,7 @@ public class LocationThread extends StatusThread implements LocationListener
             prevLocation = l;
         }
 
-        Tools.log(dump);
+//        Tools.log(dump);
 
         if (!haveBorder)
         {

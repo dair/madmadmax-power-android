@@ -124,8 +124,10 @@ public class Settings
     public static final String KEY_FUEL_LOAD_SPEED = PARAMS_PREFIX + "fuel_load_speed";
     public static final String KEY_HP_LOAD_SPEED = PARAMS_PREFIX + "hp_load_speed";
 
-
     public final static String DAMAGE_ACTION = "DAMAGE_ACTION";
+
+    public final static String KEY_GPS_FILTER_DISTANCE = PARAMS_PREFIX + "gps_filter_distance";
+    public final static String KEY_GPS_FILTER_SPEED = PARAMS_PREFIX + "gps_filter_speed";
 
     private static Settings instance = new Settings();
 
@@ -294,6 +296,10 @@ public class Settings
 
         mDefaults.put(KEY_FUEL_LOAD_SPEED, "360"); // milliseconds for one unit of fuel
         mDefaults.put(KEY_HP_LOAD_SPEED, "25000"); // milliseconds for one Hit Point
+
+        mDefaults.put(KEY_GPS_FILTER_DISTANCE, "1"); // in meters; location change less than this doesn't count
+        mDefaults.put(KEY_GPS_FILTER_SPEED, "2"); // in km/h; speed less than this doesn't count
+
 // FORMULAS
 
         mFormulaValues.add(KEY_P1_FORMULA);

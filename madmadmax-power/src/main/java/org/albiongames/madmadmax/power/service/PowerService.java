@@ -13,6 +13,7 @@ import org.albiongames.madmadmax.power.data_storage.Storage;
 import org.albiongames.madmadmax.power.data_storage.StorageEntry;
 import org.albiongames.madmadmax.power.data_storage.Upgrades;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -321,7 +322,10 @@ public class PowerService extends Service
         }
     }
 
-    public void deleteRecursive(File fileOrDirectory) throws IOException {
+    public void deleteRecursive(File fileOrDirectory) throws IOException
+    {
+        if (fileOrDirectory == null)
+            return;
 
         if (fileOrDirectory.isDirectory()) {
             for (File child : fileOrDirectory.listFiles()) {
