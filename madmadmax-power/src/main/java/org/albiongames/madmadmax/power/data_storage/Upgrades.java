@@ -11,8 +11,7 @@ import java.util.Map;
 /**
  * Created by dair on 21/07/16.
  */
-public class Upgrades
-{
+public class Upgrades {
     private final String FILENAME = "upgrades.json";
     String mPath = null;
     JSONObject mObject = null;

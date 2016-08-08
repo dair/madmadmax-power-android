@@ -1,5 +1,6 @@
 package org.albiongames.madmadmax.power.service;
 
+import android.app.Service;
 import android.content.Context;
 import android.location.Location;
 import android.location.LocationListener;
@@ -8,7 +9,7 @@ import android.os.Bundle;
 import android.os.Looper;
 import android.os.Parcel;
 
-import org.albiongames.madmadmax.power.Settings;
+import org.albiongames.madmadmax.power.data_storage.Settings;
 import org.albiongames.madmadmax.power.Tools;
 import org.albiongames.madmadmax.power.data_storage.StorageEntry;
 
@@ -41,9 +42,9 @@ public class LocationThread extends StatusThread implements LocationListener
 
     final static String COMPONENT = "LocationThread";
 
-    public LocationThread(PowerService service)
+    public LocationThread(PowerService service,Settings settings)
     {
-        super();
+        super(settings);
 
         mService = service;
     }
@@ -51,7 +52,7 @@ public class LocationThread extends StatusThread implements LocationListener
     @Override
     public void run()
     {
-        if (Settings.getLong(Settings.KEY_MOCK_DATA) == Settings.MOCK_DATA_PLAY)
+        if (getSettings().getLong(Settings.KEY_MOCK_DATA) == Settings.MOCK_DATA_PLAY)
             runFromMock();
         else
             runNormal();
@@ -171,8 +172,8 @@ public class LocationThread extends StatusThread implements LocationListener
 
     private synchronized void askRequests()
     {
-        long newGpsTime = Settings.getLong(Settings.KEY_MIN_GPS_TIME);
-        long newGpsDistance = Settings.getLong(Settings.KEY_MIN_GPS_DISTANCE);
+        long newGpsTime = getSettings().getLong(Settings.KEY_MIN_GPS_TIME);
+        long newGpsDistance = getSettings().getLong(Settings.KEY_MIN_GPS_DISTANCE);
 
         if (newGpsTime != mGpsTime || newGpsDistance != mGpsDistance)
         {
@@ -196,8 +197,8 @@ public class LocationThread extends StatusThread implements LocationListener
             }
         }
 
-        long averageSpeedTime = Settings.getLong(Settings.KEY_AVERAGE_SPEED_TIME);
-        Settings.setDouble(Settings.KEY_AVERAGE_SPEED, averageSpeed(averageSpeedTime));
+        long averageSpeedTime = getSettings().getLong(Settings.KEY_AVERAGE_SPEED_TIME);
+        getSettings().setDouble(Settings.KEY_AVERAGE_SPEED, averageSpeed(averageSpeedTime));
     }
 
     protected void onStart()
@@ -216,7 +217,7 @@ public class LocationThread extends StatusThread implements LocationListener
 
         mLastUpdate = System.currentTimeMillis();
         mLastLocation = null;
-        Settings.setDouble(Settings.KEY_AVERAGE_SPEED, 0.0);
+        getSettings().setDouble(Settings.KEY_AVERAGE_SPEED, 0.0);
 
         mService.getLogicStorage().put(new StorageEntry.MarkerStart());
 
@@ -235,15 +236,15 @@ public class LocationThread extends StatusThread implements LocationListener
             }, 1000, 1000);
         }
 
-        Settings.setDouble(Settings.KEY_LAST_INSTANT_SPEED, 0.0);
-        Settings.setLong(Settings.KEY_LAST_GPS_UPDATE, 0);
+        getSettings().setDouble(Settings.KEY_LAST_INSTANT_SPEED, 0.0);
+        getSettings().setLong(Settings.KEY_LAST_GPS_UPDATE, 0);
 
-        Settings.setLong(Settings.KEY_LOCATION_THREAD_STATUS, STATUS_STARTING);
-        Settings.setLong(Settings.KEY_LOCATION_THREAD_LAST_QUALITY, -1);
+        getSettings().setLong(Settings.KEY_LOCATION_THREAD_STATUS, STATUS_STARTING);
+        getSettings().setLong(Settings.KEY_LOCATION_THREAD_LAST_QUALITY, -1);
 
         Tools.log("Location Thread started");
 
-        if (Settings.getLong(Settings.KEY_MOCK_DATA) == Settings.MOCK_DATA_RECORD)
+        if (getSettings().getLong(Settings.KEY_MOCK_DATA) == Settings.MOCK_DATA_RECORD)
         {
             try
             {
@@ -281,8 +282,8 @@ public class LocationThread extends StatusThread implements LocationListener
             mService = null;
         }
 
-        Settings.setLong(Settings.KEY_LOCATION_THREAD_STATUS, STATUS_OFF);
-        Settings.setLong(Settings.KEY_LOCATION_THREAD_LAST_QUALITY, -1);
+        getSettings().setLong(Settings.KEY_LOCATION_THREAD_STATUS, STATUS_OFF);
+        getSettings().setLong(Settings.KEY_LOCATION_THREAD_LAST_QUALITY, -1);
     }
 
     public void graciousStop()
@@ -304,7 +305,7 @@ public class LocationThread extends StatusThread implements LocationListener
         long localTime = System.currentTimeMillis();
         location.setTime(localTime);
 
-        if (Settings.getLong(Settings.KEY_MOCK_DATA) == Settings.MOCK_DATA_RECORD)
+        if (getSettings().getLong(Settings.KEY_MOCK_DATA) == Settings.MOCK_DATA_RECORD)
         {
             Parcel p = Parcel.obtain();
             location.writeToParcel(p, 0);
@@ -333,10 +334,10 @@ public class LocationThread extends StatusThread implements LocationListener
         {
             satellites = location.getExtras().getInt("satellites");
 
-            if (satellites < Settings.getLong(Settings.KEY_MIN_SATELLITES))
+            if (satellites < getSettings().getLong(Settings.KEY_MIN_SATELLITES))
             {
                 mService.dump(COMPONENT, "rejecting location because of satellites: " + location.toString());
-                Settings.setLong(Settings.KEY_LOCATION_THREAD_LAST_QUALITY, 0);
+                getSettings().setLong(Settings.KEY_LOCATION_THREAD_LAST_QUALITY, 0);
                 return;
             }
         }
@@ -346,15 +347,15 @@ public class LocationThread extends StatusThread implements LocationListener
         {
             acc = location.getAccuracy();
 
-            if (acc > Settings.getLong(Settings.KEY_MIN_ACCURACY))
+            if (acc > getSettings().getLong(Settings.KEY_MIN_ACCURACY))
             {
                 mService.dump(COMPONENT, "rejecting location because of accuracy: " + location.toString());
-                Settings.setLong(Settings.KEY_LOCATION_THREAD_LAST_QUALITY, 0);
+                getSettings().setLong(Settings.KEY_LOCATION_THREAD_LAST_QUALITY, 0);
                 return;
             }
         }
 
-        Settings.setLong(Settings.KEY_LOCATION_THREAD_LAST_QUALITY, 1);
+        getSettings().setLong(Settings.KEY_LOCATION_THREAD_LAST_QUALITY, 1);
 
         Tools.log("Got location: " + location.toString());
 
@@ -362,8 +363,8 @@ public class LocationThread extends StatusThread implements LocationListener
         double lon = location.getLongitude();
         float speed = location.getSpeed();
 
-        Settings.setDouble(Settings.KEY_LAST_INSTANT_SPEED, speed);
-        Settings.setLong(Settings.KEY_LAST_GPS_UPDATE, localTime);
+        getSettings().setDouble(Settings.KEY_LAST_INSTANT_SPEED, speed);
+        getSettings().setLong(Settings.KEY_LAST_GPS_UPDATE, localTime);
 
         double localDistance = 0;
         if (mLastLocation != null && speed > 0.001)
@@ -381,8 +382,8 @@ public class LocationThread extends StatusThread implements LocationListener
         addLocation(location);
 
 
-        long averageSpeedTime = Settings.getLong(Settings.KEY_AVERAGE_SPEED_TIME);
-        Settings.setDouble(Settings.KEY_AVERAGE_SPEED, averageSpeed(averageSpeedTime));
+        long averageSpeedTime = getSettings().getLong(Settings.KEY_AVERAGE_SPEED_TIME);
+        getSettings().setDouble(Settings.KEY_AVERAGE_SPEED, averageSpeed(averageSpeedTime));
     }
 
     void addLocation(Location location)
@@ -390,7 +391,7 @@ public class LocationThread extends StatusThread implements LocationListener
         mLastLocations.add(location);
 
         long now = System.currentTimeMillis();
-        long minTime = now - Settings.getLong(Settings.KEY_AVERAGE_SPEED_TIME);
+        long minTime = now - getSettings().getLong(Settings.KEY_AVERAGE_SPEED_TIME);
         boolean haveBorder = false;
 
         int i = mLastLocations.size() - 1;
@@ -425,14 +426,14 @@ public class LocationThread extends StatusThread implements LocationListener
     public void onProviderEnabled(String provider)
     {
         Tools.log("LocationThread::onProviderEnabled: " + provider);
-        Settings.setLong(Settings.KEY_LOCATION_THREAD_STATUS, STATUS_ON);
+        getSettings().setLong(Settings.KEY_LOCATION_THREAD_STATUS, STATUS_ON);
     }
 
   @Override
     public void onProviderDisabled(String provider)
     {
         Tools.log("LocationThread::onProviderDisabled: " + provider);
-        Settings.setLong(Settings.KEY_LOCATION_THREAD_STATUS, STATUS_OFF);
+        getSettings().setLong(Settings.KEY_LOCATION_THREAD_STATUS, STATUS_OFF);
     }
 
     public synchronized float averageSpeed(long duration)
@@ -540,6 +541,6 @@ public class LocationThread extends StatusThread implements LocationListener
 
     boolean isMockPlay()
     {
-        return Settings.getLong(Settings.KEY_MOCK_DATA) == Settings.MOCK_DATA_PLAY;
+        return getSettings().getLong(Settings.KEY_MOCK_DATA) == Settings.MOCK_DATA_PLAY;
     }
 }

@@ -1,12 +1,15 @@
 package org.albiongames.madmadmax.power.service;
 
+import static org.albiongames.madmadmax.power.network.NetworkTools.*;
+
 import android.net.TrafficStats;
 
-import org.albiongames.madmadmax.power.Settings;
+import org.albiongames.madmadmax.power.data_storage.Settings;
 import org.albiongames.madmadmax.power.Tools;
 import org.albiongames.madmadmax.power.data_storage.Storage;
 import org.albiongames.madmadmax.power.data_storage.StorageEntry;
 import org.albiongames.madmadmax.power.data_storage.Upgrades;
+import org.albiongames.madmadmax.power.network.NetworkTools;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -27,107 +30,16 @@ public class NetworkingThread extends StatusThread
 {
     PowerService mService = null;
     boolean mWorking = false;
-    static long mLastParamsRequest = 0;
-    static long mLastNetworkInteraction = 0;
 
     String mDeviceId = null;
 
     long mErrorSleep = 500;
 
-    static long mTrafficRx;
-    static long mTrafficTx;
 
-    public static class Request
+
+    NetworkingThread(PowerService service, Settings settings)
     {
-        private String mMethod;
-        private String mUrl;
-        private String mBody;
-
-        public Request(final String method, final String url, JSONObject object)
-        {
-            mMethod = method;
-            mUrl = url;
-            mBody = object.toString();
-        }
-
-        public Request(final String method, final String url, final String body)
-        {
-            mMethod = method;
-            mUrl = url;
-            mBody = body;
-        }
-
-        public String getMethod()
-        {
-            return mMethod;
-        }
-
-        public String getUrl()
-        {
-            return mUrl;
-        }
-
-        public String getBody()
-        {
-            return mBody;
-        }
-    }
-
-    public static class Response
-    {
-        private JSONObject mObject = null;
-        public Response(JSONObject object)
-        {
-            mObject = object;
-        }
-
-        public final JSONObject getObject()
-        {
-            return mObject;
-        }
-    }
-
-    public static String baseUrl()
-    {
-        String storedUrl = Settings.getString(Settings.KEY_SERVER_URL);
-        if (storedUrl == null)
-            return null;
-        if (!storedUrl.startsWith("http://") &&
-            !storedUrl.startsWith("https://"))
-        {
-            storedUrl = "http://" + storedUrl;
-        }
-
-        while (storedUrl.endsWith("/"))
-        {
-            storedUrl = storedUrl.substring(0, storedUrl.length()-1);
-        }
-
-        return storedUrl;
-    }
-
-    public static String authUrl()
-    {
-        return baseUrl() + "/device/reg";
-    }
-
-    public static String pUrl()
-    {
-        return baseUrl() + "/device/p";
-    }
-
-    public static String fuelUrl()
-    {
-        return baseUrl() + "/device/fuel";
-    }
-
-    public static String repairUrl()
-    {
-        return baseUrl() + "/device/repair";
-    }
-
-    NetworkingThread(PowerService service)
-    {
+        super(settings);
         mService = service;
     }
 
@@ -163,13 +75,13 @@ public class NetworkingThread extends StatusThread
         {
         }
 
-        Request request = new Request("POST", pUrl(), object.toString());
+        Request request = new Request("POST", pUrl(settings), object.toString());
 
         Response response = null;
 
         try
         {
-            response = one(request, ZIP_AUTO);
+            response = one(request, ZIP_AUTO,getSettings());
 
             JSONObject responseObject = response.getObject();
             if (responseObject == null)
@@ -180,7 +92,7 @@ public class NetworkingThread extends StatusThread
             if (code == 1) // success
             {
                 mService.getNetworkStorage().remove();
-                Settings.setLong(Settings.KEY_LATEST_SUCCESS_CONNECTION, System.currentTimeMillis());
+                getSettings().setLong(Settings.KEY_LATEST_SUCCESS_CONNECTION, System.currentTimeMillis());
 
                 if (getStatus() == STATUS_STOPPING && checkFinishMarker(object))
                 {
@@ -197,7 +109,7 @@ public class NetworkingThread extends StatusThread
         catch (Exception ex)
         {
             Tools.log("Networking exception: " + ex.toString());
-            Settings.setLong(Settings.KEY_LATEST_FAILED_CONNECTION, System.currentTimeMillis());
+            getSettings().setLong(Settings.KEY_LATEST_FAILED_CONNECTION, System.currentTimeMillis());
             ret = false;
         }
 
@@ -213,20 +125,20 @@ public class NetworkingThread extends StatusThread
         Tools.log("NetworkingThread: start");
         int mErrorCountOnExit = 0;
 
-        mTrafficRx = 0;
-        mTrafficTx = 0;
+        setRx(0);
+        setTx(0);
 
         super.run();
 
-        mDeviceId = Settings.getString(Settings.KEY_DEVICE_ID);
+        mDeviceId = getSettings().getString(Settings.KEY_DEVICE_ID);
         if (mDeviceId == null || mDeviceId.isEmpty())
             return;
 
         int uid = android.os.Process.myUid();
         mRxBytes = TrafficStats.getUidTxBytes(uid);
         mTxBytes = TrafficStats.getUidRxBytes(uid);
-        Settings.setLong(Settings.KEY_RX_BYTES, 0);
-        Settings.setLong(Settings.KEY_TX_BYTES, 0);
+        getSettings().setLong(Settings.KEY_RX_BYTES, 0);
+        getSettings().setLong(Settings.KEY_TX_BYTES, 0);
 
         setStatus(STATUS_ON);
 
@@ -235,11 +147,11 @@ public class NetworkingThread extends StatusThread
             if (mService.getNetworkStorage().isEmpty())
             {
                 long now = System.currentTimeMillis();
-                if (now - mLastNetworkInteraction > Settings.getLong(Settings.KEY_GPS_IDLE_INTERVAL))
+                if (now - getLastNetworkInteraction() > getSettings().getLong(Settings.KEY_GPS_IDLE_INTERVAL))
                 {
                     StorageEntry.Marker marker = new StorageEntry.Marker("ping");
                     mService.getNetworkStorage().put(marker);
-                    mLastNetworkInteraction = now;
+                    setLastNetworkInteraction(now);
                 }
             }
 
@@ -293,14 +205,14 @@ public class NetworkingThread extends StatusThread
                         long rx = rxBytes - mRxBytes;
                         long tx = txBytes - mTxBytes;
 
-                        long storedRx = Settings.getLong(Settings.KEY_RX_BYTES);
-                        long storedTx = Settings.getLong(Settings.KEY_TX_BYTES);
+                        long storedRx = getSettings().getLong(Settings.KEY_RX_BYTES);
+                        long storedTx = getSettings().getLong(Settings.KEY_TX_BYTES);
 
                         storedRx += rx;
                         storedTx += tx;
 
-                        Settings.setLong(Settings.KEY_RX_BYTES, storedRx);
-                        Settings.setLong(Settings.KEY_TX_BYTES, storedTx);
+                        getSettings().setLong(Settings.KEY_RX_BYTES, storedRx);
+                        getSettings().setLong(Settings.KEY_TX_BYTES, storedTx);
 
                         // successfully sent a packet to the server
                         mErrorCountOnExit = 0;
@@ -319,12 +231,12 @@ public class NetworkingThread extends StatusThread
 
             synchronized (mService.getLocationStorage())
             {
-                if (mService.getLocationStorage().size() > Settings.getLong(Settings.KEY_LOCATION_PACKAGE_SIZE))
+                if (mService.getLocationStorage().size() > getSettings().getLong(Settings.KEY_LOCATION_PACKAGE_SIZE))
                 {
                     flushQueue(mService.getLocationStorage());
                 }
                 
-                if (mService.getLocationStorage().size() > Settings.getLong(Settings.KEY_LOCATION_PACKAGE_SIZE))
+                if (mService.getLocationStorage().size() > getSettings().getLong(Settings.KEY_LOCATION_PACKAGE_SIZE))
                 {
                     flushQueue(mService.getLocationStorage());
                 }
@@ -339,6 +251,8 @@ public class NetworkingThread extends StatusThread
 
         Tools.log("NetworkingThread: stop");
     }
+
+
 
     void flushQueue(Storage storage)
     {
@@ -355,165 +269,9 @@ public class NetworkingThread extends StatusThread
 
     }
 
-    static String addParamUpdate(String s)
-    {
-        String ret = s;
-        try
-        {
-            JSONObject object = new JSONObject(s);
-            long lastCommandId = Settings.getLong(Settings.KEY_LAST_COMMAND_ID);
-            object.put("c", lastCommandId);
-
-            long lastUpgradeTime = Settings.getLong(Settings.KEY_LAST_UPGRADE_TIME);
-            object.put("u", lastUpgradeTime);
-
-            ret = object.toString();
-        }
-        catch (JSONException ex)
-        {
-            // cry
-        }
-
-        return ret;
-    }
-
-    public final static int ZIP_AUTO = 0;
-    public final static int ZIP_YES = 1;
-    public final static int ZIP_NO = 2;
-
-    public static synchronized Response one(Request request, int zip) throws Exception
-    {
-        HttpURLConnection connection = null;
-        URL url = new URL(request.getUrl());
-        connection = (HttpURLConnection)url.openConnection();
-        connection.setRequestMethod(request.getMethod());
-        connection.setReadTimeout((int)Settings.getLong(Settings.KEY_NETWORK_TIMEOUT));
-        connection.setConnectTimeout((int)Settings.getLong(Settings.KEY_NETWORK_TIMEOUT));
-
-        connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
-        String bodyString = request.getBody();
-        if (bodyString == null || bodyString.isEmpty())
-            bodyString = "{}";
-
-        if (System.currentTimeMillis() - mLastParamsRequest >= Settings.getLong(Settings.KEY_PARAM_UPDATE))
-        {
-            bodyString = addParamUpdate(bodyString);
-        }
-
-        byte[] bytes;
-
-        if (zip == ZIP_NO || (zip == ZIP_AUTO && bodyString.length() < 255))
-        {
-            // no zipping
-            bytes = bodyString.getBytes("UTF-8");
-        }
-        else
-        {
-            connection.setRequestProperty("Content-Encoding", "gzip");
-
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            GZIPOutputStream gzos = new GZIPOutputStream(baos);
-            gzos.write(bodyString.getBytes("UTF-8"));
-            gzos.flush();
-            gzos.close();
-
-            bytes = baos.toByteArray();
-        }
-        int len = bytes.length;
-
-        mTrafficTx += len;
-
-//                connection.setRequestProperty("Content-Length", Integer.toString(len));
-        connection.setFixedLengthStreamingMode(len);
-        connection.setUseCaches(false);
-        connection.setDoOutput(true);
-        connection.setDoInput(true);
-
-        connection.connect();
-
-//        Tools.log("cathcing eof: 1");
-
-        DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
-        wr.write(bytes);
-        wr.flush();
-
-//        Tools.log("cathcing eof: 2");
-        int status = 442;
-
-        try
-        {
-            status = connection.getResponseCode();
-        }
-        catch (EOFException ex)
-        {
-            // server closed connection??
-        }
-
-//        Tools.log("cathcing eof: 2.5");
-        if (status == HttpURLConnection.HTTP_OK)
-        {
-//            Tools.log("cathcing eof: 3");
-            InputStream is = connection.getInputStream();
-            BufferedReader rd = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-            StringBuilder responseString = new StringBuilder(); // or StringBuffer if not Java 5+
-            String line;
-            while ((line = rd.readLine()) != null)
-            {
-                responseString.append(line);
-                responseString.append('\r');
-            }
-//            Tools.log("cathcing eof: 4");
-            rd.close();
-//            Tools.log("cathcing eof: 5");
-
-            mTrafficRx += responseString.length();
-
-            JSONObject object = new JSONObject(responseString.toString());
-
-            if (object.has("params"))
-            {
-                JSONObject params = object.getJSONObject("params");
-                Settings.networkUpdate(params);
-                object.remove("params");
-                mLastParamsRequest = System.currentTimeMillis();
-            }
-
-            if (object.has("upgrades"))
-            {
-                JSONObject params = object.getJSONObject("upgrades");
-
-                long storeTime = Settings.getLong(Settings.KEY_LAST_UPGRADE_TIME);
-
-                if (params.has("time"))
-                {
-                    storeTime = params.getLong("time");
-                    params.remove("time");
-                }
-
-                if (PowerService.instance() != null)
-                {
-                    Upgrades.upgradesFromNetwork(params);
-                }
-                Settings.setLong(Settings.KEY_LAST_UPGRADE_TIME, storeTime);
 
 
 
-                object.remove("upgrades");
-            }
-//            Tools.log("cathcing eof: 6");
-
-            Response response = new Response(object);
-            wr.close();
-
-//            Tools.log("cathcing eof: 7");
-
-            return response;
-        }
-        else
-        {
-            throw new Exception(connection.getResponseMessage());
-        }
-    }
 
     public void graciousStop()
     {
@@ -521,15 +279,6 @@ public class NetworkingThread extends StatusThread
             setStatus(STATUS_STOPPING);
     }
 
-    public static long getRx()
-    {
-        return mTrafficRx;
-    }
-
-    public static long getTx()
-    {
-        return mTrafficTx;
-    }
 
 }
 

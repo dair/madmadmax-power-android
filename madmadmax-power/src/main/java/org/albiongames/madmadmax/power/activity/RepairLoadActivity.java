@@ -8,9 +8,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import org.albiongames.madmadmax.power.data_storage.Settings;
+import org.albiongames.madmadmax.power.network.NetworkTools;
 import org.albiongames.madmadmax.power.service.NetworkingThread;
 import org.albiongames.madmadmax.power.R;
-import org.albiongames.madmadmax.power.Settings;
 import org.albiongames.madmadmax.power.Tools;
 import org.albiongames.madmadmax.power.data_storage.Upgrades;
 import org.json.JSONException;
@@ -21,10 +22,20 @@ public class RepairLoadActivity extends Activity
     float mMultiplier = 0;
     boolean mTimerActive = false;
 
+    private Settings settings;
+
+    public Settings getSettings() {
+        assert settings!=null;
+        return settings;
+    }
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_repair_load);
+
+        settings = new Settings(this);
 
         Button sendButton = (Button)findViewById(R.id.sendButton);
         sendButton.setOnClickListener(new View.OnClickListener() {
@@ -103,9 +114,9 @@ public class RepairLoadActivity extends Activity
             JSONObject ret = null;
             try {
                 object.put("code", mCode);
-                object.put("dev_id", Settings.getString(Settings.KEY_DEVICE_ID));
-                NetworkingThread.Request request = new NetworkingThread.Request("POST", NetworkingThread.repairUrl(), object);
-                NetworkingThread.Response response = NetworkingThread.one(request, NetworkingThread.ZIP_AUTO);
+                object.put("dev_id", getSettings().getString(Settings.KEY_DEVICE_ID));
+                NetworkTools.Request request = new NetworkTools.Request("POST", NetworkTools.repairUrl(getSettings()), object);
+                NetworkTools.Response response = NetworkTools.one(request, NetworkTools.ZIP_AUTO, getSettings());
 
                 ret = response.getObject();
             } catch (JSONException ex) {
@@ -152,10 +163,11 @@ public class RepairLoadActivity extends Activity
                     mReturnObject = object;
                     int amount = object.getInt("amount");
 
-                    double remain = Settings.getDouble(Settings.KEY_MAXHITPOINTS) - Settings.getDouble(Settings.KEY_HITPOINTS);
+                    double remain = getSettings().getDouble(Settings.KEY_MAXHITPOINTS) - getSettings()
+                        .getDouble(Settings.KEY_HITPOINTS);
                     double actualHP = Math.min(remain, amount);
 
-                    long timeRatio = Settings.getLong(Settings.KEY_HP_LOAD_SPEED);
+                    long timeRatio = getSettings().getLong(Settings.KEY_HP_LOAD_SPEED);
                     long timeout = Math.round(actualHP * timeRatio);
 
                     EditText text = (EditText)findViewById(R.id.repairCodeText);
@@ -207,17 +219,17 @@ public class RepairLoadActivity extends Activity
         {
         }
 
-        double repairNow = Settings.getDouble(Settings.KEY_HITPOINTS);
-        double repairMax = Settings.getDouble(Settings.KEY_MAXHITPOINTS);
+        double repairNow = getSettings().getDouble(Settings.KEY_HITPOINTS);
+        double repairMax = getSettings().getDouble(Settings.KEY_MAXHITPOINTS);
         repairMax = Upgrades.upgradeValue(Settings.KEY_MAXHITPOINTS, repairMax);
 
         long amountFinal = Math.round(amount * mMultiplier);
 
         double repairBecome = Tools.clamp(repairNow + amountFinal, 0, repairMax);
-        Settings.setDouble(Settings.KEY_HITPOINTS, repairBecome);
+        getSettings().setDouble(Settings.KEY_HITPOINTS, repairBecome);
 
         int newState = Settings.CAR_STATE_OK;
-        switch ((int)Settings.getLong(Settings.KEY_CAR_STATE))
+        switch ((int) getSettings().getLong(Settings.KEY_CAR_STATE))
         {
             case Settings.CAR_STATE_OK:
                 // do nothing
@@ -229,7 +241,7 @@ public class RepairLoadActivity extends Activity
                 newState = Settings.CAR_STATE_MALFUNCTION_1;
                 break;
         }
-        Settings.setLong(Settings.KEY_CAR_STATE, (long)newState);
+        getSettings().setLong(Settings.KEY_CAR_STATE, (long)newState);
 
         Tools.messageBox(this, R.string.repair_load_success, new Runnable() {
             @Override

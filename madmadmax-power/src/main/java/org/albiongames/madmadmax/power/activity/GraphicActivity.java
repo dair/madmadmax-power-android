@@ -23,11 +23,11 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import org.albiongames.madmadmax.power.data_storage.Settings;
 import org.albiongames.madmadmax.power.service.BluetoothThread;
 import org.albiongames.madmadmax.power.service.LogicThread;
 import org.albiongames.madmadmax.power.service.PowerService;
 import org.albiongames.madmadmax.power.R;
-import org.albiongames.madmadmax.power.Settings;
 import org.albiongames.madmadmax.power.Tools;
 import org.albiongames.madmadmax.power.data_storage.Upgrades;
 
@@ -70,6 +70,12 @@ public class GraphicActivity extends AppCompatActivity {
     int mBluetoothState = -100;
 
     DamageReceiver mDamageReceiver = new DamageReceiver();
+    private Settings settings;
+
+    public Settings getSettings() {
+        assert settings!=null;
+        return settings;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -77,6 +83,8 @@ public class GraphicActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_graphic);
         mCoverImage = (ImageView)findViewById(R.id.coverImage);
+
+        settings = new Settings(this);
 
         final ImageButton menuButton = (ImageButton)findViewById(R.id.menuButton);
         if (menuButton != null)
@@ -100,6 +108,7 @@ public class GraphicActivity extends AppCompatActivity {
         mScreenTimerTextView = (TextView)findViewById(R.id.timerText);
 
         final ProgressBar fuelBar = (ProgressBar)findViewById(R.id.progressBarFuel);
+        assert fuelBar != null;
         fuelBar.setOnLongClickListener(new View.OnLongClickListener()
         {
             @Override
@@ -107,18 +116,18 @@ public class GraphicActivity extends AppCompatActivity {
             {
                 if (Tools.isMyServiceRunning(GraphicActivity.this))
                 {
-                    long lastGpsSignal = Settings.getLong(Settings.KEY_LAST_GPS_UPDATE);
+                    long lastGpsSignal = getSettings().getLong(Settings.KEY_LAST_GPS_UPDATE);
                     long now = System.currentTimeMillis();
-                    long timeout = Settings.getLong(Settings.KEY_GPS_TIMEOUT);
+                    long timeout = getSettings().getLong(Settings.KEY_GPS_TIMEOUT);
                     if (now - lastGpsSignal > timeout)
                     {
                         Tools.messageBox(GraphicActivity.this, R.string.graphic_car_should_stop);
                     }
                     else
                     {
-                        if (!Tools.isCarMoving())
+                        if (!Tools.isCarMoving(getSettings()))
                         {
-                            if (Settings.getDouble(Settings.KEY_HITPOINTS) > 0)
+                            if (getSettings().getDouble(Settings.KEY_HITPOINTS) > 0)
                             {
                                 TextView t = (TextView)findViewById(R.id.fuelText);
                                 PopupMenu menu = new PopupMenu(GraphicActivity.this, t);
@@ -166,6 +175,7 @@ public class GraphicActivity extends AppCompatActivity {
         });
 
         ProgressBar hpBar = (ProgressBar)findViewById(R.id.progressBarHP);
+        assert hpBar != null;
         hpBar.setOnLongClickListener(new View.OnLongClickListener()
         {
             @Override
@@ -173,18 +183,18 @@ public class GraphicActivity extends AppCompatActivity {
             {
                 if (Tools.isMyServiceRunning(GraphicActivity.this))
                 {
-                    long lastGpsSignal = Settings.getLong(Settings.KEY_LAST_GPS_UPDATE);
+                    long lastGpsSignal = getSettings().getLong(Settings.KEY_LAST_GPS_UPDATE);
                     long now = System.currentTimeMillis();
-                    long timeout = Settings.getLong(Settings.KEY_GPS_TIMEOUT);
+                    long timeout = getSettings().getLong(Settings.KEY_GPS_TIMEOUT);
                     if (now - lastGpsSignal > timeout)
                     {
                         Tools.messageBox(GraphicActivity.this, R.string.graphic_car_should_stop);
                     }
                     else
                     {
-                        if (!Tools.isCarMoving())
+                        if (!Tools.isCarMoving(getSettings()))
                         {
-                            if (Settings.getDouble(Settings.KEY_HITPOINTS) > 0)
+                            if (getSettings().getDouble(Settings.KEY_HITPOINTS) > 0)
                             {
                                 Intent intent = new Intent(GraphicActivity.this, RepairLoadActivity.class);
                                 startActivity(intent);
@@ -205,6 +215,7 @@ public class GraphicActivity extends AppCompatActivity {
         });
 
         ImageView logo = (ImageView)findViewById(R.id.logoImageView);
+        assert logo != null;
         logo.setOnLongClickListener(new View.OnLongClickListener()
         {
             @Override
@@ -212,16 +223,16 @@ public class GraphicActivity extends AppCompatActivity {
             {
                 if (Tools.isMyServiceRunning(GraphicActivity.this))
                 {
-                    long siegeState = Settings.getLong(Settings.KEY_SIEGE_STATE);
+                    long siegeState = getSettings().getLong(Settings.KEY_SIEGE_STATE);
                     if (siegeState == Settings.SIEGE_STATE_OFF)
                     {
-                        if (!Tools.isCarMoving())
+                        if (!Tools.isCarMoving(getSettings()))
                         {
-                            startScreenTimer(Settings.getLong(Settings.KEY_DRIVE2SIEGE_DELAY), new Runnable() {
+                            startScreenTimer(getSettings().getLong(Settings.KEY_DRIVE2SIEGE_DELAY), new Runnable() {
                                 @Override
                                 public void run()
                                 {
-                                    Settings.setLong(Settings.KEY_SIEGE_STATE, Settings.SIEGE_STATE_ON);
+                                    getSettings().setLong(Settings.KEY_SIEGE_STATE, Settings.SIEGE_STATE_ON);
                                     updateEverything();
                                 }
                             });
@@ -241,6 +252,7 @@ public class GraphicActivity extends AppCompatActivity {
         });
 
         ImageView fire = (ImageView)findViewById(R.id.fireImageView);
+        assert fire != null;
         fire.setOnLongClickListener(new View.OnLongClickListener()
         {
             @Override
@@ -248,11 +260,11 @@ public class GraphicActivity extends AppCompatActivity {
             {
                 if (Tools.isMyServiceRunning(GraphicActivity.this))
                 {
-                    startScreenTimer(Settings.getLong(Settings.KEY_SIEGE2DRIVE_DELAY), new Runnable() {
+                    startScreenTimer(getSettings().getLong(Settings.KEY_SIEGE2DRIVE_DELAY), new Runnable() {
                         @Override
                         public void run()
                         {
-                            Settings.setLong(Settings.KEY_SIEGE_STATE, Settings.SIEGE_STATE_OFF);
+                            getSettings().setLong(Settings.KEY_SIEGE_STATE, Settings.SIEGE_STATE_OFF);
                             updateEverything();
                         }
                     });
@@ -311,14 +323,16 @@ public class GraphicActivity extends AppCompatActivity {
         }
         catch (PackageManager.NameNotFoundException ex)
         {
-
+            ex.printStackTrace();
         }
 
         TextView versionView = (TextView)findViewById(R.id.versionTextView);
+        assert versionView != null;
         versionView.setText(version);
 
         TextView nameView = (TextView)findViewById(R.id.nameTextView);
-        nameView.setText(Settings.getString(Settings.KEY_DEVICE_NAME));
+        assert nameView != null;
+        nameView.setText(getSettings().getString(Settings.KEY_DEVICE_NAME));
 
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(Settings.DAMAGE_ACTION);
@@ -357,10 +371,10 @@ public class GraphicActivity extends AppCompatActivity {
 
     void updateCarStatus()
     {
-        int state = (int)Settings.getLong(Settings.KEY_CAR_STATE);
-        double currentFuel = Settings.getDouble(Settings.KEY_FUEL_NOW);
-        double currentHp = Settings.getDouble(Settings.KEY_HITPOINTS);
-        double averageSpeedKmh = Tools.metersPerSecondToKilometersPerHour(Tools.getAverageSpeed());
+        int state = (int) getSettings().getLong(Settings.KEY_CAR_STATE);
+        double currentFuel = getSettings().getDouble(Settings.KEY_FUEL_NOW);
+        double currentHp = getSettings().getDouble(Settings.KEY_HITPOINTS);
+        double averageSpeedKmh = Tools.metersPerSecondToKilometersPerHour(Tools.getAverageSpeed(getSettings()));
 
         if (mCarState == state && Math.abs(currentFuel - mFuelNow) < 0.5 &&
                 Math.abs(currentHp - mCarStatusHitPoints) < 0.1 &&
@@ -438,9 +452,9 @@ public class GraphicActivity extends AppCompatActivity {
             }
             else
             {
-                long lastGpsSignal = Settings.getLong(Settings.KEY_LAST_GPS_UPDATE);
+                long lastGpsSignal = getSettings().getLong(Settings.KEY_LAST_GPS_UPDATE);
                 long now = System.currentTimeMillis();
-                long timeout = Settings.getLong(Settings.KEY_GPS_TIMEOUT);
+                long timeout = getSettings().getLong(Settings.KEY_GPS_TIMEOUT);
                 if (now - lastGpsSignal > timeout)
                 {
                     gpsError.setVisibility(View.VISIBLE);
@@ -450,7 +464,7 @@ public class GraphicActivity extends AppCompatActivity {
                 {
 
                     // enough fuel
-                    long siegeState = Settings.getLong(Settings.KEY_SIEGE_STATE);
+                    long siegeState = getSettings().getLong(Settings.KEY_SIEGE_STATE);
                     ImageView view = null;
                     if (siegeState == Settings.SIEGE_STATE_OFF)
                     {
@@ -487,12 +501,12 @@ public class GraphicActivity extends AppCompatActivity {
 
         if (mServerRunning)
         {
-            long success = Settings.getLong(Settings.KEY_LATEST_SUCCESS_CONNECTION);
-            long fail = Settings.getLong(Settings.KEY_LATEST_FAILED_CONNECTION);
+            long success = getSettings().getLong(Settings.KEY_LATEST_SUCCESS_CONNECTION);
+            long fail = getSettings().getLong(Settings.KEY_LATEST_FAILED_CONNECTION);
 
             if (success > fail)
             {
-                if (System.currentTimeMillis() - success < 2 * Settings.getLong(Settings.KEY_GPS_IDLE_INTERVAL))
+                if (System.currentTimeMillis() - success < 2 * getSettings().getLong(Settings.KEY_GPS_IDLE_INTERVAL))
                 {
                     newStatus = STATUS_OK;
                 } else
@@ -527,26 +541,26 @@ public class GraphicActivity extends AppCompatActivity {
 
     void updateAverageSpeed()
     {
-        int state = (int) Settings.getLong(Settings.KEY_CAR_STATE);
+        int state = (int) getSettings().getLong(Settings.KEY_CAR_STATE);
         ImageView logo = (ImageView) findViewById(R.id.logoImageView);
 
         if (Tools.isMyServiceRunning(this))
         {
-            double averageSpeedMps = Tools.getAverageSpeed();
+            double averageSpeedMps = Tools.getAverageSpeed(getSettings());
             double averageSpeedKmh = Tools.metersPerSecondToKilometersPerHour(averageSpeedMps);
 
-            double redZoneSpeed = LogicThread.getCurrentRedZone();
+            double redZoneSpeed = Tools.getCurrentRedZone(getSettings());
 
             switch (state)
             {
                 case Settings.CAR_STATE_MALFUNCTION_1:
-                    redZoneSpeed = (float) Settings.getDouble(Settings.KEY_MALFUNCTION1_RED_ZONE);
+                    redZoneSpeed = (float) getSettings().getDouble(Settings.KEY_MALFUNCTION1_RED_ZONE);
                     break;
                 case Settings.CAR_STATE_MALFUNCTION_2:
                     redZoneSpeed = -1;
                     break;
                 case Settings.CAR_STATE_OK:
-                    redZoneSpeed = (float) Settings.getDouble(Settings.KEY_RED_ZONE);
+                    redZoneSpeed = (float) getSettings().getDouble(Settings.KEY_RED_ZONE);
                     break;
             }
 
@@ -555,7 +569,7 @@ public class GraphicActivity extends AppCompatActivity {
                 return; // already done in updateCarStatus()
             }
 
-            if (!Tools.isCarMoving())
+            if (!Tools.isCarMoving(getSettings()))
             {
                 logo.setColorFilter(Color.GRAY);
                 return;
@@ -589,7 +603,7 @@ public class GraphicActivity extends AppCompatActivity {
     {
         ImageView gpsImageView = (ImageView)findViewById(R.id.gpsImageView);
 
-        int quality = (int)Settings.getLong(Settings.KEY_LOCATION_THREAD_LAST_QUALITY);
+        int quality = (int) getSettings().getLong(Settings.KEY_LOCATION_THREAD_LAST_QUALITY);
 
         int newStatus = STATUS_UNKNOWN;
 
@@ -630,8 +644,8 @@ public class GraphicActivity extends AppCompatActivity {
 
     void updateHitPoints()
     {
-        double currentHP = Settings.getDouble(Settings.KEY_HITPOINTS);
-        double maxHP = Settings.getDouble(Settings.KEY_MAXHITPOINTS);
+        double currentHP = getSettings().getDouble(Settings.KEY_HITPOINTS);
+        double maxHP = getSettings().getDouble(Settings.KEY_MAXHITPOINTS);
 
         if (currentHP == mHitPoints && maxHP == mMaxHitPoints)
             return;
@@ -656,8 +670,8 @@ public class GraphicActivity extends AppCompatActivity {
 
     void updateFuel()
     {
-        double currentFuel = Settings.getDouble(Settings.KEY_FUEL_NOW);
-        double maxFuel = Settings.getDouble(Settings.KEY_FUEL_MAX);
+        double currentFuel = getSettings().getDouble(Settings.KEY_FUEL_NOW);
+        double maxFuel = getSettings().getDouble(Settings.KEY_FUEL_MAX);
         maxFuel = Upgrades.upgradeValue(Settings.KEY_FUEL_MAX, maxFuel);
 
         if (currentFuel == mFuel && maxFuel == mMaxFuel)
@@ -683,7 +697,7 @@ public class GraphicActivity extends AppCompatActivity {
 
     void updateBluetoothStatus()
     {
-        int status = (int)Settings.getLong(Settings.KEY_BLUETOOTH_STATUS);
+        int status = (int) getSettings().getLong(Settings.KEY_BLUETOOTH_STATUS);
 
         int srv = mServerRunning? 1000 : 0;
 

@@ -21,6 +21,9 @@ import org.albiongames.madmadmax.power.activity.AboutActivity;
 import org.albiongames.madmadmax.power.activity.BluetoothDeviceActivity;
 import org.albiongames.madmadmax.power.activity.ServiceStatusActivity;
 import org.albiongames.madmadmax.power.activity.SettingsActivity;
+import org.albiongames.madmadmax.power.data_storage.FuelQuality;
+import org.albiongames.madmadmax.power.data_storage.Settings;
+import org.albiongames.madmadmax.power.data_storage.Upgrades;
 import org.albiongames.madmadmax.power.service.PowerService;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -208,18 +211,18 @@ public class Tools {
         return true;
     }
 
-    public static double getAverageSpeed()
+    public static double getAverageSpeed(Settings settings)
     {
-        double real = Settings.getDouble(Settings.KEY_AVERAGE_SPEED);
+        double real = settings.getDouble(Settings.KEY_AVERAGE_SPEED);
 //        double mock = Tools.kilometersPerHourToMetersPerSecond(Settings.getDouble(Settings.KEY_MOCK_AVERAGE_SPEED));
 //        if (mock < 0.0)
         return real;
 //        return mock;
     }
 
-    public static boolean isCarMoving()
+    public static boolean isCarMoving(Settings settings)
     {
-        double mps = getAverageSpeed();
+        double mps = getAverageSpeed(settings);
         double kmh = metersPerSecondToKilometersPerHour(mps);
 
         return kmh > 1.5;
@@ -338,5 +341,52 @@ public class Tools {
                 activity.runOnUiThread(runnable);
             }
         }).start();
+    }
+
+    public static double getCurrentRedZone(Settings settings)
+    {
+        double ret = 0.0;
+        String key = null;
+
+        if (settings.getLong(Settings.KEY_SIEGE_STATE) == Settings.SIEGE_STATE_OFF)
+        {
+            switch ((int) settings.getLong(Settings.KEY_CAR_STATE))
+            {
+            case Settings.CAR_STATE_OK:
+                key = Settings.KEY_RED_ZONE;
+                break;
+            case Settings.CAR_STATE_MALFUNCTION_1:
+                key = Settings.KEY_MALFUNCTION1_RED_ZONE;
+                break;
+            case Settings.CAR_STATE_MALFUNCTION_2:
+                ret = 0.0;
+                break;
+            }
+        }
+
+        if (key == null)
+            return 0.0;
+
+        ret = settings.getDouble(key);
+        ret = Upgrades.upgradeValue(key, ret);
+        ret = FuelQuality.upgradeValue(key, ret);
+
+        return ret;
+    }
+
+    public static int getDamageForCode(int code, Settings settings) {
+        String json = settings.getString(Settings.KEY_DAMAGE_CODE);
+        int ret = 1;
+        if (json != null) {
+            try {
+                JSONObject object = new JSONObject(json);
+                String codeString = Integer.toString(code);
+                ret = object.getInt(codeString);
+            } catch (JSONException ex) {
+
+            }
+        }
+
+        return ret;
     }
 }
