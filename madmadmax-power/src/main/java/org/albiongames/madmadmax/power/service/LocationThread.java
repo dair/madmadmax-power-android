@@ -1,4 +1,4 @@
-package org.albiongames.madmadmax.power;
+package org.albiongames.madmadmax.power.service;
 
 import android.content.Context;
 import android.location.Location;
@@ -7,6 +7,10 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Looper;
 import android.os.Parcel;
+
+import org.albiongames.madmadmax.power.Settings;
+import org.albiongames.madmadmax.power.Tools;
+import org.albiongames.madmadmax.power.data_storage.StorageEntry;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -290,6 +294,7 @@ public class LocationThread extends StatusThread implements LocationListener
     }
 
     /// Location Listener methods
+    @Override
     public void onLocationChanged(Location location)
     {
         // Called when a new location is found by the network location provider.
@@ -408,6 +413,7 @@ public class LocationThread extends StatusThread implements LocationListener
         }
     }
 
+    @Override
     public void onStatusChanged(String provider, int status, Bundle extras)
     {
 //        int satellites = extras.getInt("satellites");
@@ -415,12 +421,14 @@ public class LocationThread extends StatusThread implements LocationListener
 //        Tools.log("LocationTread::onStatusChanged: "+ provider + ": " + Integer.toString(status) + ": satellites = " + Integer.toString(satellites));
     }
 
+    @Override
     public void onProviderEnabled(String provider)
     {
         Tools.log("LocationThread::onProviderEnabled: " + provider);
         Settings.setLong(Settings.KEY_LOCATION_THREAD_STATUS, STATUS_ON);
     }
 
+    @Override
     public void onProviderDisabled(String provider)
     {
         Tools.log("LocationThread::onProviderDisabled: " + provider);

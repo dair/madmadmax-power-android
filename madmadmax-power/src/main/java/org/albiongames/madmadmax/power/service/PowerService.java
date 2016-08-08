@@ -1,4 +1,4 @@
-package org.albiongames.madmadmax.power;
+package org.albiongames.madmadmax.power.service;
 
 import android.app.Activity;
 import android.app.Service;
@@ -6,7 +6,13 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 
-import java.io.File;
+import org.albiongames.madmadmax.power.Settings;
+import org.albiongames.madmadmax.power.Tools;
+import org.albiongames.madmadmax.power.data_storage.FuelQuality;
+import org.albiongames.madmadmax.power.data_storage.Storage;
+import org.albiongames.madmadmax.power.data_storage.StorageEntry;
+import org.albiongames.madmadmax.power.data_storage.Upgrades;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;

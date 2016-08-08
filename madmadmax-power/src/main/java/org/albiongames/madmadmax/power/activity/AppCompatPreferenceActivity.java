@@ -1,4 +1,4 @@
-package org.albiongames.madmadmax.power;
+package org.albiongames.madmadmax.power.activity;
 
 import android.content.res.Configuration;
 import android.os.Bundle;

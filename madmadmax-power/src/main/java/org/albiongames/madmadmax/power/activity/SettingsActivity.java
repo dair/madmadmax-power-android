@@ -1,4 +1,4 @@
-package org.albiongames.madmadmax.power;
+package org.albiongames.madmadmax.power.activity;
 
 
 import android.annotation.TargetApi;
@@ -19,6 +19,9 @@ import android.preference.PreferenceManager;
 import android.preference.RingtonePreference;
 import android.text.TextUtils;
 import android.view.MenuItem;
+
+import org.albiongames.madmadmax.power.R;
+import org.albiongames.madmadmax.power.Settings;
 
 import java.util.List;
 

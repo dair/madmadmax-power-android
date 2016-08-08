@@ -1,5 +1,6 @@
-package org.albiongames.madmadmax.power;
+package org.albiongames.madmadmax.power.data_storage;
 
+import org.albiongames.madmadmax.power.Tools;
 import org.json.JSONException;
 import org.json.JSONObject;
 

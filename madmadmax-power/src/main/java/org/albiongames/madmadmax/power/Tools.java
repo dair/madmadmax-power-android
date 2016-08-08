@@ -8,7 +8,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.location.LocationManager;
-import android.os.AsyncTask;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
@@ -16,14 +15,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.FrameLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import org.albiongames.madmadmax.power.activity.AboutActivity;
+import org.albiongames.madmadmax.power.activity.BluetoothDeviceActivity;
+import org.albiongames.madmadmax.power.activity.ServiceStatusActivity;
+import org.albiongames.madmadmax.power.activity.SettingsActivity;
+import org.albiongames.madmadmax.power.service.PowerService;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;

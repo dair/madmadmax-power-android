@@ -1,6 +1,5 @@
-package org.albiongames.madmadmax.power;
+package org.albiongames.madmadmax.power.activity;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -18,6 +17,10 @@ import android.widget.EditText;
 
 import android.provider.Settings.Secure;
 
+import org.albiongames.madmadmax.power.service.NetworkingThread;
+import org.albiongames.madmadmax.power.R;
+import org.albiongames.madmadmax.power.Settings;
+import org.albiongames.madmadmax.power.Tools;
 import org.json.JSONException;
 import org.json.JSONObject;
 

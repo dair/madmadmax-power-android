@@ -1,9 +1,13 @@
-package org.albiongames.madmadmax.power;
+package org.albiongames.madmadmax.power.activity;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+
+import org.albiongames.madmadmax.power.data_storage.FuelQuality;
+import org.albiongames.madmadmax.power.Settings;
+import org.albiongames.madmadmax.power.data_storage.Upgrades;
 
 public class MainActivity extends Activity
 {
