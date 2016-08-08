@@ -28,8 +28,4 @@ dependencies {
     compile 'com.squareup:tape:1.2.3'
     compile 'net.objecthunter:exp4j:0.4.7'
     compile project(':BluetoothSPPLibrary:library')
-    // https://mvnrepository.com/artifact/nl.qbusict/cupboard
-    compile group: 'nl.qbusict', name: 'cupboard', version: '2.1.4'
-    // https://mvnrepository.com/artifact/com.googlecode.android-query/android-query
-    compile group: 'com.googlecode.android-query', name: 'android-query', version: '0.25.9'
 }
