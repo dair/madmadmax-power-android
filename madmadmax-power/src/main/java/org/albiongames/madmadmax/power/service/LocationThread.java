@@ -294,7 +294,7 @@ public class LocationThread extends StatusThread implements LocationListener
     }
 
     /// Location Listener methods
-  @Override
+    @Override
     public void onLocationChanged(Location location)
     {
         // Called when a new location is found by the network location provider.
@@ -413,7 +413,7 @@ public class LocationThread extends StatusThread implements LocationListener
         }
     }
 
-  @Override
+    @Override
     public void onStatusChanged(String provider, int status, Bundle extras)
     {
 //        int satellites = extras.getInt("satellites");
@@ -421,14 +421,14 @@ public class LocationThread extends StatusThread implements LocationListener
 //        Tools.log("LocationTread::onStatusChanged: "+ provider + ": " + Integer.toString(status) + ": satellites = " + Integer.toString(satellites));
     }
 
-  @Override
+    @Override
     public void onProviderEnabled(String provider)
     {
         Tools.log("LocationThread::onProviderEnabled: " + provider);
         Settings.setLong(Settings.KEY_LOCATION_THREAD_STATUS, STATUS_ON);
     }
 
-  @Override
+    @Override
     public void onProviderDisabled(String provider)
     {
         Tools.log("LocationThread::onProviderDisabled: " + provider);
