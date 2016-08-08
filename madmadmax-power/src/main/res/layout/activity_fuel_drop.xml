@@ -29,7 +29,6 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_toStartOf="@+id/progressBarFuel"
-        android:layout_above="@+id/button2"
         android:layout_toLeftOf="@+id/progressBarFuel" />
 
     <Button
