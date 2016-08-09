@@ -8,9 +8,9 @@ import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.PopupMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -23,13 +23,14 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import org.albiongames.madmadmax.power.data_storage.Settings;
-import org.albiongames.madmadmax.power.service.BluetoothThread;
-import org.albiongames.madmadmax.power.service.LogicThread;
-import org.albiongames.madmadmax.power.service.PowerService;
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import org.albiongames.madmadmax.power.R;
 import org.albiongames.madmadmax.power.Tools;
+import org.albiongames.madmadmax.power.data_storage.Settings;
 import org.albiongames.madmadmax.power.data_storage.Upgrades;
+import org.albiongames.madmadmax.power.service.BluetoothThread;
+import org.albiongames.madmadmax.power.service.PowerService;
 
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -57,7 +58,59 @@ public class GraphicActivity extends AppCompatActivity {
 
     boolean mServerRunning = false;
 
-    ImageView mCoverImage = null;
+    //Views:
+    @BindView(R.id.coverImage)
+    ImageView mCoverImage;
+    @BindView(R.id.menuButton)
+    ImageButton menuButton;
+    @BindView(R.id.timerText)
+    TextView mScreenTimerTextView;
+    @BindView(R.id.progressBarFuel)
+    ProgressBar fuelBar;
+    @BindView(R.id.progressBarHP)
+    ProgressBar hpBar;
+    @BindView(R.id.fuelText)
+    TextView fuelText;
+    @BindView(R.id.logoImageView)
+    ImageView logo;
+    @BindView(R.id.fireImageView)
+    ImageView fire;
+
+    @BindView(R.id.engineImageView)
+    ImageView engine;
+    @BindView(R.id.fuelImageView)
+    ImageView fuel;
+    @BindView(R.id.stopSignImageView)
+    ImageView stop;
+    @BindView(R.id.deathImageView)
+    ImageView death;
+    @BindView(R.id.gpsErrorImageView)
+    ImageView gpsError;
+    @BindView(R.id.networkingImageView)
+    ImageView networkingImageView;
+    @BindView(R.id.gpsImageView)
+    ImageView gpsImageView;
+    @BindView(R.id.bluetoothImageView)
+    ImageView bluetoothImageView;
+
+
+    @BindView(R.id.background)
+    LinearLayout background;
+    @BindView(R.id.versionTextView)
+    TextView versionView;
+
+    @BindView(R.id.nameTextView)
+    TextView nameView;
+    @BindView(R.id.hpText)
+    TextView hpText;
+
+
+
+
+
+
+
+
 
     ScheduledThreadPoolExecutor mExecutor = null;
     ScheduledThreadPoolExecutor mFlashExecutor = null;
@@ -65,7 +118,6 @@ public class GraphicActivity extends AppCompatActivity {
     long mFlashExecutorStart = 0;
     ScheduledThreadPoolExecutor mTimerExecutor = null;
     long mScreenTimerTime = 0;
-    TextView mScreenTimerTextView = null;
 
     int mBluetoothState = -100;
 
@@ -82,11 +134,13 @@ public class GraphicActivity extends AppCompatActivity {
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_graphic);
-        mCoverImage = (ImageView)findViewById(R.id.coverImage);
 
-        settings = new Settings(this);
+        ButterKnife.bind(this);
 
-        final ImageButton menuButton = (ImageButton)findViewById(R.id.menuButton);
+
+
+      settings = new Settings(this);
+
         if (menuButton != null)
         {
             boolean hasMenuKey = ViewConfiguration.get(this).hasPermanentMenuKey();
@@ -105,10 +159,7 @@ public class GraphicActivity extends AppCompatActivity {
             }
         }
 
-        mScreenTimerTextView = (TextView)findViewById(R.id.timerText);
 
-        final ProgressBar fuelBar = (ProgressBar)findViewById(R.id.progressBarFuel);
-        assert fuelBar != null;
         fuelBar.setOnLongClickListener(new View.OnLongClickListener()
         {
             @Override
@@ -129,8 +180,7 @@ public class GraphicActivity extends AppCompatActivity {
                         {
                             if (getSettings().getDouble(Settings.KEY_HITPOINTS) > 0)
                             {
-                                TextView t = (TextView)findViewById(R.id.fuelText);
-                                PopupMenu menu = new PopupMenu(GraphicActivity.this, t);
+                                PopupMenu menu = new PopupMenu(GraphicActivity.this, fuelText);
                                 menu.inflate(R.menu.fuel_menu);
 
                                 menu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener()
@@ -174,8 +224,6 @@ public class GraphicActivity extends AppCompatActivity {
             }
         });
 
-        ProgressBar hpBar = (ProgressBar)findViewById(R.id.progressBarHP);
-        assert hpBar != null;
         hpBar.setOnLongClickListener(new View.OnLongClickListener()
         {
             @Override
@@ -214,8 +262,6 @@ public class GraphicActivity extends AppCompatActivity {
             }
         });
 
-        ImageView logo = (ImageView)findViewById(R.id.logoImageView);
-        assert logo != null;
         logo.setOnLongClickListener(new View.OnLongClickListener()
         {
             @Override
@@ -251,8 +297,6 @@ public class GraphicActivity extends AppCompatActivity {
             }
         });
 
-        ImageView fire = (ImageView)findViewById(R.id.fireImageView);
-        assert fire != null;
         fire.setOnLongClickListener(new View.OnLongClickListener()
         {
             @Override
@@ -326,12 +370,7 @@ public class GraphicActivity extends AppCompatActivity {
             ex.printStackTrace();
         }
 
-        TextView versionView = (TextView)findViewById(R.id.versionTextView);
-        assert versionView != null;
         versionView.setText(version);
-
-        TextView nameView = (TextView)findViewById(R.id.nameTextView);
-        assert nameView != null;
         nameView.setText(getSettings().getString(Settings.KEY_DEVICE_NAME));
 
         IntentFilter intentFilter = new IntentFilter();
@@ -381,15 +420,6 @@ public class GraphicActivity extends AppCompatActivity {
                 Math.abs(averageSpeedKmh - mCarStatusAverageSpeed) < 1)
             return;
 
-        ImageView logo = (ImageView)findViewById(R.id.logoImageView);
-        ImageView engine = (ImageView)findViewById(R.id.engineImageView);
-        ImageView fuel = (ImageView)findViewById(R.id.fuelImageView);
-        ImageView stop = (ImageView)findViewById(R.id.stopSignImageView);
-        ImageView death = (ImageView)findViewById(R.id.deathImageView);
-        ImageView fire = (ImageView)findViewById(R.id.fireImageView);
-        ImageView gpsError = (ImageView)findViewById(R.id.gpsErrorImageView);
-
-        LinearLayout background = (LinearLayout)findViewById(R.id.background);
 
         logo.setVisibility(View.INVISIBLE);
         engine.setVisibility(View.INVISIBLE);
@@ -523,7 +553,6 @@ public class GraphicActivity extends AppCompatActivity {
             return;
 
         mNetworkStatus = newStatus;
-        ImageView networkingImageView = (ImageView)findViewById(R.id.networkingImageView);
 
         switch (mNetworkStatus)
         {
@@ -542,7 +571,6 @@ public class GraphicActivity extends AppCompatActivity {
     void updateAverageSpeed()
     {
         int state = (int) getSettings().getLong(Settings.KEY_CAR_STATE);
-        ImageView logo = (ImageView) findViewById(R.id.logoImageView);
 
         if (Tools.isMyServiceRunning(this))
         {
@@ -601,7 +629,6 @@ public class GraphicActivity extends AppCompatActivity {
 
     void updateGpsStatus()
     {
-        ImageView gpsImageView = (ImageView)findViewById(R.id.gpsImageView);
 
         int quality = (int) getSettings().getLong(Settings.KEY_LOCATION_THREAD_LAST_QUALITY);
 
@@ -653,11 +680,9 @@ public class GraphicActivity extends AppCompatActivity {
         mHitPoints = currentHP;
         mMaxHitPoints = maxHP;
 
-        ProgressBar progressBar = (ProgressBar)findViewById(R.id.progressBarHP);
-        progressBar.setMax(Math.round((float)mMaxHitPoints));
-        progressBar.setProgress(Math.round((float)mHitPoints));
+        hpBar.setMax(Math.round((float)mMaxHitPoints));
+        hpBar.setProgress(Math.round((float)mHitPoints));
 
-        TextView hpText = (TextView)findViewById(R.id.hpText);
         if (mServerRunning)
         {
             hpText.setTextColor(Color.WHITE);
@@ -680,11 +705,9 @@ public class GraphicActivity extends AppCompatActivity {
         mFuel = currentFuel;
         mMaxFuel = maxFuel;
 
-        ProgressBar progressBar = (ProgressBar)findViewById(R.id.progressBarFuel);
-        progressBar.setMax((int)Math.round(mMaxFuel));
-        progressBar.setProgress((int)Math.round(mFuel));
+        fuelBar.setMax((int)Math.round(mMaxFuel));
+        fuelBar.setProgress((int)Math.round(mFuel));
 
-        TextView fuelText = (TextView)findViewById(R.id.fuelText);
         if (mServerRunning)
         {
             fuelText.setTextColor(Color.WHITE);
@@ -735,8 +758,7 @@ public class GraphicActivity extends AppCompatActivity {
             }
         }
 
-        ImageView image = (ImageView)findViewById(R.id.bluetoothImageView);
-        image.setColorFilter(color);
+        bluetoothImageView.setColorFilter(color);
     }
 
     @Override
