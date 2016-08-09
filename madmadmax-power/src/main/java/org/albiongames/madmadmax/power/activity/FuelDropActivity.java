@@ -10,18 +10,26 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 
 import org.albiongames.madmadmax.power.R;
-import org.albiongames.madmadmax.power.Settings;
+import org.albiongames.madmadmax.power.data_storage.Settings;
 import org.albiongames.madmadmax.power.Tools;
 import org.albiongames.madmadmax.power.data_storage.Upgrades;
 
 public class FuelDropActivity extends Activity
 {
     boolean mTimerActive = false;
+    private Settings settings;
+
+    public Settings getSettings() {
+        assert settings!=null;
+        return settings;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fuel_drop);
+
+        settings = new Settings(this);
 
         final ProgressBar bar = (ProgressBar)findViewById(R.id.progressBarFuel);
         bar.setOnTouchListener(new View.OnTouchListener() {
@@ -43,7 +51,7 @@ public class FuelDropActivity extends Activity
 
                 int max = bar.getMax();
                 int progress = (int)Math.round(max * ratio);
-                int fuelNow = (int)Math.round(Settings.getDouble(Settings.KEY_FUEL_NOW));
+                int fuelNow = (int)Math.round(getSettings().getDouble(Settings.KEY_FUEL_NOW));
                 if (progress > fuelNow)
                     progress = fuelNow;
                 bar.setProgress(progress);
@@ -88,8 +96,8 @@ public class FuelDropActivity extends Activity
     {
         super.onResume();
 
-        double fuelNow = Settings.getDouble(Settings.KEY_FUEL_NOW);
-        double fuelMax = Settings.getDouble(Settings.KEY_FUEL_MAX);
+        double fuelNow = getSettings().getDouble(Settings.KEY_FUEL_NOW);
+        double fuelMax = getSettings().getDouble(Settings.KEY_FUEL_MAX);
         fuelMax = Upgrades.upgradeValue(Settings.KEY_FUEL_MAX, fuelMax);
 
         ProgressBar bar = (ProgressBar)findViewById(R.id.progressBarFuel);
@@ -101,10 +109,10 @@ public class FuelDropActivity extends Activity
     {
         ProgressBar bar = (ProgressBar)findViewById(R.id.progressBarFuel);
         int fuel = bar.getProgress();
-        double fuelMax = Settings.getDouble(Settings.KEY_FUEL_MAX);
+        double fuelMax = getSettings().getDouble(Settings.KEY_FUEL_MAX);
         double fuelDrop = fuelMax - fuel;
 
-        long ratio = Settings.getLong(Settings.KEY_FUEL_LOAD_SPEED);
+        long ratio = getSettings().getLong(Settings.KEY_FUEL_LOAD_SPEED);
         long timeout = Math.round(fuelDrop * ratio);
 
         mTimerActive = true;
@@ -121,7 +129,7 @@ public class FuelDropActivity extends Activity
         ProgressBar bar = (ProgressBar)findViewById(R.id.progressBarFuel);
         int fuel = bar.getProgress();
 
-        Settings.setDouble(Settings.KEY_FUEL_NOW, fuel);
+        getSettings().setDouble(Settings.KEY_FUEL_NOW, fuel);
 
         FuelDropActivity.this.finish();
     }

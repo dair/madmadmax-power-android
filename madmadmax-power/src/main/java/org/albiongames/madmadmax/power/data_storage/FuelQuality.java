@@ -13,8 +13,7 @@ import java.util.Set;
 /**
  * Created by dair on 24/07/16.
  */
-public class FuelQuality
-{
+public class FuelQuality {
     private final String FILENAME = "fuel_quality.json";
     String mPath = null;
 

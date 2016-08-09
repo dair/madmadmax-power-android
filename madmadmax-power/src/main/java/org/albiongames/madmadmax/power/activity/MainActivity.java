@@ -6,7 +6,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 
 import org.albiongames.madmadmax.power.data_storage.FuelQuality;
-import org.albiongames.madmadmax.power.Settings;
+import org.albiongames.madmadmax.power.data_storage.Settings;
 import org.albiongames.madmadmax.power.data_storage.Upgrades;
 
 public class MainActivity extends Activity
@@ -16,13 +16,12 @@ public class MainActivity extends Activity
     {
         super.onCreate(savedInstanceState);
 
-        Settings.setContext(this);
         Upgrades.setPath(getFilesDir().getPath());
         FuelQuality.setPath(getFilesDir().getPath());
 
         final Class<? extends Activity> activityClass;
 
-        if (Settings.getString(Settings.KEY_DEVICE_ID) == null)
+        if (new Settings(this).getString(Settings.KEY_DEVICE_ID) == null)
         {
             activityClass = RegisterActivity.class;
         }

@@ -13,10 +13,11 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import org.albiongames.madmadmax.power.data_storage.Settings;
+import org.albiongames.madmadmax.power.network.NetworkTools;
 import org.albiongames.madmadmax.power.service.NetworkingThread;
 import org.albiongames.madmadmax.power.service.PowerService;
 import org.albiongames.madmadmax.power.R;
-import org.albiongames.madmadmax.power.Settings;
 import org.albiongames.madmadmax.power.service.StatusThread;
 import org.albiongames.madmadmax.power.Tools;
 
@@ -29,11 +30,20 @@ public class ServiceStatusActivity extends AppCompatActivity
 
     ScheduledThreadPoolExecutor mExecutor = null;
 
+    private Settings settings;
+
+    public Settings getSettings() {
+        assert settings!=null;
+        return settings;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_service_status);
+
+        settings = new Settings(this);
 
         Button button = (Button)findViewById(R.id.button);
         button.setOnClickListener(new View.OnClickListener()
@@ -51,7 +61,7 @@ public class ServiceStatusActivity extends AppCompatActivity
             @Override
             public void onClick(View v)
             {
-                long now = Settings.getLong(Settings.KEY_MOCK_DATA);
+                long now = getSettings().getLong(Settings.KEY_MOCK_DATA);
                 if (now == Settings.MOCK_DATA_PLAY)
                 {
                     now = Settings.MOCK_DATA_OFF;
@@ -59,7 +69,7 @@ public class ServiceStatusActivity extends AppCompatActivity
                 else
                     ++now;
 
-                Settings.setLong(Settings.KEY_MOCK_DATA, now);
+                getSettings().setLong(Settings.KEY_MOCK_DATA, now);
             }
         });
     }
@@ -75,7 +85,7 @@ public class ServiceStatusActivity extends AppCompatActivity
         super.onResume();
 
         Button mockButton = (Button) findViewById(R.id.mockButton);
-        if (Settings.getLong(Settings.KEY_MOCK_AVAILABLE) == 1)
+        if (getSettings().getLong(Settings.KEY_MOCK_AVAILABLE) == 1)
         {
             mockButton.setVisibility(View.VISIBLE);
         }
@@ -170,7 +180,7 @@ public class ServiceStatusActivity extends AppCompatActivity
         }
 
         button = (Button)findViewById(R.id.mockButton);
-        switch ((int)Settings.getLong(Settings.KEY_MOCK_DATA))
+        switch ((int) getSettings().getLong(Settings.KEY_MOCK_DATA))
         {
             case Settings.MOCK_DATA_OFF:
                 button.setText("Mock OFF");
@@ -232,8 +242,8 @@ public class ServiceStatusActivity extends AppCompatActivity
 
     protected void updateNetworkState()
     {
-        long success = Settings.getLong(Settings.KEY_LATEST_SUCCESS_CONNECTION);
-        long fail = Settings.getLong(Settings.KEY_LATEST_FAILED_CONNECTION);
+        long success = getSettings().getLong(Settings.KEY_LATEST_SUCCESS_CONNECTION);
+        long fail = getSettings().getLong(Settings.KEY_LATEST_FAILED_CONNECTION);
 
         TextView text = (TextView)findViewById(R.id.networkStatusText);
         if (text == null)
@@ -242,7 +252,7 @@ public class ServiceStatusActivity extends AppCompatActivity
         if (success > fail)
         {
             text.setText("OK");
-            if (System.currentTimeMillis() - success < 2*Settings.getLong(Settings.KEY_GPS_IDLE_INTERVAL))
+            if (System.currentTimeMillis() - success < 2* getSettings().getLong(Settings.KEY_GPS_IDLE_INTERVAL))
             {
                 text.setTextColor(Color.GREEN);
             }
@@ -265,7 +275,7 @@ public class ServiceStatusActivity extends AppCompatActivity
             return;
 
         String text = "";
-        int state = (int)Settings.getLong(Settings.KEY_CAR_STATE);
+        int state = (int) getSettings().getLong(Settings.KEY_CAR_STATE);
         switch (state)
         {
             case Settings.CAR_STATE_OK:
@@ -288,13 +298,13 @@ public class ServiceStatusActivity extends AppCompatActivity
         if (textView == null)
             return;
 
-        double averageSpeed = Tools.getAverageSpeed();
+        double averageSpeed = Tools.getAverageSpeed(getSettings());
         double averageSpeedKmH = Tools.metersPerSecondToKilometersPerHour(averageSpeed);
 
         textView.setText(Double.toString(averageSpeedKmH));
 
 
-        double lastSpeed = Settings.getDouble(Settings.KEY_LAST_INSTANT_SPEED);
+        double lastSpeed = getSettings().getDouble(Settings.KEY_LAST_INSTANT_SPEED);
         double lastSpeedKmH = Tools.metersPerSecondToKilometersPerHour(lastSpeed);
         TextView lastSpeedTextView = (TextView)findViewById(R.id.lastInstantSpeedTextView);
         if (lastSpeedTextView != null)
@@ -303,7 +313,7 @@ public class ServiceStatusActivity extends AppCompatActivity
         }
 
         TextView lastGpsTextView = (TextView)findViewById(R.id.lastGpsSignalTextView);
-        long lastTime = Settings.getLong(Settings.KEY_LAST_GPS_UPDATE);
+        long lastTime = getSettings().getLong(Settings.KEY_LAST_GPS_UPDATE);
         if (lastTime > 0)
         {
             long now = System.currentTimeMillis();
@@ -324,7 +334,7 @@ public class ServiceStatusActivity extends AppCompatActivity
         if (textView == null)
             return;
 
-        double distance = Settings.getDouble(Settings.KEY_TRACK_DISTANCE);
+        double distance = getSettings().getDouble(Settings.KEY_TRACK_DISTANCE);
         textView.setText(Double.toString(distance));
     }
 
@@ -388,15 +398,15 @@ public class ServiceStatusActivity extends AppCompatActivity
 
     void updateTraffic()
     {
-        long rx = Settings.getLong(Settings.KEY_RX_BYTES);
-        long tx = Settings.getLong(Settings.KEY_TX_BYTES);
+        long rx = getSettings().getLong(Settings.KEY_RX_BYTES);
+        long tx = getSettings().getLong(Settings.KEY_TX_BYTES);
         String value = Long.toString(rx) + "/" + Long.toString(tx) + " (" + Long.toString(rx + tx) + ")";
         TextView textView = (TextView)findViewById(R.id.trafficTextView);
         textView.setText(value);
 
         TextView ratio = (TextView)findViewById(R.id.ratioTextView);
-        rx = NetworkingThread.getRx();
-        tx = NetworkingThread.getTx();
+        rx = NetworkTools.getRx();
+        tx = NetworkTools.getTx();
         value = Long.toString(rx) + "/" + Long.toString(tx) + " (" + Long.toString(rx + tx) + ")";
         ratio.setText(value);
 
@@ -405,7 +415,7 @@ public class ServiceStatusActivity extends AppCompatActivity
     void updateHitPoints()
     {
         TextView hpView = (TextView)findViewById(R.id.hpTextView);
-        double hp = Settings.getDouble(Settings.KEY_HITPOINTS);
+        double hp = getSettings().getDouble(Settings.KEY_HITPOINTS);
         hpView.setText(Double.toString(hp));
     }
 

@@ -1,6 +1,6 @@
 package org.albiongames.madmadmax.power.data_storage;
 
-import org.albiongames.madmadmax.power.Settings;
+import org.albiongames.madmadmax.power.Tools;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -243,11 +243,13 @@ public class StorageEntry
     public static class Damage extends Base
     {
         String mRaw = null;
+        private Settings settings;
 
-        public Damage(String raw)
+        public Damage(String raw, Settings settings)
         {
             super(TYPE_DAMAGE);
             mRaw = raw;
+            this.settings = settings;
         }
 
         public int getDamage()
@@ -257,7 +259,7 @@ public class StorageEntry
 
             int code = Integer.valueOf(mRaw.substring(mRaw.length()-1), 16); // last symbol
 
-            return Settings.getDamageForCode(code) + 1;
+            return Tools.getDamageForCode(code, settings) + 1;
         }
 
         public Damage(JSONObject object) throws  JSONException

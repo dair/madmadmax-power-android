@@ -6,7 +6,7 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 
-import org.albiongames.madmadmax.power.Settings;
+import org.albiongames.madmadmax.power.data_storage.Settings;
 import org.albiongames.madmadmax.power.Tools;
 import org.albiongames.madmadmax.power.data_storage.FuelQuality;
 import org.albiongames.madmadmax.power.data_storage.Storage;
@@ -62,6 +62,14 @@ public class PowerService extends Service
     Error mError = null;
 
     long mStartTime = 0;
+
+    private Settings settings;
+
+    public Settings getSettings() {
+        assert settings!=null;
+        return settings;
+    }
+
 
     public class LocalBinder extends Binder
     {
@@ -121,6 +129,8 @@ public class PowerService extends Service
     @Override
     public int onStartCommand(Intent intent, int flags, int startId)
     {
+        settings = new Settings(this);
+
         Tools.log("Service: onStartCommand");
         mStartTime = System.currentTimeMillis();
 
@@ -146,10 +156,10 @@ public class PowerService extends Service
 
                 dump(COMPONENT, "start");
 
-                mLocationThread = new LocationThread(this);
-                mBluetoothThread = new BluetoothThread(this);
-                mNetworkingThread = new NetworkingThread(this);
-                mLogicThread = new LogicThread(this);
+                mLocationThread = new LocationThread(this, settings);
+                mBluetoothThread = new BluetoothThread(this, settings);
+                mNetworkingThread = new NetworkingThread(this, settings);
+                mLogicThread = new LogicThread(this, settings);
 
                 mLocationThread.start();
                 mBluetoothThread.start();
@@ -281,7 +291,7 @@ public class PowerService extends Service
         return getStatusThreadStatus(mLogicThread);
     }
 
-    public BluetoothThread getBluetoothThread()
+    public BaseThread getBluetoothThread()
     {
         return mBluetoothThread;
     }
@@ -291,7 +301,7 @@ public class PowerService extends Service
 
     public void dump(final String component, final String message)
     {
-        if (Settings.getLong(Settings.KEY_EXTRA_DEBUG) != 1)
+        if (getSettings().getLong(Settings.KEY_EXTRA_DEBUG) != 1)
             return;
 
         String string = component + ": " + message;

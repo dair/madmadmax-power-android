@@ -9,9 +9,10 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import org.albiongames.madmadmax.power.data_storage.FuelQuality;
+import org.albiongames.madmadmax.power.data_storage.Settings;
+import org.albiongames.madmadmax.power.network.NetworkTools;
 import org.albiongames.madmadmax.power.service.NetworkingThread;
 import org.albiongames.madmadmax.power.R;
-import org.albiongames.madmadmax.power.Settings;
 import org.albiongames.madmadmax.power.Tools;
 import org.albiongames.madmadmax.power.data_storage.Upgrades;
 import org.json.JSONException;
@@ -21,10 +22,18 @@ public class FuelLoadActivity extends Activity
 {
     boolean mTimerActive = false;
 
+    private Settings settings;
+
+    public Settings getSettings() {
+        assert settings!=null;
+        return settings;
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fuel_load);
+
+        settings = new Settings(this);
 
         Button sendButton = (Button)findViewById(R.id.sendButton);
         sendButton.setOnClickListener(new View.OnClickListener() {
@@ -93,9 +102,9 @@ public class FuelLoadActivity extends Activity
             JSONObject ret = null;
             try {
                 object.put("code", mCode);
-                object.put("dev_id", Settings.getString(Settings.KEY_DEVICE_ID));
-                NetworkingThread.Request request = new NetworkingThread.Request("POST", NetworkingThread.fuelUrl(), object);
-                NetworkingThread.Response response = NetworkingThread.one(request, NetworkingThread.ZIP_AUTO);
+                object.put("dev_id", getSettings().getString(Settings.KEY_DEVICE_ID));
+                NetworkTools.Request request = new NetworkTools.Request("POST", NetworkTools.fuelUrl(getSettings()), object);
+                NetworkTools.Response response = NetworkTools.one(request, NetworkTools.ZIP_AUTO,getSettings());
 
                 ret = response.getObject();
             } catch (JSONException ex) {
@@ -151,7 +160,7 @@ public class FuelLoadActivity extends Activity
                 {
                     mReturnObject = object;
                     int amount = mReturnObject.getInt("amount");
-                    long timeRatio = Settings.getLong(Settings.KEY_FUEL_LOAD_SPEED);
+                    long timeRatio = getSettings().getLong(Settings.KEY_FUEL_LOAD_SPEED);
 
                     long timeout = amount * timeRatio;
 
@@ -195,12 +204,12 @@ public class FuelLoadActivity extends Activity
             // got some fuel
             int amount = mReturnObject.getInt("amount");
 
-            double fuelNow = Settings.getDouble(Settings.KEY_FUEL_NOW);
-            double fuelMax = Settings.getDouble(Settings.KEY_FUEL_MAX);
+            double fuelNow = getSettings().getDouble(Settings.KEY_FUEL_NOW);
+            double fuelMax = getSettings().getDouble(Settings.KEY_FUEL_MAX);
             fuelMax = Upgrades.upgradeValue(Settings.KEY_FUEL_MAX, fuelMax);
 
             double fuelBecome = Tools.clamp(fuelNow + amount, 0, fuelMax);
-            Settings.setDouble(Settings.KEY_FUEL_NOW, fuelBecome);
+            getSettings().setDouble(Settings.KEY_FUEL_NOW, fuelBecome);
 
             JSONObject upgrades = null;
             if (mReturnObject.has("upgrades")) {

@@ -14,7 +14,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import org.albiongames.madmadmax.power.R;
-import org.albiongames.madmadmax.power.Settings;
+import org.albiongames.madmadmax.power.data_storage.Settings;
 import org.albiongames.madmadmax.power.Tools;
 
 import java.util.ArrayList;
@@ -25,44 +25,18 @@ public class BluetoothDeviceActivity extends AppCompatActivity
 {
 //    public class
     int REQUEST_ENABLE_BT = 0xBB02;
+    private Settings settings;
 
-    class DeviceInfo
-    {
-        BluetoothDevice mDevice = null;
-
-        public DeviceInfo(BluetoothDevice device)
-        {
-            mDevice = device;
-        }
-
-        public BluetoothDevice getDevice()
-        {
-            return mDevice;
-        }
-
-        @Override
-        public String toString()
-        {
-            if (mDevice == null)
-                return "NULL";
-
-            String current = "";
-            String currentDevice = Settings.getString(Settings.KEY_BLUETOOTH_DEVICE);
-            if (currentDevice != null && currentDevice.equals(mDevice.getAddress()))
-            {
-                current = "X ";
-            }
-
-            return current + mDevice.getName() + " (" + mDevice.getAddress() + ")";
-        }
-    }
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bluetooth_device);
+
+        settings = new Settings(this);
 
         ListView listView = (ListView)findViewById(R.id.listView);
         listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -173,7 +147,7 @@ public class BluetoothDeviceActivity extends AppCompatActivity
 
         final ListView list = (ListView)findViewById(R.id.listView);
         final String itemAddress = ((DeviceInfo)list.getAdapter().getItem(position)).getDevice().getAddress();
-        String storedAddress = Settings.getString(Settings.KEY_BLUETOOTH_DEVICE);
+        String storedAddress = getSettings().getString(Settings.KEY_BLUETOOTH_DEVICE);
 
         if (itemAddress.equals(storedAddress))
         {
@@ -214,8 +188,45 @@ public class BluetoothDeviceActivity extends AppCompatActivity
             return;
         }
 
-        Settings.setString(Settings.KEY_BLUETOOTH_DEVICE, address);
+        getSettings().setString(Settings.KEY_BLUETOOTH_DEVICE, address);
 
         ((ArrayAdapter)list.getAdapter()).notifyDataSetChanged();
     }
+
+    public Settings getSettings() {
+        assert settings!=null;
+        return settings;
+    }
+
+    class DeviceInfo
+    {
+        BluetoothDevice mDevice = null;
+
+        public DeviceInfo(BluetoothDevice device)
+        {
+            mDevice = device;
+        }
+
+        public BluetoothDevice getDevice()
+        {
+            return mDevice;
+        }
+
+        @Override
+        public String toString()
+        {
+            if (mDevice == null)
+                return "NULL";
+
+            String current = "";
+            String currentDevice = getSettings().getString(Settings.KEY_BLUETOOTH_DEVICE);
+            if (currentDevice != null && currentDevice.equals(mDevice.getAddress()))
+            {
+                current = "X ";
+            }
+
+            return current + mDevice.getName() + " (" + mDevice.getAddress() + ")";
+        }
+    }
+
 }

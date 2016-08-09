@@ -21,7 +21,7 @@ import android.text.TextUtils;
 import android.view.MenuItem;
 
 import org.albiongames.madmadmax.power.R;
-import org.albiongames.madmadmax.power.Settings;
+import org.albiongames.madmadmax.power.data_storage.Settings;
 
 import java.util.List;
 

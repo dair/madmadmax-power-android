@@ -17,9 +17,10 @@ import android.widget.EditText;
 
 import android.provider.Settings.Secure;
 
+import org.albiongames.madmadmax.power.data_storage.Settings;
+import org.albiongames.madmadmax.power.network.NetworkTools;
 import org.albiongames.madmadmax.power.service.NetworkingThread;
 import org.albiongames.madmadmax.power.R;
-import org.albiongames.madmadmax.power.Settings;
 import org.albiongames.madmadmax.power.Tools;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -30,11 +31,22 @@ public class RegisterActivity extends AppCompatActivity
     Button mRegisterButton = null;
     EditText mDeviceNameWidget = null;
 
+    private Settings settings;
+
+    public Settings getSettings() {
+        assert settings!=null;
+        return settings;
+    }
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
+
+        settings = new Settings(this);
+
         mRegisterButton = (Button)findViewById(R.id.registerButton);
         mDeviceNameWidget = (EditText)findViewById(R.id.deviceName);
         mDeviceNameWidget.addTextChangedListener(new TextWatcher()
@@ -90,10 +102,10 @@ public class RegisterActivity extends AppCompatActivity
     {
         super.onResume();
 
-        mStoredDeviceName = Settings.getString(Settings.KEY_DEVICE_NAME);
+        mStoredDeviceName = getSettings().getString(Settings.KEY_DEVICE_NAME);
         if (mStoredDeviceName == null)
         {
-            mStoredDeviceName = Settings.getString(Settings.KEY_REGISTER_NAME);
+            mStoredDeviceName = getSettings().getString(Settings.KEY_REGISTER_NAME);
             if (mStoredDeviceName == null)
             {
                 mStoredDeviceName = "";
@@ -115,7 +127,7 @@ public class RegisterActivity extends AppCompatActivity
         if (mDeviceNameWidget != null)
         {
             String name = mDeviceNameWidget.getText().toString().trim();
-            Settings.setString(Settings.KEY_REGISTER_NAME, name);
+            getSettings().setString(Settings.KEY_REGISTER_NAME, name);
         }
     }
 
@@ -139,7 +151,7 @@ public class RegisterActivity extends AppCompatActivity
             return;
         }
 
-        final NetworkingThread.Request request = new NetworkingThread.Request("POST", NetworkingThread.authUrl(), object);
+        final NetworkTools.Request request = new NetworkTools.Request("POST", NetworkTools.authUrl(getSettings()), object);
 
         AsyncTask task = new AsyncTask()
         {
@@ -148,7 +160,7 @@ public class RegisterActivity extends AppCompatActivity
             {
                 try
                 {
-                    final NetworkingThread.Response response = NetworkingThread.one(request, NetworkingThread.ZIP_AUTO);
+                    final NetworkTools.Response response = NetworkTools.one(request, NetworkTools.ZIP_AUTO, getSettings());
                     final String deviceId = response.getObject().getString("id");
 
                     RegisterActivity.this.runOnUiThread(new Runnable()
@@ -156,12 +168,12 @@ public class RegisterActivity extends AppCompatActivity
                         @Override
                         public void run()
                         {
-                            Settings.setString(Settings.KEY_DEVICE_ID, deviceId);
+                            getSettings().setString(Settings.KEY_DEVICE_ID, deviceId);
                             Tools.messageBox(RegisterActivity.this, R.string.reg_success);
 
                             EditText deviceNameWidget = (EditText)RegisterActivity.this.findViewById(R.id.deviceName);
                             mStoredDeviceName = deviceNameWidget.getText().toString();
-                            Settings.setString(Settings.KEY_DEVICE_NAME, mStoredDeviceName);
+                            getSettings().setString(Settings.KEY_DEVICE_NAME, mStoredDeviceName);
                             Tools.hideKeyboard(RegisterActivity.this);
 
                             Intent newActivity = new Intent(RegisterActivity.this, GraphicActivity.class);

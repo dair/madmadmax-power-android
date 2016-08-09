@@ -10,15 +10,14 @@ import java.util.regex.Pattern;
 
 import app.akexorcist.bluetotohspp.library.BluetoothSPP;
 import app.akexorcist.bluetotohspp.library.BluetoothState;
-import org.albiongames.madmadmax.power.Settings;
+import org.albiongames.madmadmax.power.data_storage.Settings;
 import org.albiongames.madmadmax.power.Tools;
 import org.albiongames.madmadmax.power.data_storage.StorageEntry;
 
 /**
  * Created by dair on 31/03/16.
  */
-public class BluetoothThread extends Thread
-{
+public class BluetoothThread extends BaseThread {
     static final String COMPONENT = "bluetooth";
 
     public static final int STATUS_OFF = 0;
@@ -93,8 +92,9 @@ public class BluetoothThread extends Thread
         return false;
     }
 
-    BluetoothThread(PowerService service)
+    BluetoothThread(PowerService service, Settings settings)
     {
+        super(settings);
         mService = service;
         setStatus(STATUS_OFF);
     }
@@ -290,7 +290,7 @@ public class BluetoothThread extends Thread
 
     public void setStatus(int status)
     {
-        Settings.setLong(Settings.KEY_BLUETOOTH_STATUS, status);
+        getSettings().setLong(Settings.KEY_BLUETOOTH_STATUS, status);
         mLastStatusTime = System.currentTimeMillis();
         Tools.log("setStatus: " + Integer.toString(status));
         mStatus = status;
@@ -314,7 +314,7 @@ public class BluetoothThread extends Thread
         if (getStatus() == STATUS_STOPPING)
             return;
 
-        String address = Settings.getString(Settings.KEY_BLUETOOTH_DEVICE);
+        String address = getSettings().getString(Settings.KEY_BLUETOOTH_DEVICE);
         if (address != null)
         {
             setStatus(STATUS_CONNECTING);
@@ -347,7 +347,7 @@ public class BluetoothThread extends Thread
         {
             mService.dump(COMPONENT, "Bang! " + message);
             // shooting number is hex number
-            mService.getLogicStorage().put(new StorageEntry.Damage(message));
+            mService.getLogicStorage().put(new StorageEntry.Damage(message,getSettings()));
         }
     }
 
@@ -405,12 +405,12 @@ public class BluetoothThread extends Thread
     void updateState()
     {
         char newLed = 0;
-        if (Settings.getDouble(Settings.KEY_HITPOINTS) <= 0.0)
+        if (getSettings().getDouble(Settings.KEY_HITPOINTS) <= 0.0)
         {
             // red
             newLed = LED_RED;
         }
-        else if (Settings.getLong(Settings.KEY_SIEGE_STATE) == Settings.SIEGE_STATE_ON)
+        else if (getSettings().getLong(Settings.KEY_SIEGE_STATE) == Settings.SIEGE_STATE_ON)
         {
             newLed = LED_YELLOW;
         }
@@ -453,4 +453,5 @@ public class BluetoothThread extends Thread
             setLed(c, updateList.get(c));
         }
     }
+
 }
