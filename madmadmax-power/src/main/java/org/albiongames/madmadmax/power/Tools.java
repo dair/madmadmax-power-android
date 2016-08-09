@@ -107,13 +107,17 @@ public class Tools {
     }
 
     public static boolean isMyServiceRunning(Activity activity) {
-        ActivityManager manager = (ActivityManager) activity.getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (PowerService.class.getName().equals(service.service.getClassName())) {
-                return true;
-            }
-        }
-        return false;
+//        ActivityManager manager = (ActivityManager) activity.getSystemService(Context.ACTIVITY_SERVICE);
+//        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+//            if (PowerService.class.getName().equals(service.service.getClassName())) {
+//                return true;
+//            }
+//        }
+//        return false;
+        // Sory, but no!
+
+        return PowerService.isServiceRunning;
+
     }
 
     public static boolean processMenu(MenuItem item, Activity activity) {

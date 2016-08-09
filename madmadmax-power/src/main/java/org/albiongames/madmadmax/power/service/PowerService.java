@@ -26,6 +26,8 @@ public class PowerService extends Service
     static PowerService mInstance = null;
     static final String COMPONENT = "Service";
 
+    public static volatile boolean isServiceRunning = false; // It is bad, i know. But it is fast.
+
     public static PowerService instance()
     {
         return mInstance;
@@ -174,6 +176,7 @@ public class PowerService extends Service
                 stopSelf();
             }
         }
+        isServiceRunning = true;
         return START_STICKY;
     }
 
@@ -185,6 +188,7 @@ public class PowerService extends Service
     @Override
     public void onDestroy()
     {
+        isServiceRunning = false;
 
         Tools.log("Service: onDestroy");
         mInstance = null;

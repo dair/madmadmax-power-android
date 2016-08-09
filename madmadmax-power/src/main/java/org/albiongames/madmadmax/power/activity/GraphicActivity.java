@@ -137,26 +137,21 @@ public class GraphicActivity extends AppCompatActivity {
 
         ButterKnife.bind(this);
 
+        settings = new Settings(this);
 
-
-      settings = new Settings(this);
-
-        if (menuButton != null)
+        boolean hasMenuKey = ViewConfiguration.get(this).hasPermanentMenuKey();
+        int visibility = hasMenuKey? View.INVISIBLE : View.VISIBLE;
+        menuButton.setVisibility(visibility);
+        if (visibility == View.VISIBLE)
         {
-            boolean hasMenuKey = ViewConfiguration.get(this).hasPermanentMenuKey();
-            int visibility = hasMenuKey? View.INVISIBLE : View.VISIBLE;
-            menuButton.setVisibility(visibility);
-            if (visibility == View.VISIBLE)
+            menuButton.setOnClickListener(new View.OnClickListener()
             {
-                menuButton.setOnClickListener(new View.OnClickListener()
+                @Override
+                public void onClick(View v)
                 {
-                    @Override
-                    public void onClick(View v)
-                    {
-                        showPopupMenu(menuButton);
-                    }
-                });
-            }
+                    showPopupMenu(menuButton);
+                }
+            });
         }
 
 
