@@ -109,4 +109,5 @@
 
     <string name="menu_fuel_load">Load fuel</string>
     <string name="menu_fuel_drop">Drop fuel</string>
+    <string name="setup_here"><![CDATA[Set it here ->]]></string>
 </resources>
