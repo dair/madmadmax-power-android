@@ -110,4 +110,6 @@ public interface ISettingsKeys {
 
   String DAMAGE_ACTION = "DAMAGE_ACTION";
 
+  String KEY_GPS_FILTER_DISTANCE = PARAMS_PREFIX + "gps_filter_distance";
+
 }
