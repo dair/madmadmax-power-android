@@ -162,6 +162,9 @@ public class Settings extends SettingsKeys {
       ret = Entity.build(key,null);
     }
 
+    if (TextUtils.equals(ret.value, value))
+      return; // No need to save equals values
+
     ret.value = value;
 
     ret.isChanged = true;
