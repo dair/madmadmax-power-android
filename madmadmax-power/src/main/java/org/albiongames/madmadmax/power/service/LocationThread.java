@@ -36,6 +36,7 @@ public class LocationThread extends StatusThread implements LocationListener
     long mGpsDistance = -100;
 
     Location mLastLocation = null;
+    int mLastLocationCount = 0;
     List<Location> mLastLocations = new LinkedList<>();
 
     boolean mMockRun = true;
@@ -361,7 +362,15 @@ public class LocationThread extends StatusThread implements LocationListener
 
         double lat = location.getLatitude();
         double lon = location.getLongitude();
-        float speed = location.getSpeed();
+        float speed = 0;//location.getSpeed();
+
+//        final double MILLION = 1000000d;
+//
+//        lat = Math.round(lat * MILLION) / MILLION;
+//        lon = Math.round(lon * MILLION) / MILLION;
+//
+//        location.setLatitude(lat);
+//        location.setLongitude(lon);
 
         getSettings().setDouble(Settings.KEY_LAST_INSTANT_SPEED, speed);
         getSettings().setLong(Settings.KEY_LAST_GPS_UPDATE, localTime);
@@ -370,24 +379,42 @@ public class LocationThread extends StatusThread implements LocationListener
         if (mLastLocation != null)
         {
             localDistance = location.distanceTo(mLastLocation);
+            long timeDiff = location.getTime() - mLastLocation.getTime();
+            speed = (float)(localDistance / (timeDiff / 1000.0));
         }
         else
         {
             mLastLocation = location;
+            mLastLocation.setSpeed(0);
         }
 
-        if (localDistance < getSettings().getDouble(Settings.KEY_GPS_FILTER_DISTANCE) ||
-                speed < getSettings().getDouble(Settings.KEY_GPS_FILTER_SPEED))
+        double speedFilter = getSettings().getDouble(Settings.KEY_GPS_FILTER_SPEED);
+        double distanceFilter = getSettings().getDouble(Settings.KEY_GPS_FILTER_DISTANCE);
+        if (localDistance < distanceFilter &&
+                (mLastLocation.getSpeed() < (float)speedFilter && speed < (float)speedFilter))
         {
             //skip it but gently
             speed = 0;
             location.setSpeed(0);
             localDistance = 0;
+
+
+            double lat0 = mLastLocation.getLatitude();
+            double lon0 = mLastLocation.getLongitude();
+
+            ++mLastLocationCount;
+
+            lat = lat / (mLastLocationCount + 1) + (lat0 * mLastLocationCount) / (mLastLocationCount + 1);
+            lon = lon / (mLastLocationCount + 1) + (lon0 * mLastLocationCount) / (mLastLocationCount + 1);
+
+            mLastLocation.setLatitude(lat);
+            mLastLocation.setLongitude(lon);
         }
         else
         {
             // really "else". If the user starts driving or even walking then range someday will increase
             mLastLocation = location;
+            mLastLocationCount = 0;
         }
 
         StorageEntry.Location location1 = new StorageEntry.Location(localTime, lat, lon, acc, speed, localDistance, satellites);
