@@ -32,4 +32,7 @@ dependencies {
 
     compile 'com.jakewharton:butterknife:8.2.1'
     apt 'com.jakewharton:butterknife-compiler:8.2.1'
+    // https://mvnrepository.com/artifact/nl.qbusict/cupboard
+    compile group: 'nl.qbusict', name: 'cupboard', version: '2.1.4'
+
 }
