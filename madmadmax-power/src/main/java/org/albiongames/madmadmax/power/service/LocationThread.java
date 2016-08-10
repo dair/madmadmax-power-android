@@ -371,11 +371,17 @@ public class LocationThread extends StatusThread implements LocationListener
         {
             localDistance = location.distanceTo(mLastLocation);
         }
+        else
+        {
+            mLastLocation = location;
+        }
 
-        if (localDistance < getSettings().getDouble(Settings.KEY_GPS_FILTER_DISTANCE))
+        if (localDistance < getSettings().getDouble(Settings.KEY_GPS_FILTER_DISTANCE) ||
+                speed < getSettings().getDouble(Settings.KEY_GPS_FILTER_SPEED))
         {
             //skip it but gently
             speed = 0;
+            location.setSpeed(0);
             localDistance = 0;
         }
         else
