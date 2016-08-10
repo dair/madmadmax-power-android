@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.os.Looper;
 import android.os.Parcel;
 
-import org.albiongames.madmadmax.power.data_storage.ISettingsKeys;
 import org.albiongames.madmadmax.power.data_storage.Settings;
 import org.albiongames.madmadmax.power.Tools;
 import org.albiongames.madmadmax.power.data_storage.StorageEntry;
@@ -373,7 +372,7 @@ public class LocationThread extends StatusThread implements LocationListener
             localDistance = location.distanceTo(mLastLocation);
         }
 
-        if (localDistance < getSettings().getDouble(ISettingsKeys.KEY_GPS_FILTER_DISTANCE))
+        if (localDistance < getSettings().getDouble(Settings.KEY_GPS_FILTER_DISTANCE))
         {
             //skip it but gently
             speed = 0;

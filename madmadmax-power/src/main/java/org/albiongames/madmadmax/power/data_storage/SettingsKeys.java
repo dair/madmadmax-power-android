@@ -115,7 +115,8 @@ public abstract class SettingsKeys implements ISettingsKeys {
     mDefaults.put(KEY_FUEL_LOAD_SPEED, "360"); // milliseconds for one unit of fuel
     mDefaults.put(KEY_HP_LOAD_SPEED, "25000"); // milliseconds for one Hit Point
 
-    mDefaults.put(KEY_GPS_FILTER_DISTANCE, "2"); // meters
+    mDefaults.put(KEY_GPS_FILTER_DISTANCE, "1"); // in meters; location change less than this doesn't count
+    mDefaults.put(KEY_GPS_FILTER_SPEED, "2"); // in km/h; speed less than this doesn't count
 
     // FORMULAS
 
