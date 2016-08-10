@@ -55,7 +55,7 @@ public class Settings extends SettingsKeys {
   private Handler saveHandler = new Handler(new Callback() {
     @Override
     public boolean handleMessage(Message msg) {
-      Log.d(TAG, "saveDb() called ");
+//      Log.d(TAG, "saveDb() called ");
 
       SQLiteDatabase db = dbHelper.getWritableDatabase();
 
@@ -63,7 +63,7 @@ public class Settings extends SettingsKeys {
 
       for (Entity entity: shortDataContainer.values()) {
         if (entity.isChanged){
-          Log.d(TAG, "saveData key = "+ entity.key + " value = " + entity.value);
+//          Log.d(TAG, "saveData key = "+ entity.key + " value = " + entity.value);
           changeList.add(entity);
           entity.isChanged = false;
         }
@@ -89,13 +89,13 @@ public class Settings extends SettingsKeys {
    */
   @Deprecated
   public void loadData() {
-    Log.d(TAG, "loadData() called with " + "");
+//    Log.d(TAG, "loadData() called with " + "");
     SQLiteDatabase db = dbHelper.getReadableDatabase();
     List<Entity> list = cupboard().withDatabase(db).query(Entity.class).list();
 
     for (Entity entity : list) {
       entity.isChanged = false;
-      Log.d(TAG, "loadData key = "+ entity.key + " value = " + entity.value);
+//      Log.d(TAG, "loadData key = "+ entity.key + " value = " + entity.value);
       shortDataContainer.put(entity.key,entity);
     }
     db.close();
@@ -107,7 +107,7 @@ public class Settings extends SettingsKeys {
   }
 
   public void setString(final String key, final String value) {
-    Log.d(TAG, "setString() called with " + "key = [" + key + "], value = [" + value + "]");
+//    Log.d(TAG, "setString() called with " + "key = [" + key + "], value = [" + value + "]");
     pSetString(key, value);
   }
 

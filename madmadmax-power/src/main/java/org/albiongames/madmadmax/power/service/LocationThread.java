@@ -35,9 +35,9 @@ public class LocationThread extends StatusThread implements LocationListener
     long mGpsTime = -100;
     long mGpsDistance = -100;
 
-    Location mLastLocation = null;
     int mLastLocationCount = 0;
     List<Location> mLastLocations = new LinkedList<>();
+    List<Location> mLocations = new LinkedList<>();
 
     boolean mMockRun = true;
 
@@ -65,6 +65,7 @@ public class LocationThread extends StatusThread implements LocationListener
         Tools.log("LocationThread: start");
         Looper.prepare();
         mLooper = Looper.myLooper();
+        mLocations.clear();
 
         onStart();
 
@@ -217,7 +218,8 @@ public class LocationThread extends StatusThread implements LocationListener
         mGpsDistance = -100;
 
         mLastUpdate = System.currentTimeMillis();
-        mLastLocation = null;
+        mLocations.clear();
+        
         getSettings().setDouble(Settings.KEY_AVERAGE_SPEED, 0.0);
 
         mService.getLogicStorage().put(new StorageEntry.MarkerStart());
@@ -358,63 +360,63 @@ public class LocationThread extends StatusThread implements LocationListener
 
         getSettings().setLong(Settings.KEY_LOCATION_THREAD_LAST_QUALITY, 1);
 
-        Tools.log("Got location: " + location.toString());
+        Tools.log("Got location: " + Double.toString(location.getLatitude()) + ", " + Double.toString(location.getLongitude()));
 
         double lat = location.getLatitude();
         double lon = location.getLongitude();
-        float speed = 0;//location.getSpeed();
-
-//        final double MILLION = 1000000d;
-//
-//        lat = Math.round(lat * MILLION) / MILLION;
-//        lon = Math.round(lon * MILLION) / MILLION;
-//
-//        location.setLatitude(lat);
-//        location.setLongitude(lon);
+        float speed = 0;
 
         getSettings().setDouble(Settings.KEY_LAST_INSTANT_SPEED, speed);
         getSettings().setLong(Settings.KEY_LAST_GPS_UPDATE, localTime);
 
         double localDistance = 0;
-        if (mLastLocation != null)
+        long timeDiff = 0;
+
+        Location lastLocation = getAverage();
+
+        if (lastLocation != null)
         {
-            localDistance = location.distanceTo(mLastLocation);
-            long timeDiff = location.getTime() - mLastLocation.getTime();
-            speed = (float)(localDistance / (timeDiff / 1000.0));
+            Tools.log("Average last location is " + Double.toString(lastLocation.getLatitude()) + ", " + Double.toString(lastLocation.getLongitude()));
+
+            localDistance = location.distanceTo(lastLocation);
+            timeDiff = location.getTime() - lastLocation.getTime();
+            if (location.hasSpeed())
+            {
+                speed = location.getSpeed();
+            }
+            else
+            {
+                speed = (float)(localDistance / (timeDiff / 1000.0));
+            }
+
+            Tools.log("localDistance is " + Double.toString(localDistance) + ", dt = " + Long.toString(timeDiff) + ", speed = " + Float.toString(speed));
         }
         else
         {
-            mLastLocation = location;
-            mLastLocation.setSpeed(0);
+            location.setSpeed(0);
+            lastLocation = location;
         }
 
-        double speedFilter = getSettings().getDouble(Settings.KEY_GPS_FILTER_SPEED);
+        double speedFilter = Tools.kilometersPerHourToMetersPerSecond(getSettings().getDouble(Settings.KEY_GPS_FILTER_SPEED));
         double distanceFilter = getSettings().getDouble(Settings.KEY_GPS_FILTER_DISTANCE);
         if (localDistance < distanceFilter &&
-                (mLastLocation.getSpeed() < (float)speedFilter && speed < (float)speedFilter))
+                (lastLocation.getSpeed() < (float)speedFilter && speed < (float)speedFilter))
         {
             //skip it but gently
             speed = 0;
             location.setSpeed(0);
             localDistance = 0;
 
-
-            double lat0 = mLastLocation.getLatitude();
-            double lon0 = mLastLocation.getLongitude();
-
-            ++mLastLocationCount;
-
-            lat = lat / (mLastLocationCount + 1) + (lat0 * mLastLocationCount) / (mLastLocationCount + 1);
-            lon = lon / (mLastLocationCount + 1) + (lon0 * mLastLocationCount) / (mLastLocationCount + 1);
-
-            mLastLocation.setLatitude(lat);
-            mLastLocation.setLongitude(lon);
+            mLocations.add(location);
         }
         else
         {
             // really "else". If the user starts driving or even walking then range someday will increase
-            mLastLocation = location;
-            mLastLocationCount = 0;
+            localDistance = mLocations.get(0).distanceTo(location);
+            mLocations.clear();
+            mLocations.add(location);
+
+            Tools.log("accepting location");
         }
 
         StorageEntry.Location location1 = new StorageEntry.Location(localTime, lat, lon, acc, speed, localDistance, satellites);
@@ -423,7 +425,6 @@ public class LocationThread extends StatusThread implements LocationListener
         mLastUpdate = localTime;
 
         addLocation(location);
-
 
         long averageSpeedTime = getSettings().getLong(Settings.KEY_AVERAGE_SPEED_TIME);
         getSettings().setDouble(Settings.KEY_AVERAGE_SPEED, averageSpeed(averageSpeedTime));
@@ -487,7 +488,6 @@ public class LocationThread extends StatusThread implements LocationListener
         float speed = 0;
         long now = System.currentTimeMillis(); //mLastLocations.get(mLastLocations.size()-1).getTime();//
         long minTime = now - duration;
-//        System.out.println("now is: " + Long.toString(now) + ", minTime: " + Long.toString(minTime));
 
         LinkedList<Long> xs = new LinkedList<>();
         LinkedList<Float> ys = new LinkedList<>();
@@ -585,5 +585,37 @@ public class LocationThread extends StatusThread implements LocationListener
     boolean isMockPlay()
     {
         return getSettings().getLong(Settings.KEY_MOCK_DATA) == Settings.MOCK_DATA_PLAY;
+    }
+
+    Location getAverage()
+    {
+        if (mLocations.isEmpty())
+            return null;
+
+        double lat = 0;
+        double lon = 0;
+        long time = 0;
+        float speed = 0;
+
+        for (Location l: mLocations)
+        {
+            lat += l.getLatitude();
+            lon += l.getLongitude();
+            speed += l.getSpeed();
+
+            time = l.getTime();
+        }
+
+        lat /= mLocations.size();
+        lon /= mLocations.size();
+        speed /= mLocations.size();
+
+        Location location = new Location("");
+        location.setLatitude(lat);
+        location.setLongitude(lon);
+        location.setTime(time);
+        location.setSpeed(speed);
+
+        return location;
     }
 }
