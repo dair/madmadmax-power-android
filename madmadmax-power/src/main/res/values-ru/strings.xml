@@ -57,13 +57,14 @@
     <string name="tools_check_gps_disabled">GPS выключен. Смысла в этой программе без GPS нет, фоновый сервис не будет запущен. Включите GPS в настройках устройства.</string>
 
 
-    <string name="fuel_drop_description">Выставьте желаемый уровень топлива справа, потом нажмите кнопку. Топливо пропадёт безвовзратно.</string>
-    <string name="fuel_drop_commit">Слить топливо в песок</string>
+    <string name="fuel_drop_description">Выставьте остаток топлива справа, потом нажмите кнопку. Топливо сольется до этой отметки. Вернуться на основной экран можно по кнопке back. ⤆</string>
+    <string name="fuel_drop_commit">Слить топливо!</string>
     <string name="fuel_drop_confirm">Топливо пропадёт навсегда. Вы уверены, что хотите слить топливо?</string>
     <string name="fuel_drop_comment">Топливо медленно вытекает&#8230; Кап&#8230; Кап&#8230;</string>
 
     <string name="menu_fuel_load">Залить топливо</string>
     <string name="menu_fuel_drop">Слить топливо в песок</string>
+    <string name="setup_here">Выставить здесь ⟶</string>
 
 </resources>
 
