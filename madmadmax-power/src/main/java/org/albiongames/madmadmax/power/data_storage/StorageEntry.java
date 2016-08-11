@@ -243,23 +243,26 @@ public class StorageEntry
     public static class Damage extends Base
     {
         String mRaw = null;
-        private Settings settings;
 
-        public Damage(String raw, Settings settings)
+        public Damage(String raw)
         {
             super(TYPE_DAMAGE);
             mRaw = raw;
-            this.settings = settings;
+
+            while (mRaw.length() < 3)
+            {
+                mRaw = "0" + mRaw;
+            }
         }
 
-        public int getDamage()
+        public int getDamageCode()
         {
             if (mRaw == null || mRaw.isEmpty())
                 return 0;
 
-            int code = Integer.valueOf(mRaw.substring(mRaw.length()-1), 16); // last symbol
+            int code = Integer.valueOf(mRaw.substring(0, 1), 16); // first symbol
 
-            return Tools.getDamageForCode(code, settings) + 1;
+            return code;
         }
 
         public Damage(JSONObject object) throws  JSONException
@@ -274,7 +277,7 @@ public class StorageEntry
             JSONObject jsonObject = super.toJsonObject();
             try
             {
-                jsonObject.put("damage", getDamage());
+                jsonObject.put("damage", getDamageCode());
                 if (mRaw != null)
                     jsonObject.put("raw", mRaw);
             }

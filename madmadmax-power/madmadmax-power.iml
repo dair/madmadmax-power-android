@@ -125,8 +125,8 @@
     <orderEntry type="library" exported="" name="recyclerview-v7-23.4.0" level="project" />
     <orderEntry type="library" exported="" name="support-v4-23.4.0" level="project" />
     <orderEntry type="library" exported="" name="cupboard-2.1.4" level="project" />
-    <orderEntry type="library" exported="" name="tape-1.2.3" level="project" />
     <orderEntry type="library" exported="" name="butterknife-annotations-8.2.1" level="project" />
+    <orderEntry type="library" exported="" name="tape-1.2.3" level="project" />
     <orderEntry type="module" module-name="library" exported="" />
   </component>
 </module>

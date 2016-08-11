@@ -188,7 +188,8 @@ public class LogicThread extends StatusThread
     void processDamage(StorageEntry.Damage damage)
     {
         double hpNow = getSettings().getDouble(Settings.KEY_HITPOINTS);
-        int damageNum = damage.getDamage();
+        int damageCode = damage.getDamageCode();
+        int damageNum = Tools.getDamageForCode(damageCode, getSettings());
         double damageModified = damageNum - getCurrentDamageResistance();
 
         if (damageModified > 0)

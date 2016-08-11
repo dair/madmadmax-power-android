@@ -347,7 +347,7 @@ public class BluetoothThread extends BaseThread {
         {
             mService.dump(COMPONENT, "Bang! " + message);
             // shooting number is hex number
-            mService.getLogicStorage().put(new StorageEntry.Damage(message,getSettings()));
+            mService.getLogicStorage().put(new StorageEntry.Damage(message));
         }
     }
 

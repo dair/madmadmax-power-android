@@ -9,8 +9,8 @@ android {
         applicationId "org.albiongames.madmadmax.power"
         minSdkVersion 15
         targetSdkVersion 23
-        versionCode 15
-        versionName "0.15rc"
+        versionCode 16
+        versionName "0.16rc"
     }
     buildTypes {
         release {
