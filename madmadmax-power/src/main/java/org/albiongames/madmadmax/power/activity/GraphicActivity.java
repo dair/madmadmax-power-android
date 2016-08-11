@@ -487,7 +487,6 @@ public class GraphicActivity extends AppCompatActivity {
                 }
                 else
                 {
-
                     // enough fuel
                     long siegeState = getSettings().getLong(Settings.KEY_SIEGE_STATE);
                     ImageView view = null;
