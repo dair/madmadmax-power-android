@@ -365,6 +365,7 @@ public class LocationThread extends StatusThread implements LocationListener
         double lat = location.getLatitude();
         double lon = location.getLongitude();
         float speed = 0;
+        float speed1 = 0;
 
         getSettings().setDouble(Settings.KEY_LAST_INSTANT_SPEED, speed);
         getSettings().setLong(Settings.KEY_LAST_GPS_UPDATE, localTime);
@@ -383,13 +384,16 @@ public class LocationThread extends StatusThread implements LocationListener
             if (location.hasSpeed())
             {
                 speed = location.getSpeed();
+                speed1 = (float)(localDistance / (timeDiff / 1000.0));
             }
             else
             {
-                speed = (float)(localDistance / (timeDiff / 1000.0));
+                speed1 = speed = (float)(localDistance / (timeDiff / 1000.0));
             }
 
-            Tools.log("localDistance is " + Double.toString(localDistance) + ", dt = " + Long.toString(timeDiff) + ", speed = " + Float.toString(speed));
+            Tools.log("localDistance is " + Double.toString(localDistance) + ", dt = " + Long.toString(timeDiff) + ", speed = " + Float.toString(speed) + ", " + Float.toString(speed1));
+
+            speed = Math.min(speed, speed1);
         }
         else
         {

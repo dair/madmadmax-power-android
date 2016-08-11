@@ -241,6 +241,12 @@ public class RepairLoadActivity extends Activity
                 newState = Settings.CAR_STATE_MALFUNCTION_1;
                 break;
         }
+
+        if (mMultiplier >= 2.0)
+        {
+            newState = Settings.CAR_STATE_OK;
+        }
+
         getSettings().setLong(Settings.KEY_CAR_STATE, (long)newState);
 
         Tools.messageBox(this, R.string.repair_load_success, new Runnable() {

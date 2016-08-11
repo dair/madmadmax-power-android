@@ -95,6 +95,10 @@ public class LogicThread extends StatusThread
         processLocationGasoline(rangePassedMeters);
         processLocationHitPoints(rangePassedMeters);
 
+        double hp = getSettings().getDouble(Settings.KEY_HITPOINTS);
+        double fuel = getSettings().getDouble(Settings.KEY_FUEL_NOW);
+        Tools.log("hp: " + Double.toString(hp) + ", fuel: " + Double.toString(fuel));
+
         double trackDistance = getSettings().getDouble(Settings.KEY_TRACK_DISTANCE);
         double trackDistanceBecome = trackDistance + rangePassedMeters;
         mService.dump(COMPONENT, "Total distance: was: " + Double.toString(trackDistance) + ", passed: " + Double.toString(rangePassedMeters) + ", become: " + Double.toString(trackDistanceBecome));
