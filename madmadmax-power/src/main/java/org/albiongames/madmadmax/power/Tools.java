@@ -284,7 +284,7 @@ public class Tools {
     }
 
 
-    public static void showTimer(final Activity activity, final long time, int stringId, final Runnable runnable)
+    public static void showTimer(final Activity activity, final long time, int stringId, final RunnableArg periodic, final Runnable runnable)
     {
         final TextView timerView = new TextView(activity);
         timerView.setBackgroundColor(Color.BLACK);
@@ -307,9 +307,7 @@ public class Tools {
         commentView.setTextSize(24);
         layout.addView(commentView);
 
-
-
-        long now = System.currentTimeMillis();
+        final long now = System.currentTimeMillis();
         final long finishTime = now + time;
 
         new Thread(new Runnable()
@@ -318,11 +316,23 @@ public class Tools {
             @Override
             public void run()
             {
+                long lastSecondUpdate = 0;
                 while (true)
                 {
                     long remain = mFinishTime - System.currentTimeMillis();
                     if (remain <= 0)
                         break;
+
+                    long secondBorder = 1000* (remain / 1000);
+
+                    if (secondBorder != lastSecondUpdate)
+                    {
+                        lastSecondUpdate = secondBorder;
+                        double percent = 1.0 - ((double)remain / (double)time);
+
+                        periodic.setArgs(new Double(percent));
+                        activity.runOnUiThread(periodic);
+                    }
 
                     final String remainString = remain < 60000 ? String.format("%d.%03d", remain / 1000, remain % 1000) : String.format("%d:%02d", remain / 1000 / 60, (remain / 1000) % 60);
 

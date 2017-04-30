@@ -97,13 +97,13 @@ public class FuelQuality {
 
         for (String key: names)
         {
-            double homeValue = 0.0;
+            double homeValue = 1.0;
             if (mValues.containsKey(key))
             {
                 homeValue = mValues.get(key);
             }
 
-            double addedValue = 0.0;
+            double addedValue = 1.0;
             if (quality.has(key))
             {
                 try {

@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import org.albiongames.madmadmax.power.RunnableArg;
 import org.albiongames.madmadmax.power.data_storage.Settings;
 import org.albiongames.madmadmax.power.network.NetworkTools;
 import org.albiongames.madmadmax.power.service.NetworkingThread;
@@ -177,13 +178,22 @@ public class RepairLoadActivity extends Activity
                     player.setEnabled(false);
 
                     mTimerActive = true;
-                    Tools.showTimer(this, timeout, R.string.repair_load_comment, new Runnable()
-                    {
-                        @Override
-                        public void run() {
-                            afterTimer();
-                        }
-                    });
+                    Tools.showTimer(this, timeout, R.string.repair_load_comment,
+                            new RunnableArg()
+                            {
+                                @Override
+                                public void run()
+                                {
+
+                                }
+                            },
+                            new Runnable()
+                            {
+                                @Override
+                                public void run() {
+                                    afterTimer();
+                                }
+                            });
                 }
                 else
                 {

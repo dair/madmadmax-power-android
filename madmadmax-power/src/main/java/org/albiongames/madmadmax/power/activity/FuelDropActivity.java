@@ -10,6 +10,7 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 
 import org.albiongames.madmadmax.power.R;
+import org.albiongames.madmadmax.power.RunnableArg;
 import org.albiongames.madmadmax.power.data_storage.Settings;
 import org.albiongames.madmadmax.power.Tools;
 import org.albiongames.madmadmax.power.data_storage.Upgrades;
@@ -108,15 +109,32 @@ public class FuelDropActivity extends Activity
     void startDropFuel()
     {
         ProgressBar bar = (ProgressBar)findViewById(R.id.progressBarFuel);
-        int fuel = bar.getProgress();
-        double fuelMax = getSettings().getDouble(Settings.KEY_FUEL_MAX);
-        double fuelDrop = fuelMax - fuel;
+        final int fuel = bar.getProgress();
+
+        final double fuelOnStart = getSettings().getDouble(Settings.KEY_FUEL_NOW);
+        final double fuelDrop = fuelOnStart - fuel;
 
         long ratio = getSettings().getLong(Settings.KEY_FUEL_LOAD_SPEED);
         long timeout = Math.round(fuelDrop * ratio);
 
         mTimerActive = true;
-        Tools.showTimer(this, timeout, R.string.fuel_drop_comment, new Runnable() {
+        Tools.showTimer(this, timeout, R.string.fuel_drop_comment,
+                new RunnableArg()
+                {
+                    @Override
+                    public void run()
+                    {
+                        double percent = (Double)getArgs()[0];
+                        double currentFuelValue = fuelDrop * percent;
+
+                        double fuelValue = fuelOnStart - currentFuelValue;
+
+                        getSettings().setDouble(Settings.KEY_FUEL_NOW, fuelValue);
+                    }
+                },
+
+        new Runnable()
+        {
             @Override
             public void run() {
                 apply();

@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import org.albiongames.madmadmax.power.RunnableArg;
 import org.albiongames.madmadmax.power.data_storage.FuelQuality;
 import org.albiongames.madmadmax.power.data_storage.Settings;
 import org.albiongames.madmadmax.power.network.NetworkTools;
@@ -169,7 +170,19 @@ public class FuelLoadActivity extends Activity
                     EditText text = (EditText)findViewById(R.id.fuelCodeText);
                     text.setEnabled(false);
 
-                    Tools.showTimer(this, timeout, R.string.fuel_load_comment, new Runnable()
+                    Tools.showTimer(this, timeout, R.string.fuel_load_comment,
+                            new RunnableArg()
+                            {
+                                @Override
+                                public void run()
+                                {
+                                    //double percent = (Double)getArgs()[0];
+
+                                }
+                            },
+
+
+                    new Runnable()
                     {
                         @Override
                         public void run() {
@@ -212,8 +225,8 @@ public class FuelLoadActivity extends Activity
             getSettings().setDouble(Settings.KEY_FUEL_NOW, fuelBecome);
 
             JSONObject upgrades = null;
-            if (mReturnObject.has("upgrades")) {
-                upgrades = mReturnObject.getJSONObject("upgrades");
+            if (mReturnObject.has("quality")) {
+                upgrades = mReturnObject.getJSONObject("quality");
             }
             FuelQuality.fuelAdd(fuelNow, fuelBecome - fuelNow, upgrades);
 
